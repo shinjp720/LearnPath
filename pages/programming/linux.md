@@ -7,7 +7,7 @@
 
 ---
 
-<a id="command" data-name="コマンド">
+<a id="command" data-name="コマンド"></a>
 
 ## コマンド
 
@@ -43,7 +43,7 @@
 
 ---
 
-<a id="package-management" data-name="パッケージ管理">
+<a id="package-management" data-name="パッケージ管理"></a>
 
 ## パッケージ管理
 
@@ -96,7 +96,7 @@ rsyncはLinuxやUnix系システムで広く使用されるファイル同期、
 
 ---
 
-<a id="file-management" data-name="ファイル管理">
+<a id="file-management" data-name="ファイル管理"></a>
 
 ## ファイル管理
 
@@ -122,7 +122,7 @@ rsyncはLinuxやUnix系システムで広く使用されるファイル同期、
 
 ---
 
-<a id="text-processing" data-name="テキスト処理">
+<a id="text-processing" data-name="テキスト処理"></a>
 
 ## テキスト処理
 ### grep
@@ -138,7 +138,7 @@ rsyncはLinuxやUnix系システムで広く使用されるファイル同期、
 
 ---
 
-<a id="viewing-and-editing-filea" data-name="ファイル閲覧・編集">
+<a id="viewing-and-editing-filea" data-name="ファイル閲覧・編集"></a>
 
 ## ファイル閲覧・編集
 
@@ -150,7 +150,7 @@ rsyncはLinuxやUnix系システムで広く使用されるファイル同期、
 
 ---
 
-<a id="comp-and-decomp" data-name="圧縮・解凍">
+<a id="comp-and-decomp" data-name="圧縮・解凍"></a>
 
 ## 圧縮・解凍
 
@@ -165,7 +165,7 @@ rsyncはLinuxやUnix系システムで広く使用されるファイル同期、
 
 ---
 
-<a id="network" data-name="ネットワーク">
+<a id="network" data-name="ネットワーク"></a>
 
 ## ネットワーク
 
@@ -184,7 +184,7 @@ rsyncはLinuxやUnix系システムで広く使用されるファイル同期、
 
 ---
 
-<a id="system-management" data-name="システム管理">
+<a id="system-management" data-name="システム管理"></a>
 
 ## システム管理
 
@@ -202,7 +202,7 @@ rsyncはLinuxやUnix系システムで広く使用されるファイル同期、
 
 ---
 
-<a id="user-management" data-name="権限・ユーザー管理">
+<a id="user-management" data-name="権限・ユーザー管理"></a>
 
 ## 権限・ユーザー管理
 
@@ -218,7 +218,7 @@ rsyncはLinuxやUnix系システムで広く使用されるファイル同期、
 
 ---
 
-<a id="shell-operations" data-name="シェル操作">
+<a id="shell-operations" data-name="シェル操作"></a>
 
 ## シェル操作
 
@@ -235,7 +235,7 @@ rsyncはLinuxやUnix系システムで広く使用されるファイル同期、
 
 ---
 
-<a id="information" data-name="システム情報">
+<a id="information" data-name="システム情報"></a>
 
 ## システム情報
 
@@ -249,7 +249,7 @@ rsyncはLinuxやUnix系システムで広く使用されるファイル同期、
 
 ---
 
-<a id="shell-script" data-name="シェルスクリプト">
+<a id="shell-script" data-name="シェルスクリプト"></a>
 
 ## シェルスクリプト
 

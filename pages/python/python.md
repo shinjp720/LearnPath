@@ -1,5 +1,6 @@
 <div data-title="Python"></div>
-<a id="top" data-name="TOP">
+
+<a id="top" data-name="TOP"></a>
 
 # Python
 
@@ -33,7 +34,7 @@
 
 ---
 
-<a id="type" data-name="型">
+<a id="type" data-name="型"></a>
 
 ## 型
 
@@ -138,7 +139,7 @@
 
 ---
 
-<a id="function" data-name="関数">
+<a id="function" data-name="関数"></a>
 
 ## 関数
 
@@ -177,7 +178,7 @@
 
 ---
 
-<a id="functions" data-name="組み込み関数">
+<a id="functions" data-name="組み込み関数"></a>
 
 ## 組み込み関数
 ### open(file, mode='r', buffering=-1, encoding=None, errors='strict', newline=None, closefd=True,open=os.open)
@@ -328,7 +329,7 @@ result = all(is_positive(x) for x in numbers)
 
 ---
 
-<a id="error-handling" data-name="エラーハンドリング">
+<a id="error-handling" data-name="エラーハンドリング"></a>
 
 ## エラーハンドリング
 
