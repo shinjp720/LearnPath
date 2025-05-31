@@ -4,25 +4,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="./marked.min.js"></script>
+    <script src="script.js" defer></script>
+    <link rel="stylesheet" href="./style.css">
     <title>LearnPath</title>
 </head>
 
 <body>
-    <h1>LearnPath</h1>
+
     <!-- 全体を表すコンテナ -->
     <div id="container">
         <!-- ナビゲーション -->
-        <div id="navi">
-            {% include "layouts/navi.html" %}
-        </div>
+        <div id="navi"></div>
         <!-- メインコンテンツ -->
-        <div id="main">
-            {{ content|safe }}
-        </div>
+        <div id="main"></div>
         <!-- 目次 -->
-        <div id="toc">
-            {% include "layouts/toc.html" %}
-        </div>
+        <div id="toc"></div>
     </div>
 
 </body>
