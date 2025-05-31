@@ -9,6 +9,22 @@
 
 <body>
     <h1>LearnPath</h1>
+    <!-- 全体を表すコンテナ -->
+    <div id="container">
+        <!-- ナビゲーション -->
+        <div id="navi">
+            {% include "layouts/navi.html" %}
+        </div>
+        <!-- メインコンテンツ -->
+        <div id="main">
+            {{ content|safe }}
+        </div>
+        <!-- 目次 -->
+        <div id="toc">
+            {% include "layouts/toc.html" %}
+        </div>
+    </div>
+
 </body>
 
 </html>

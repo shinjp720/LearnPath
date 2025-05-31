@@ -1,0 +1,7 @@
+<ul>
+    {% for attr in attrs %}
+        <li>
+            <a href="#{{ attr['id'] }}"><strong>{{ attr['data-name'] }}</strong></a>
+        </li>
+    {% endfor %}
+</ul>

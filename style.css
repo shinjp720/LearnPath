@@ -1,0 +1,130 @@
+html {
+    font-size: 62.5%;
+}
+
+body {
+    font-size: 1.6rem;
+}
+
+h1 {
+    font-size: 4.8rem;
+    clear: black;
+}
+
+/* テーブル */
+table {
+    border-collapse: collapse;
+    margin: 15px;
+}
+
+th {
+    background-color: #dfdfdf;
+}
+
+th,
+tr,
+td {
+    border: 1px solid black;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+pre code {
+    display: block;
+    color: white;
+    background-color: black;
+    /* border: 1px solid black; */
+    padding: 10px;
+    margin: 15px;
+}
+
+code {
+    font-size: 1.9rem;
+    font-weight: bold;
+}
+
+/* 例 */
+.example {
+    display: block;
+    color: black;
+    border: 1px solid black;
+    background-color: rgb(191, 255, 180);
+    padding: 10px;
+    margin: 15px;
+}
+
+/* 注意 */
+.caution {
+    display: block;
+    color: black;
+    border: 1px solid black;
+    background-color: rgb(255, 204, 198);
+    padding: 10px;
+    margin: 15px;
+}
+
+/* tips */
+.tips {
+    display: block;
+    color: black;
+    border: 1px solid black;
+    background-color: #fdff95;
+    padding: 10px;
+    margin: 15px;
+}
+
+/* サブタイトル */
+.subtitle {
+    display: block;
+    color: blue;
+    font-weight: bold;
+    font-size: 2rem;
+    margin: 15px;
+}
+
+/* 戻り値専用 */
+.return-value {
+    display: block;
+    color: rgb(172, 86, 198);
+    font-weight: bold;
+    font-size: 2rem;
+    margin: 15px;
+}
+
+/* -----------------レイアウト----------------- */
+/* 全体を横並びに */
+#container {
+    display: flex;
+    height: 100vh;
+}
+
+/* ナビゲーション */
+#navi {
+    width: 250px;
+    overflow-y: auto;
+    height: 100vh;
+    background-color: #f8f8f8;
+    flex-shrink: 0;
+}
+
+/* メインコンテンツ */
+#main {
+    flex: 1;
+    overflow-y: auto;
+    height: 100vh;
+    padding: 1rem;
+}
+
+/* 目次 */
+#toc {
+    width: 250px;
+    overflow-y: auto;
+    height: 100vh;
+    background-color: #f0f0f0;
+    flex-shrink: 0;
+}
+
+#navi,
+#toc {
+    background-color: #cfcfcf;
+}
