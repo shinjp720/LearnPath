@@ -37,7 +37,7 @@ async function addLinkListeners() {
 
 async function loadContents(href) {
     const processedHtml = await convertMd(`${href}.md`);
-    history.pushState(null, "", href);
+    // history.pushState(null, "", href);
     document.getElementById("main").innerHTML = processedHtml;
 
     const tocContents = importAnchors(href);
@@ -74,7 +74,6 @@ function importAnchors(href) {
             e.preventDefault();
             document.getElementById(anchor.id).scrollIntoView({ behavior: "smooth", block: "start" });
         })
-        // newA.href = `#${anchor.id}`;
         let newLi = document.createElement("li");
         newLi.appendChild(newA);
         ulTag.appendChild(newLi);
@@ -82,11 +81,10 @@ function importAnchors(href) {
     return ulTag;
 }
 
-window.addEventListener('popstate', () => {
-    const href = location.pathname;
-    loadContents(href);
-    // document.getElementById('content').innerHTML = html;
-});
+// window.addEventListener('popstate', () => {
+//     const href = location.pathname;
+//     loadContents(href);
+// });
 
 // ファイルが大きくて正常にリロードできない問題の対策
 // window.addEventListener("DOMContentLoaded", () => {
