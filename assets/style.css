@@ -37,6 +37,11 @@ td {
     padding-right: 5px;
 }
 
+pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
 pre code {
     display: block;
     color: white;

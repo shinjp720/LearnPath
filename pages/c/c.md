@@ -301,13 +301,13 @@ printf("%*.*f\n"7, 2, 3.14159); // 3.14</code></pre>
 <div class="return-value">戻り値</div>
 変換が1つも行われないまま入力誤りが発生した場合(CTRL+Zなどによる入力終わりの通知があった場合)はEOF、その他の場合は正常に入力できた項目数。先頭データで書式に合わないデータが入力された時は0。
 
-### `int fprintf(FILE *stream, const char *format, ...);`  // ファイルへの書式付出力関数
+### ファイルへの書式付出力<br>`int fprintf(FILE *stream, const char *format, ...);`
 streamにデータをformatで示す書式で出力する。formatに指定する書式文字列や引数の取り扱いはprintfと同じ。
 
 <div class="return-value">戻り値</div>
 成功なら出力した文字数、失敗なら負値。
 
-### `int fputc(int c, FILE *stream);` // ファイルへの1文字出力関数
+### ファイルへの1文字出力<br>`int fputc(int c, FILE *stream);`
 streamに文字cをunsigned char型に変換して書き込む。ファイル位置指示子を次の書き込み位置に進める。streamが追加モードでオープンされている場合は常にファイルの終わりに書き込む。
 
 <div class="return-value">戻り値</div>
@@ -358,7 +358,7 @@ streamから文字列を読み取りsに格納する。読み取りは改行文�
 
 <a id="stdlib-h" data-name="一般ユーティリティー"></a>
 
-## `<stdlib.h>`<br>一般ユーティリティー
+## 一般ユーティリティー<br>`<stdlib.h>`
 
 ### `exit();`
 
@@ -375,7 +375,7 @@ streamから文字列を読み取りsに格納する。読み取りは改行文�
 
 <a id="string-h" data-name="文字列・メモリ操作"></a>
 
-## `<string.h>`<br>文字列・メモリ操作
+## 文字列・メモリ操作<br>`<string.h>`
 
 
 
@@ -383,7 +383,7 @@ streamから文字列を読み取りsに格納する。読み取りは改行文�
 
 <a id="ctype-h" data-name="文字の分類と変換"></a>
 
-## `<ctype.h>`<br>文字の分類と変換
+## 文字の分類と変換<br>`<ctype.h>`
 
 
 
@@ -392,7 +392,7 @@ streamから文字列を読み取りsに格納する。読み取りは改行文�
 
 <a id="math-h" data-name="数学関数"></a>
 
-## `<math.h>`<br>数学関数
+## 数学関数<br>`<math.h>`
 
 
 
@@ -400,7 +400,7 @@ streamから文字列を読み取りsに格納する。読み取りは改行文�
 
 <a id="time-h" data-name="時間操作"></a>
 
-## `<time.h>`<br>時間操作
+## 時間操作<br>`<time.h>`
 
 
 
@@ -408,7 +408,7 @@ streamから文字列を読み取りsに格納する。読み取りは改行文�
 
 <a id="limits-h" data-name="整数型の制限値"></a>
 
-## `<limits.h>`<br>整数型の制限値
+## 整数型の制限値<br>`<limits.h>`
 
 
 
@@ -416,7 +416,7 @@ streamから文字列を読み取りsに格納する。読み取りは改行文�
 
 <a id="float-h" data-name="浮動小数点型の制限値"></a>
 
-## `<float.h>`<br>浮動小数点型の制限値
+## 浮動小数点型の制限値<br>`<float.h>`
 
 
 
@@ -424,7 +424,7 @@ streamから文字列を読み取りsに格納する。読み取りは改行文�
 
 <a id="assert-h" data-name="プログラム診断"></a>
 
-## `<assert.h>`<br>プログラム診断
+## プログラム診断<br>`<assert.h>`
 
 
 
@@ -432,7 +432,7 @@ streamから文字列を読み取りsに格納する。読み取りは改行文�
 
 <a id="stdbool-h" data-name="論理型マクロ"></a>
 
-## `<stdbool.h>`<br>論理型マクロ
+## 論理型マクロ<br>`<stdbool.h>`
 
 
 
@@ -440,7 +440,7 @@ streamから文字列を読み取りsに格納する。読み取りは改行文�
 
 <a id="stddef-h" data-name="汎用マクロ"></a>
 
-## `<stddef.h>`<br>汎用マクロ
+## 汎用マクロ<br>`<stddef.h>`
 
 
 
@@ -448,7 +448,7 @@ streamから文字列を読み取りsに格納する。読み取りは改行文�
 
 <a id="stdint-h" data-name="標準整数型"></a>
 
-## `<stdint.h>`<br>標準整数型
+## 標準整数型<br>`<stdint.h>`
 
 
 
@@ -456,14 +456,14 @@ streamから文字列を読み取りsに格納する。読み取りは改行文�
 
 <a id="errno-h" data-name="エラーの識別"></a>
 
-## `<errno.h>`<br>エラーの識別
+## エラーの識別<br>`<errno.h>`
 
 
 ---
 
 <a id="signal-h" data-name="シグナル操作"></a>
 
-## `<signal.h>`<br>シグナル操作
+## シグナル操作<br>`<signal.h>`
 
 
 
@@ -471,7 +471,7 @@ streamから文字列を読み取りsに格納する。読み取りは改行文�
 
 <a id="setjmp-h" data-name="ジャンプ処理"></a>
 
-## `<setjmp.h>`<br>ジャンプ処理
+## ジャンプ処理<br>`<setjmp.h>`
 
 
 
@@ -479,7 +479,7 @@ streamから文字列を読み取りsに格納する。読み取りは改行文�
 
 <a id="locale-h" data-name="ロケール"></a>
 
-## `<locale.h>`<br>ロケール
+## ロケール<br>`<locale.h>`
 
 
 

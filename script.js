@@ -7,6 +7,7 @@ async function main() {
     const naviContents = await getNavi(naviUrl);
     document.getElementById("navi").innerHTML = naviContents;
     addLinkListeners();
+    console.log("mainが実行されました。"); //
 }
 
 // navi情報を取得して返す
@@ -20,6 +21,8 @@ async function getNavi(naviUrl) {
     } catch (error) {
         document.getElementById("navi").textContent = error;
         return "";
+    } finally {
+        console.log("getNaviが実行されました。"); //
     }
 }
 
@@ -33,16 +36,18 @@ async function addLinkListeners() {
             await loadContents(href);
         });
     });
+    console.log("addLinkListenersが実行されました。"); //
 }
 
 async function loadContents(href) {
     const processedHtml = await convertMd(`${href}.md`);
-    // history.pushState(null, "", href);
+    // history.pushState({ "href": href }, "", href); // 相対パスで動かない
     document.getElementById("main").innerHTML = processedHtml;
 
-    const tocContents = importAnchors(href);
+    const tocContents = importAnchors();
     document.getElementById("toc").innerHTML = "";
     document.getElementById("toc").appendChild(tocContents);
+    console.log("loadContentsが実行されました。"); //
 }
 
 // .mdの変換処理
@@ -64,7 +69,7 @@ async function convertMd(href) {
 }
 
 // tocの読み込み処理
-function importAnchors(href) {
+function importAnchors() {
     const ulTag = document.createElement("ul");
     const anchors = document.querySelectorAll("[data-name]");
     anchors.forEach(anchor => {
@@ -78,13 +83,38 @@ function importAnchors(href) {
         newLi.appendChild(newA);
         ulTag.appendChild(newLi);
     })
+    console.log("importAnchorsが実行されました。"); //
     return ulTag;
 }
 
-// window.addEventListener('popstate', () => {
-//     const href = location.pathname;
+// window.addEventListener('popstate', (event) => {
+//     const href = event.href;
 //     loadContents(href);
 // });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // ファイルが大きくて正常にリロードできない問題の対策
 // window.addEventListener("DOMContentLoaded", () => {

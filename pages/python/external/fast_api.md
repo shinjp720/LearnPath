@@ -15,6 +15,7 @@ from fastapi import FastAPI
 ## 基本的な構成
 
 <div class="subtitle">main.py</div>
+
 ```python
 from fastapi import FastAPI
 
@@ -58,7 +59,8 @@ def read_item(q: str = None):
 ```
 
 ## ローカルファイルを返す
-: FastAPIでファイルをクライアントに返すには、`FileResponse`を使う。
+FastAPIでファイルをクライアントに返すには、`FileResponse`を使う。
+
 <pre><code class="example">from fastapi import FastAPI
 from fastapi.responses import FileResponse
 import os
@@ -73,6 +75,7 @@ def download_file():
     return {"error": "File not found"}</code></pre>
 
 <div class="subtitle">各引数</div>
+
 | 引数       | 意味                                 |
 | ---------- | ------------------------------------ |
 | path       | ファイルのパス                       |
@@ -80,6 +83,7 @@ def download_file():
 | media_type | MIMEタイプ                           |
 
 <div class="subtitle">media_type例</div>
+
 | ファイルタイプ | MIMEタイプ      |
 | -------------- | --------------- |
 | テキスト       | text/plain      |
