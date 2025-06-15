@@ -124,7 +124,7 @@ pre code {
     width: 250px;
     overflow-y: auto;
     height: 100vh;
-    background-color: #f8f8f8;
+    /* background-color: #f8f8f8; */
     flex-shrink: 0;
 }
 
@@ -141,11 +141,16 @@ pre code {
     width: 250px;
     overflow-y: auto;
     height: 100vh;
-    background-color: #f0f0f0;
+    /* background-color: #f0f0f0; */
     flex-shrink: 0;
 }
 
 #navi,
 #toc {
+    color: black;
     background-color: #cfcfcf;
+}
+
+#toc li:hover {
+    color: white;
 }

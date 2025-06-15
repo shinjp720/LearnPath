@@ -11,20 +11,33 @@
 
 ---
 
-<div class="subtitle">未分類</div>
+<a id="pointer" data-name="ポインタ"></a>
 
-puts  
-gets          // 非推奨だが古いコードに出る  
-putchar  
-getchar  
-fopen  
-fclose  
-fread  
-fwrite  
-fseek  
-ftell  
-feof  
-fscanf  
+## ポインタ
+
+### 関数に配列を渡す
+
+C言語では、関数の引数に「配列」を書いても、実際にはポインタとして渡される。これを「配列がポインタに退化する」と言う。
+
+<pre><code class="example">void func(char *arr[]) {
+    // 実は → void func(char **arr) と同じ意味
+}</code></pre>
+
+### ポインタを使うメリット・デメリット
+
+- C言語の関数は値渡し(変数の値をコピーして渡す)であるために関数側では渡された変数の値を変更することができない。アドレスを渡すことにより関数側で直接渡された変数の値を書き換えることができるようになる。
+
+- また、値渡しされる場合は値をコピーするという処理があるため、ポインタ渡しに比べて多くのリソースを要する。
+
+- 配列は必ず連続してメモリが確保されるため、関数にポインタを渡すことにより複数の変数を渡すことができる。
+
+- 適切に扱わないとメモリを破壊する恐れがある。
+
+- ポインタを宣言した段階ではポインタがどこを指しているか分らないので必ず初期化する。
+
+---
+
+<div class="subtitle">未分類</div>
 
 malloc  
 calloc  
@@ -70,10 +83,6 @@ difftime
 localtime  
 strftime  
 
-exit  
-system  
-qsort  
-bsearch  
 
 
 ---
@@ -314,6 +323,11 @@ streamに文字cをunsigned char型に変換して書き込む。ファイル位
 成功なら書き込んだ文字、書き込みエラーならエラー指示子をセットしてEOFを返す。
 
 
+
+
+
+### `fgetc();`
+
 ### `fscanf();`
 
 ### `putchar();`
@@ -352,7 +366,37 @@ streamから文字列を読み取りsに格納する。読み取りは改行文�
 
 
 
+---
 
+<a id="command-line-arguments" data-name="コマンドライン引数"></a>
+
+## コマンドライン引数
+
+<pre><code class="example">#include &lt;stdio.h&gt;
+
+int main(int argc, char *argv[])
+{
+    printf("引数の数: %d\n", argc);
+    for (int i = 0; i < argc; i++)
+    {
+        printf("argv[%d]: %s\n", i, argv[i]);
+    }
+    return 0;
+}</code></pre>
+
+- `argc`: 引数の数。プログラム名が含まれるため、最低でも1となる。
+- `argv`: 引数の文字列配列。
+    - `argv[0]`: プログラム名または実行パス。
+    - `argv[1]`: 以降はコマンドラインから渡された引数。
+
+<pre><code class="tips">// 引数をintに変換する場合
+#include &lt;stdlib.h&gt;
+
+int num = atoi(argv[1]);
+printf("入力された数値: %d\n", num);</code></pre>
+
+<pre><code class="tips">argcはargument count
+argvはargument vector(1次元配列)の意味</code></pre>
 
 ---
 
@@ -482,57 +526,54 @@ streamから文字列を読み取りsに格納する。読み取りは改行文�
 ## ロケール<br>`<locale.h>`
 
 
-
-
-
-
 ---
 
-<a id="simple-compilation" data-name="gccによる簡単なコンパイル"></a>
+<a id="gcc" data-name="gcc"></a>
 
-## gccによる簡単なコンパイル
+## gcc
+
+<div class="subtitle">オプション</div>
+ 
+<div class="subtitle">gccによる簡単なコンパイル</div>
 
 <pre><code class="tips">gcc test.c -o test</code></pre>
 このコマンドで`test`という実行ファイルが生成される。<br>`-o`は実行ファイルに名前を付けるオプションで、指定しなければデフォルトで`a.out`という実行ファイルが生成される。
 
 ---
 
-<a id="command-line-arguments" data-name="コマンドライン引数"></a>
+<a id="bug" data-name="メモリ関連のバグ"></a>
 
-## コマンドライン引数
+## メモリ関連のバグ
 
-<pre><code class="example">#include &lt;stdio.h&gt;
+- メモリリーク(Memory Leak)
+動的に確保したメモリを解放し忘れることで、使用していないメモリが無駄に残り続ける現象。これは長時間動作するプログラムや、リソース制約のある環境で特に問題となる。
 
-int main(int argc, char *argv[])
-{
-    printf("引数の数: %d\n", argc);
-    for (int i = 0; i < argc; i++)
-    {
-        printf("argv[%d]: %s\n", i, argv[i]);
-    }
-    return 0;
-}</code></pre>
+- バッファオーバーフロー(Buffer Overflow)
+確保されたメモリ領域を超えてデータを書き込むことで隣接するメモリ領域が破壊され、予期しない動作やセキュリティの脆弱性を引き起こすことがある。
 
-- `argc`: 引数の数。プログラム名が含まれるため、最低でも1となる。
-- `argv`: 引数の文字列配列。
-    - `argv[0]`: プログラム名または実行パス。
-    - `argv[1]`: 以降はコマンドラインから渡された引数。
+- ダングリングポインタ(Dangling Pointer)
+解放されたメモリへのポインタを保持したまま使用しようとすることで発生する問題。メモリがすでに他の目的で再利用されている場合、予測できない動作を引き起こす。
 
-<pre><code class="tips">// 引数をintに変換する場合
-#include &lt;stdlib.h&gt;
+- 二重解放(Double Free)
+一度解放したメモリを再び解放しようとすると、メモリ管理システムが不正な状態になり、クラッシュや予期しない動作が発生する可能性がある。
 
-int num = atoi(argv[1]);
-printf("入力された数値: %d\n", num);</code></pre>
+- スタックオーバーフロー(Stack Overflow)
+再帰関数や巨大なローカル変数などによってスタック領域が使い果たされると、スタック領域がオーバーフローしプログラムの異常終了やメモリ破壊が発生する。
 
-<pre><code class="tips">argcはargument count
-argvはargument vector(1次元配列)の意味</code></pre>
+- ヒープ破壊(Heap Corruption)
+ヒープ領域内のメモリ管理情報が破壊されることで、メモリの確保や解放が不正な動作を引き起こす問題。ヒープの破壊は非常にデバッグが難しい問題の一つ。
+
+- 未初期化メモリの使用 (Uninitialized Memory)
+メモリを確保した直後にそのまま使用すると、初期化されていないゴミデータが入っている場合がある。これに依存すると不定な挙動を引き起こす。
+
+- メモリの断片化(Memory Fragmentation)
+確保と解放を繰り返すうちにメモリ領域が断片化し、使用可能なメモリが十分にあるにもかかわらず連続した大きなメモリブロックが確保できなくなる現象。
 
 ---
 
 <a id="memory-leaks" data-name="メモリリークのチェック"></a>
 
-
 ## メモリリークのチェック
 
-<div class="subtitle">このように実行ファイルを実行することでメモリリークをチェックできる</div>
+このように実行ファイルを実行することでメモリリークをチェックできる。
 <pre><code class="example">valgrind --leak-check=full ./program</code></pre>
