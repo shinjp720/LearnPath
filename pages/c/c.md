@@ -11,6 +11,25 @@
 
 ---
 
+<a id="struct" data-name="構造体"></a>
+
+## 構造体
+
+---
+
+<a id="union" data-name="共有体"></a>
+
+## 共有体
+
+---
+
+<a id="enumeration" data-name="列挙体"></a>
+
+
+## 列挙体
+
+---
+
 <a id="pointer" data-name="ポインタ"></a>
 
 ## ポインタ
@@ -91,16 +110,16 @@ strftime
 
 ## 危険とされるCの標準関数
 
-| 関数名     | 問題点                                                       | 代替                         |
-| ---------- | ------------------------------------------------------------ | ---------------------------- |
-| gets()     | 入力サイズを制限できない(バッファーオーバーフロー)。         | 使用禁止                     |
-| scanf()    | バッファサイズを指定しないと危険。                           | fgets()+sscanf()など         |
-| strcpy()   | サイズチェックなしでコピー。                                 | strncpy(), strlcpy()(非標準) |
-| strcat()   | サイズチェックなしで連結。                                   | strncat(), strlcat()(非標準) |
-| sprintf()  | サイズ制限なしで文字列生成。                                 | snprintf()                   |
-| vsprintf() | 上記と同じ。                                                 | vsnprintf()                  |
-| strlen()   | NULL終端まで探索するため、不正なポインタでクラッシュの恐れ。 | 使い方に注意                 |
-| tmpnam()   | 同名ファイルと競合の危険。                                   | mkstemp()                    |
+| 関数名     | 問題点                                                       | 代替                                                 |
+| ---------- | ------------------------------------------------------------ | ---------------------------------------------------- |
+| gets()     | 入力サイズを制限できない(バッファーオーバーフロー)。         | 使用禁止                                             |
+| scanf()    | バッファサイズを指定しないと危険。                           | fgets()+sscanf()など                                 |
+| strcpy()   | サイズチェックなしでコピー。                                 | strncpy()('\0'に注意), snprintf(), strlcpy()(非標準) |
+| strcat()   | サイズチェックなしで連結。                                   | strncat(), strlcat()(非標準)                         |
+| sprintf()  | サイズ制限なしで文字列生成。                                 | snprintf()                                           |
+| vsprintf() | 上記と同じ。                                                 | vsnprintf()                                          |
+| strlen()   | NULL終端まで探索するため、不正なポインタでクラッシュの恐れ。 | 使い方に注意                                         |
+| tmpnam()   | 同名ファイルと競合の危険。                                   | mkstemp()                                            |
 
 ---
 
@@ -109,7 +128,7 @@ strftime
 ## 標準入出力<br>`<stdio.h>`
 
 
-### `int printf(const char *format, ...);`
+### 標準出力への書式付出力<br>`int printf(const char *format, ...);`
 引数の内容を、formatで指定する書式文字列に従った変換をしてから標準出力に書き込む。formatの中身の文字(マルチバイト文字も)はそのまま出力さるが、%で始まる変換指定は、それに対応する引数の書式変換に使用される。formatに指定した変換指定の型と引数の型が一致していなかったり、引数の数が不足している場合の動作は処理系依存。引数の数が変換指定の数より多い場合は、余った引数は評価されるが出力されない。
 
 <div class="subtitle">変換指定の書式</div>
@@ -304,8 +323,115 @@ printf("%*.*f\n"7, 2, 3.14159); // 3.14</code></pre>
 <div class="return-value">戻り値</div>
 成功なら出力した文字数、失敗なら負値。
 
-### `int scanf(const char *format, ...);` <span class="deprecated">非推奨</span>
+### 標準入力からの書式付入力<br>`int scanf(const char *format, ...);` <span class="deprecated">非推奨</span>
 標準入力から、formatで指定する書式文字列に従った変換を行い、引数にデータを読み取る。引数はポインタでなければならない(一般変数には&を付け、配列は配列名を書く)。書式に対し実引数が不足しているときの動作は処理系依存。余分にある時は余分な実引数の評価は行うがデータ入力は行わない。<br>書式文字列は、変換指定と一般文字で構成される。scanfは書式の先頭から遂次変換指定を解釈し、書式に合わないデータが入力されたり、書式文字が正しくないなどの照合誤りが発生した時点で以後の書式変換は行わずにscanfから戻る。この書式に合わないデータは入力バッファに残る。scanfはfscanfの第1引数にstdinを指定したものと等価である。
+
+<div class="subtitle">変換指定の書式</div>
+
+```
+%[*][フィールド幅][長さ修飾子]型指定子
+```
+
+<div class="subtitle">*</div>
+代入禁止。*がある変換指定に対応する入力フィールドは読み飛ばされる。
+
+<div class="subtitle">フィールド幅</div>
+フィールド幅には入力できる最大文字数(バイト数)を指定する。つまり空白が来なくてもこのフィールド幅でデータを区切って入力を行う。
+
+<div class="subtitle">長さ修飾子</div>
+型指定子が示す方の長さを指定する。
+<table>
+    <tr>
+        <th>修飾子</th>
+        <th style="width: 600px">説明</th>
+    </tr>
+    <tr>
+        <td>h</td>
+        <td>d, i, o, u, x, X, nに対しshort intまたはunsigned short intへのポインタであることを明示する。</td>
+    </tr>
+    <tr>
+        <td>hh</td>
+        <td>d, i, o, u, x, X, nに対しsigned charまたはunsigned charへのポインタであることを明示する。</td>
+    </tr>
+    <tr>
+        <td>l</td>
+        <td>d, i, o, u, x, X, nに対しlong intまたはunsigned long intへのポインタであることを明示する。a, A, e, E, f, F, Gに対しdoubleへのポインタであることを明示する。ISO C99ではc, s, []に対しwchar_tへのポインタであることを明示する。</td>
+    </tr>
+    <tr>
+        <td>ll</td>
+        <td>d, i, o, u, x, X, nに対しlong long intまたはunsigned long long intへのポインタであることを明示する。</td>
+    </tr>
+    <tr>
+        <td>L</td>
+        <td>a, A, e, E, f, F, Gに対しlong doubleへのポインタであることを明示する。</td>
+    </tr>
+    <tr>
+        <td>j</td>
+        <td>d, i, o, u, x, X, nに対しintmax_tまたはuintmax_tへのポインタであることを明示する。ISO C99で追加。</td>
+    </tr>
+    <tr>
+        <td>z</td>
+        <td>d, i, o, u, x, X, nに対しsize_tへのポインタであることを明示する。ISO C99で追加。</td>
+    </tr>
+    <tr>
+        <td>t</td>
+        <td>d, i, o, u, x, X, nに対しptrdiff_tへのポインタであることを明示する。ISO C99で追加。</td>
+    </tr>
+</table>
+
+
+<div class="subtitle">型指定子</div>
+<table>
+    <tr>
+        <th>指定子</th>
+        <th style="width: 600px">説明</th>
+    </tr>
+    <tr>
+        <td>c</td>
+        <td>空白文字を含む文字。フィールド幅を指定すればその数だけ読み、'\0'は付加しない。フィールド幅を指定しなければ1とみなす。対応する引数はchar(unsigned char)へのポインタでなければならない。int型を使用した場合上位バイトに入るデータは未定となる。<br>l修飾されている場合はワイド文字に変換してwchar_t型配列に格納。</td>
+    </tr>
+    <tr>
+        <td>d</td>
+        <td>符号付き10進整数。</td>
+    </tr>
+    <tr>
+        <td>i</td>
+        <td>符号付き8進、10進、16進整数。先頭が0なら8進数、先頭が0x, 0Xなら16進数、それ以外は10進数とみなして入力。</td>
+    </tr>
+    <tr>
+        <td>o</td>
+        <td>符号なし8進整数。先頭に0があっても無くても8進数とみなして入力</td>
+    </tr>
+    <tr>
+        <td>u</td>
+        <td>符号なし10進整数。</td>
+    </tr>
+    <tr>
+        <td>x, X</td>
+        <td>符号なし16進整数。先頭に0x, 0Xがあっても無くても16進数とみなして入力。</td>
+    </tr>
+    <tr>
+        <td>e, E, f, F, g, G, a, A</td>
+        <td>実数(d.dddddd)、(d.dddddde+dd)、(d.ddddddE+dd)。小数部の指定はできないので%8.2fのような指定はできない。規定ではe, f, g, aは同じ扱いと規定されているが、処理系依存する場合がある。aはISO C99対応。</td>
+    </tr>
+    <tr>
+        <td>s</td>
+        <td>空白類文字を含まない文字列。'\0'が最後に付加される。空白類文字は入力できず、区切りとして扱われる。l修飾がされている場合はワイド文字に変換してwchar_t型配列に格納。</td>
+    </tr>
+    <tr>
+        <td>n</td>
+        <td>%nが来るまでにscanfが入力した文字数を、対応する引数に格納する。引数は整数型へのポインタでなければならない。%nの項はscanfが返す項目数には加算されない。</td>
+    </tr>
+        <td>p</td>
+        <td>ポインタデータ。printfの%p書式で出力される形式(16進数型など)で、処理系依存。</td>
+    </tr>
+    <tr>
+        <td>[]</td>
+        <td>文字の入力。'\0'が最後に付加される。文字列として入力できる文字を[]内に指定する。[]内の先頭が^(キャレット)なら[]内に指定した文字以外を指定したことになる。これにより空白も文字列の中に含めて入力することができる。^が先頭出ない場合は、それは反転フラグとしてではなく^そのものとして扱われる。
+        [と]を文字列に含める場合[はどこに置いてもよいが、]は[の直後か[^の直後にしか置けない。例えば[][()0123456789]は、[, ], (, )と数字文字。
+        -(ハイフン)が[]内の文字列の先頭または最後にない場合の解釈は処理系依存。例えば[0-9]をそのまま解釈するか[0123456789]と解釈するか。[-0-9a-f]のような表現が可能な処理系もある。l修飾されている場合はワイド文字に変換してwchar_t型配列に格納。</td>
+    </tr>
+</table>
 
 <div class="return-value">戻り値</div>
 変換が1つも行われないまま入力誤りが発生した場合(CTRL+Zなどによる入力終わりの通知があった場合)はEOF、その他の場合は正常に入力できた項目数。先頭データで書式に合わないデータが入力された時は0。
@@ -365,38 +491,6 @@ streamから文字列を読み取りsに格納する。読み取りは改行文�
 
 
 
-
----
-
-<a id="command-line-arguments" data-name="コマンドライン引数"></a>
-
-## コマンドライン引数
-
-<pre><code class="example">#include &lt;stdio.h&gt;
-
-int main(int argc, char *argv[])
-{
-    printf("引数の数: %d\n", argc);
-    for (int i = 0; i < argc; i++)
-    {
-        printf("argv[%d]: %s\n", i, argv[i]);
-    }
-    return 0;
-}</code></pre>
-
-- `argc`: 引数の数。プログラム名が含まれるため、最低でも1となる。
-- `argv`: 引数の文字列配列。
-    - `argv[0]`: プログラム名または実行パス。
-    - `argv[1]`: 以降はコマンドラインから渡された引数。
-
-<pre><code class="tips">// 引数をintに変換する場合
-#include &lt;stdlib.h&gt;
-
-int num = atoi(argv[1]);
-printf("入力された数値: %d\n", num);</code></pre>
-
-<pre><code class="tips">argcはargument count
-argvはargument vector(1次元配列)の意味</code></pre>
 
 ---
 
@@ -525,6 +619,38 @@ argvはargument vector(1次元配列)の意味</code></pre>
 
 ## ロケール<br>`<locale.h>`
 
+
+---
+
+<a id="command-line-arguments" data-name="コマンドライン引数"></a>
+
+## コマンドライン引数
+
+<pre><code class="example">#include &lt;stdio.h&gt;
+
+int main(int argc, char *argv[])
+{
+    printf("引数の数: %d\n", argc);
+    for (int i = 0; i < argc; i++)
+    {
+        printf("argv[%d]: %s\n", i, argv[i]);
+    }
+    return 0;
+}</code></pre>
+
+- `argc`: 引数の数。プログラム名が含まれるため、最低でも1となる。
+- `argv`: 引数の文字列配列。
+    - `argv[0]`: プログラム名または実行パス。
+    - `argv[1]`: 以降はコマンドラインから渡された引数。
+
+<pre><code class="tips">// 引数をintに変換する場合
+#include &lt;stdlib.h&gt;
+
+int num = atoi(argv[1]);
+printf("入力された数値: %d\n", num);</code></pre>
+
+<pre><code class="tips">argcはargument count
+argvはargument vector(1次元配列)の意味</code></pre>
 
 ---
 
