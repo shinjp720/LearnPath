@@ -56,11 +56,12 @@ pre code {
     font-weight: bold;
 } */
 
-/* 非推奨 */
-.deprecated {
+/* 警告 */
+.warning {
     color: rgb(0, 0, 0);
     background-color: red;
     padding: 5px;
+    margin: 5px;
 }
 
 
