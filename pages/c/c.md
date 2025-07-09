@@ -453,6 +453,11 @@ streamからformatに従った書式で、データを読み込む。formatに�
 <div class="return-value">戻り値</div>
 変換が１つも行われないまま入力誤りが発生した場合(CTRL+Zなどによる入力終わりの通知があった場合)はEOF、その他の場合は正常に入力できた項目数。先頭データで書式に合わないデータが入力された時は0。
 
+### 文字配列からの書式付入力<br>`int sscanf(const char *s, const char *format, ...);`
+文字列sからformatに従った書式でデータを入力する。文字列から入力する以外はscanfと同じ。sと実引数に指定する領域に重なりがある場合の動作は処理系依存。
+<div class="return-value">戻り値</div>
+変換が1つも行われないまま入力誤りが発生した場合(文字列の終わり)はEOF、その他の場合は正常に入力できた項目数。先頭データで書式に合わないデータが入力された時は0。
+
 ### 標準入力から文字列の入力<br>`char *gets(char *s);` <span class="warning">使用禁止</span>
 バッファーオーバーフローの脆弱性があるため使用禁止。<br>
 代わりにfgetsを使う。
@@ -541,15 +546,66 @@ filenameで示すファイル名のファイルをmodeで示すオープンモ�
 <div class="return-value">戻り値</div>
 成功ならFILE構造体へのポインタ(ストリームへのポインタ)、失敗ならNULL。
 
-### `fclose();`
+### ファイルクローズ<br>`int fclose(FILE *stream);`
+streamが指すストリームをフラッシュし、ストリームに結合したファイルをクローズする。fcloseにより、出力バッファに残っているデータは書き出され、入力バッファに残っているデータは捨てられる。setbuf、setvbufで割り当てられているバッファをストリームから切り離し、自動的に生成されたバッファを解放する。
+オープンしたファイルはユーザの責任でファイルクローズしなければならない。特にライトモードでオープンしてある場合はfcloseしなければ結果は保証されない。
 
-### `fread();`
+<div class="return-value">戻り値</div>
+成功なら0、失敗ならEOF。
 
-### `fwrite();`
+### ファイルへのブロックライト<br>`size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream);`
+sizeバイトのデータブロックを、nmemb個文格納したPtrのデータをstreamに書き込む。ファイル現在位置は書き込みに成功した文字数分進む。エラーの場合のファイルの現在位置は不定。
 
-### `fseek();`
+<div class="return-value">戻り値</div>
+書き込んだブロックの個数。これがnmembに等しくなければエラーがあったことになる。sizeまたはnmembが0なら書き込みは行わずに0を返す。
 
-### `ftell();`
+### ファイルからのブロックリード<br>`size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);`
+streamからsizeバイトのデータブロックをnmemb個、ptrに読み取る。ファイル現在位置を読み取った文字数文進める。エラーの場合のファイル現在位置は不定。
+
+<div class="return-value">戻り値</div>
+読み取ったブロックの個数。戻り値がnmembではない場合はファイルの終わりになったか、エラーの時である。sizeまたはnmembが0なら読み取りを行わずに0を返す。
+
+### ファイル現在位置の移動<br>`int fseek(FILE *stream, long int offset, int whence);`
+streamがバイナリストリームの場合、現在位置をwhence位置からoffsetで示すバイト数だけ移動する。offsetが正ならファイルの終末方向へ移動。負ならファイルの先頭方向への移動となる。移動の起点となるwhenceには次の値を指定できる。
+
+| whence   | 意味                 |
+| -------- | -------------------- |
+| SEEK_CUR | ファイル現在位置から |
+| SEEK_END | ファイルの終末から   |
+| SEEK_SET | ファイルの先頭から   |
+
+ファイルの終末を越えて後ろへ移動することはできるが、ファイル先頭より前に移動することはできない。バイナリストリームでSEEK_ENDを指定した場合の動作は処理系依存。<br>
+streamがテキストストリームの場合は、次の移動のみを規定している。つまりテキストストリームではoffsetに直接の数値を指定できるのは0Lのみで、SEEK_SETの場合だけoffsetにftell(fp)で取得した値のみ指定でき、直接の整数値は指定できない。
+
+<table>
+    <tr>
+        <td><code>fseek(fp, 0L, SEEK_SET)<code></td>
+        <td>ファイル先頭へ移動</td>
+    </tr>
+    <tr>
+        <td>fseek(fp, 0L, SEEK_CUR)</td>
+        <td>移動しない</td>
+    </tr>
+    <tr>
+        <td>fseek(fp, ftell(fp), SEEK_SET)</td>
+        <td>前に指定した位置に移動</td>
+    </tr>
+    <tr>
+        <td>fseek(fp, 0L, SEEK_END)</td>
+        <td>ファイル終末へ移動</td>
+    </tr>
+</table>
+
+fseekが成功すると、もし直前にungetcが行われていればその動作を解除する。ファイル現在位置は新しい位置に設定される。更新モードのファイルにおいてはfseekの後の入出力動作はどちらも行える。
+
+<div class="return-value">戻り値</div>
+失敗した場合はエラー指示子をセットし非0を返す。成功した場合の規定はなく処理系依存(通常0)。
+
+### ファイル現在位置の取得<br>`long int ftell(FILE *stream);`
+streamのファイル現在位置を所得する。バイナリストリームの場合は先頭からファイル現在位置の直前までの文字数となる。テキストストリームの場合は処理系依存。
+
+<div class="return-value">戻り値</div>
+成功ならファイル現在位置、失敗ならerrnoにエラー番号を設定し、-1Lを返す。ファイルを追加モードで開いた場合のファイル位置は直前読み書き位置であるが、1度も読み書きを行わない状態ならftellは0Lを返す。
 
 ### `feof();`
 
