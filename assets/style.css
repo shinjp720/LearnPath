@@ -51,11 +51,6 @@ pre code {
     margin: 15px;
 }
 
-/* code {
-    font-size: 1.9rem;
-    font-weight: bold;
-} */
-
 /* 警告 */
 .warning {
     color: rgb(255, 255, 255);
@@ -69,8 +64,9 @@ pre code {
 .example {
     display: block;
     color: black;
-    border: 1px solid black;
     background-color: rgb(191, 255, 180);
+    font-weight: bold;
+    border: 1px solid black;
     padding: 10px;
     margin: 15px;
 }
@@ -79,8 +75,9 @@ pre code {
 .caution {
     display: block;
     color: black;
-    border: 1px solid black;
     background-color: rgb(255, 204, 198);
+    font-weight: bold;
+    border: 1px solid black;
     padding: 10px;
     margin: 15px;
 }
@@ -89,8 +86,9 @@ pre code {
 .tips {
     display: block;
     color: black;
-    border: 1px solid black;
     background-color: #fdff95;
+    font-weight: bold;
+    border: 1px solid black;
     padding: 10px;
     margin: 15px;
 }

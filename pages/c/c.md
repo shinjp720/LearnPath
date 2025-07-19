@@ -2,7 +2,6 @@
 <a id="top" data-name="TOP"></a>
 
 # C言語
-
 - `/* コメント */`<br>複数行も可能
 - `// コメント`<br>行末までコメント
 <pre><code class="tips">古いC(C89)では//は文法エラーになるので、移植性を強く意識する場合は/* */を使うのが安全。
@@ -16,7 +15,6 @@
 ## 演算子
 
 ### 演算子の種類
-
 | 優先順位 | 演算子 | 意味                 | 結合規則 |
 | -------- | ------ | -------------------- | -------- |
 | 1        | ()     | 関数呼び出し         | →        |
@@ -78,8 +76,83 @@
 | 16       | ,      | コンマ演算子         | →        |
 
 ### ビット演算子によるフラグ制御
+- ビットシフトや論理演算の際に符号ビットが影響しないように`unsigned int`を使う。
+- 32ビット変数なら`1U << 31`が最大。それを越えた場合は未定義動作。さらに大きなフラグが必要なら`uint64_t`などを使う。
 
+#### フラグの定義
+```c
+// それぞれのビット位置に対応する定数を定義
+#define FLAG_A  (1U << 0)   // 0b0001
+#define FLAG_B  (1U << 1)   // 0b0010
+#define FLAG_C  (1U << 2)   // 0b0100
+#define FLAG_D  (1U << 3)   // 0b1000
 
+// 列挙体を使って定義することも可能
+typedef enum {
+    FLAG_A = 1U << 0,
+    FLAG_B = 1U << 1,
+    FLAG_C = 1U << 2,
+    FLAG_D = 1U << 3
+} Flags;
+```
+
+#### フラグの設定
+```c
+unsigned int flags = 0;
+
+// FLAG_A と FLAG_C を立てる
+flags |= FLAG_A;
+flags |= FLAG_C;
+// またはまとめて
+flags |= (FLAG_A | FLAG_C);
+```
+
+#### フラグの解除
+```c
+// FLAG_C をクリア（0 にする）
+flags &= ~FLAG_C;
+```
+
+#### フラグのトグル
+```c
+// FLAG_B の状態を反転する
+flags ^= FLAG_B;
+```
+
+#### フラグのチェック
+```c
+// FLAG_A が立っているか？
+if (flags & FLAG_A) {
+    // FLAG_A が 1 のときの処理
+}
+
+// 複数ビットをまとめてチェック
+if ((flags & (FLAG_A | FLAG_C)) == (FLAG_A | FLAG_C)) {
+    // FLAG_A と FLAG_C が両方とも立っている
+}
+```
+
+#### マクロによるラッピング
+<pre><code class="example">#define SET_FLAG(v, f)     ((v) |= (f))
+#define CLEAR_FLAG(v, f)   ((v) &= ~(f))
+#define TOGGLE_FLAG(v, f)  ((v) ^= (f))
+#define IS_FLAG_SET(v, f)  (!!((v) & (f)))</code></pre>
+
+#### 構造体での利用
+<pre><code class="example">typedef struct {
+    unsigned int status;
+    // 他のメンバ…
+} Device;
+
+// デバイスをアクティブにする関数
+void activate(Device *d) {
+    SET_FLAG(d->status, FLAG_A);
+}
+
+// デバイスがアクティブか調べる関数
+bool is_active(const Device *d) {
+    return IS_FLAG_SET(d->status, FLAG_A);
+}</code></pre>
 
 
 ---
@@ -96,6 +169,7 @@
 
 ## 構造体
 
+### ビットフィールド
 ---
 
 <a id="union" data-name="共有体"></a>
@@ -105,7 +179,6 @@
 ---
 
 <a id="enumeration" data-name="列挙体"></a>
-
 
 ## 列挙体
 
