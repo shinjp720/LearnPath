@@ -8,11 +8,11 @@ body {
 
 h1 {
     font-size: 4.8rem;
-    clear: black;
 }
 
 h2 {
     font-size: 3rem;
+    background-color: rgb(236, 235, 235);
 }
 
 h3 {
@@ -58,10 +58,10 @@ pre code {
 
 /* 警告 */
 .warning {
-    color: rgb(0, 0, 0);
+    color: rgb(255, 255, 255);
     background-color: red;
     padding: 5px;
-    margin: 5px;
+    /* margin: 5px; */
 }
 
 
@@ -104,13 +104,20 @@ pre code {
     margin: 15px;
 }
 
-/* 戻り値専用 */
+/* 戻り値 */
 .return-value {
     display: block;
     color: rgb(172, 86, 198);
     font-weight: bold;
     font-size: 1.6rem;
     margin: 15px;
+}
+
+/* ラベル */
+.label {
+    color: rgb(228, 227, 249);
+    background-color: #7e69f4;
+    padding: 5px;
 }
 
 /* -----------------レイアウト----------------- */
