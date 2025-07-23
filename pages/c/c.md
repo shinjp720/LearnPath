@@ -517,11 +517,20 @@ streamにデータをformatで示す書式で出力する。formatに指定す�
 
 ---
 
-### 文字配列への書式付出力<br>`int sprintf(char *s, const char *format, ...);`
+### 文字配列への書式付出力<br>`int sprintf(char *s, const char *format, ...);` <span class="warning">非推奨</span>
 formatで指定した書式で引数を文字列に変換し、文字配列sに出力する。文字列の最後に'\0'が付加される。文字配列に出力する以外はprintfと同じ。文字列処理を行うのに有用な関数である。sと実引数に指定する領域に重なりがある場合の動作は処理系依存。
 
 <div class="return-value">戻り値</div>
 成功なら出力した文字数('\0'は含まない)、失敗なら負値。
+
+---
+
+### 文字配列への書式付出力<br>`int snprintf(char *s, size_t size, const char *format, ...);`
+null文字を含めたバッファサイズを指定する以外はsprintfと同じ。
+
+<div class="return-value">戻り値</div>
+成功なら出力した文字数('\0'は含まない)、失敗なら負値。
+
 
 ---
 
