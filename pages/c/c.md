@@ -242,54 +242,6 @@ C言語では、関数の引数に「配列」を書いても、実際にはポ�
 
 ---
 
-<div class="subtitle">未分類</div>
-
-malloc  
-calloc
-realloc  
-free  
-
-strlen  
-strcpy  
-strncpy  
-strcat  
-strcmp  
-strncmp  
-strchr  
-strstr  
-memcpy  
-memset  
-memcmp  
-
-atoi  
-atof  
-strtol  
-strtod  
-rand  
-srand  
-abs  
-labs  
-pow  
-sqrt  
-fabs  
-floor  
-ceil  
-
-isalpha  
-isdigit  
-isalnum  
-isspace  
-toupper  
-tolower  
-
-time  
-clock  
-difftime  
-localtime  
-strftime  
-
----
-
 <a id="dengerous-functions" data-name="危険な関数"></a>
 
 ## 危険とされるCの標準関数
@@ -309,8 +261,6 @@ strftime
 <a id="stdio-h" data-name="標準入出力"></a>
 
 ## 標準入出力<br>`<stdio.h>`
-
----
 
 ### 標準出力への書式付出力<br>`int printf(const char *format, ...);`
 引数の内容を、formatで指定する書式文字列に従った変換をしてから標準出力に書き込む。formatの中身の文字(マルチバイト文字も)はそのまま出力さるが、%で始まる変換指定は、それに対応する引数の書式変換に使用される。formatに指定した変換指定の型と引数の型が一致していなかったり、引数の数が不足している場合の動作は処理系依存。引数の数が変換指定の数より多い場合は、余った引数は評価されるが出力されない。
@@ -935,22 +885,157 @@ popenにより開かれたパイプを閉じる。
 
 ## 一般ユーティリティー<br>`<stdlib.h>`
 
-### `exit();`
+### メモリ領域の取得<br>`void *malloc(size_t size);`
+sizeバイトの要素を動的メモリに割り付ける。callocでは領域を0クリアするが、mallocは領域を0クリアしない。sizeに0を指定した時の動作は処理系依存(失敗としてNULLをかえすのか、0の領域を作ってそのポインタを返すのか)。<br>
+取得したメモリへのポインタは、取得したメモリの先頭アドレス(下位アドレス)を指す。取得したメモリはどのようなデータ型でも扱えるように境界調整(アラインメント)されている。取得したメモリの生存期間は、生成されてから解放されるまで。動的メモリ取得関数(malloc, calloc, realloc)を連続して呼び出した時に取得されるメモリの順序と、各ブロックが連続しているかは処理系依存。<br>
+動的メモリ取得関数で取得したメモリは不要になったらfreeで解放する。
 
-### `system();`
+<div class="return-value">戻り値</div>
+成功なら取得したメモリへのポインタ、失敗ならNULL。
 
-### `qsort();`
+---
 
-### `bsearch();`
+### 配列領域の取得<br>`void *calloc(size_t nmemb, size_t size);`
+sizeバイトの要素をnmemb個、動的メモリに割り付ける。calloc(nmemb, size)はmalloc(nmemb*size)と同じだが取得領域の全てのビットを0で初期化する。<br>
+nmembまたはsizeに0を指定した時の、動作及びその他の扱いはmallocと同じ。
 
-### `atoi();`
+<div class="return-value">戻り値</div>
+成功なら取得したメモリへのポインタ、失敗ならNULL。
 
+---
+
+### メモリ領域の再割り付け<br>`void *realloc(void *ptr, size_t size);`
+ptrで示す動的メモリを解放し、sizeバイトの新しい動的メモリを割り付ける。前のメモリの内容は、新しいメモリにコピーされる。前のメモリの方が大木場合は、残った部分はコピーされない。新しいメモリほうが大きい場合は、拡張された部分の内容は不定。<br>
+ptrにNULLを指定するとmallocと同じ働きをする。ptrが動的メモリ割り付け関数で取得されたポインタでなかったり、ptrで示す領域がすでに解放されている場合の動作は処理系依存。再割り付けに失敗した場合は前のメモリは解放せずにそのまま残る。再割り付けで新しい領域を割り付けるのか前の領域を拡大・縮小するのかは処理系依存。その他の扱いはmallocに準ずる。
+
+<div class="return-value">戻り値</div>
+成功なら新しいメモリへのポインタ、失敗ならNULL。
+
+---
+
+### メモリブロックの開放<br>`void free(void *ptr);`
+ptrで示す動的メモリ(malloc, calloc, reallocで取得した)を解放する。ptrが動的メモリ割り付け関数で取得されたポインタでなかったり、ptrで示す領域がすでに解放されている場合の動作は処理系依存。<br>
+ptrがNULLの場合は何もしない。
+
+---
+
+### 乱数系列の初期化<br>`void srand(unsigned int seed);`
+randで得る乱数系列の初期値(種)をseedで設定する。srand((unsigned)time(NULL));とすると。種にシステム時間を使って自動的に与えることができる。srandを呼び出さずにrandを使用した場合、種は1として扱われる。つまりsrand(1)を呼び出したのと同じ。
+
+---
+
+### 整数乱数の発生<br>`int rand(void);`
+0~RAND_MAXの範囲の整数乱数を1つ得る。RAND_MAXは32767以上の値と規定されている。randはsrandで種(seed)を与えないと同じ乱数系列(srand(1)と同じ系列)を取る。
+
+<div class="return-value">戻り値</div>
+0~RAND_MAXの整数乱数。
+
+---
+
+### 環境変数の取得<br>`char *getenv(const char *name);`
+環境変数リストの中から、nameで示す環境変数の定義値を取得する。得られたポインタが指し示す内容を変更してはいけない。<br>
+環境変数は、OSが管理する環境テーブルの中に環境変数リストとして構成されている。<br>
+環境変数名の英大小文字が区別されるかは処理系依存。
+
+<div class="return-value">戻り値</div>
+nameで示す環境変数が見つかれば、それを定義している文字列へのポインタ。見つからなければNULL。
+
+---
+
+### 整数型の絶対値<br>`int abs(int n);`
+整数nの絶対値を返す。nに実数を与えた場合、小数点部は捨てられる。絶対値を求める関数は型に応じてabs(int型)、labs(long型)、fabs(double型: math.h)がある。<br>
+型に依存しないマクロabsを次のように定義することもできる。
+
+```c
+#undef abs
+#define abs(x) ((x) >= 0? (x): -(x))
+```
+
+<div class="return-value">戻り値</div>
+整数値nの絶対値を返す。
+
+---
+
+### プロセスの終了<br>`void exit(int status);`
+atexitで登録した関数があれば、それを登録の順序と逆の順序で実行する。次いで出力ストリームをフラッシュし、オープンされているすべてのストリームを閉じ、一時ファイルを削除する。取得している動的メモリを解放するかは処理系依存。その後プログラムを終了し、OSにstatusで示す値を返して戻る。<br>
+statusの値が、0またはEXIT_SUCCESSの時はプログラムが正常終了したことを示す。exitがどこに置かれていても(main以外でも)exitが実行されるとプログラムを終了しOSに戻る。<br> 
+atexitで設定されている関数でさらにexitを呼び出した場合に、longjmpの動作は処理系依存。
+
+---
+
+### プログラムの実行<br>`int system(const char *string);`
+この関数を呼び出したプロセスを一時停止し、stringで示す別の実行可能プログラムを実行する。実際にはstringはコマンドプロセッサに渡されその上で動作することになる。実行プログラムの終了で元のプロセスに戻り、systemは実行したプログラムが返す値を返す(処理系依存)。
+
+<div class="return-value">戻り値</div>
+stringにNULLを指定した場合はコマンドプロセッサの存在を調べ、あれば0、なければ非0。その他の場合は処理系依存で例えば、stringで示すプログラムが実行できなかった場合は1、実行できたときはそのプログラムが返す値。
+
+---
+
+### クイックソート<br><code>void qsort(void *base, size_t nmemb, size_t, <br>int (*compar)(const void *arg1, const void *arg2));</code>
+配列baseのnmemb個のデータをクイックソートアルゴリズムでソートする。ソート結果は配列baseに重ね書きされる。配列のデータ型サイズをsizesに与える。comparは2つのデータを比較するためのユーザが提供する関数へのポインタ。arg1はkeyへのポインタ。arg2はbaseの任意データへのポインタとする。baseのデータを昇順にソートする場合には、comparの返す値を次のようにする。降順にソートするなら以下と逆な条件にする。
+
+```c
+*arg1 < *arg2;  // の場合に負
+*arg1 == *arg2; // の場合に0
+*arg1 > *arg2;  // の場合に正
+```
+
+例えば、数値配列を昇順にソートするには、`return *(型 *)arg1 - *(型 *)arg2;`とし、降順にソートするには`return *(型 *)arg2 - *(型 *)arg1;`とする。<br>
+文字列へのポインタ配列を昇順にソートするには`return strcmp(*(char **))arg1, *(char **))arg2)`とし、降順にソートするには`return strcmp(*(char **))arg2, *(char **))arg1)`とする。
+
+---
+
+### 2分探索<br><code>void *bsearch(const void *key, const void *base, size_t nmemb, size_t size, <br>int (*compar)(const void *arg1, const void *arg2));</code>
+配列baseのnmemb個のデータの中から、keyで示されるデータを2分探索によりサーチする。配列のデータ型サイズをsizeに与える。comparは2つのデータを比較するためのユーザが提供する関数へのポインタ。arg1はkeyへのポインタ、arg2はbaseの任意のデータへのポインタとする。baseのデータが昇順にソートされていた場合にはcomparの返す値を次のようにする。
+
+```c
+*arg1 < *arg2;  // の場合に負
+*arg1 == *arg2; // の場合に0
+*arg1 > *arg2;  // の場合に正
+```
+
+baseのデータが降順ソートされているなら、comparの返す正と負の条件を逆にする。<br>
+具体的な作り方はqsortを参照。
+
+<div class="return-value">戻り値</div>
+見つかればそのデータへのポインタ、一致するものが無ければNULL、2つ以上一致するものがある場合にその中のどのデータへのポインタを返すかは処理系依存。
+
+---
+
+### 文字列からint値への変換<br>`int atoi(const char *nptr);`
+nptrで示す10進数文字列をint値に変換する。(int)strtol(nptr, (char **)NULL, 10)と等価とする。違いはerrnoの設定は行わないこと、変換結果が範囲を超える場合の動作は処理系依存。atolは古いC処理系との互換のために残されている。atolはstrtolで代用できる。
+
+<div class="return-value">戻り値</div>
+成功なら変換されたint値、失敗なら0(処理系依存)。
+
+---
+
+### `strtol()`
+
+
+
+---
+
+### `strtod()`
 
 ---
 
 <a id="string-h" data-name="文字列・メモリ操作"></a>
 
 ## 文字列・メモリ操作<br>`<string.h>`
+
+### `strlen()`
+### `strcpy()`
+### `strncpy()`
+### `strcat()`
+### `strcmp()`
+### `strncmp()`
+### `strchr()`
+### `memcpy()`
+### `memset()`
+### `memcmp()`
+
+
 ### 文字列の検索<br>`char *strstr(const char *s, const char *key);`
 文字列sの中から文字列keyを探す。
 <div class="return-value">戻り値</div>
@@ -962,8 +1047,12 @@ popenにより開かれたパイプを閉じる。
 
 ## 文字の分類と変換<br>`<ctype.h>`
 
-
-
+### `isalpha()`
+### `isdigit()`
+### `isalnum()`
+### `isspace()`
+### `toupper()`
+### `tolower()`
 
 ---
 
@@ -971,6 +1060,12 @@ popenにより開かれたパイプを閉じる。
 
 ## 数学関数<br>`<math.h>`
 
+### `pow()`
+### `sqrt()`
+### `fabs()`
+
+### `floor()`
+### `ceil()`
 
 
 ---
@@ -979,7 +1074,11 @@ popenにより開かれたパイプを閉じる。
 
 ## 時間操作<br>`<time.h>`
 
-
+### `time()`
+### `clock()`
+### `difftime()`
+### `localtime()`
+### `strftime()`
 
 ---
 
