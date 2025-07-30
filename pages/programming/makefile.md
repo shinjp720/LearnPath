@@ -14,7 +14,7 @@
 CC = gcc
 
 # コンパイルオプション
-CFLAGS = -Wall -Wextra -O2
+CFLAGS = -Wall -Wextra -std=c99 -O2
 
 # ソースファイル
 SRCS = main.c foo.c bar.c
@@ -23,7 +23,7 @@ SRCS = main.c foo.c bar.c
 OBJS = $(SRCS:.c=.o)
 
 # 実行ファイル名
-TARGET = myapp
+TARGET = my_app
 
 # デフォルトターゲット
 all: $(TARGET)

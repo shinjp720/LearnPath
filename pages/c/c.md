@@ -101,7 +101,7 @@ flags |= (FLAG_A | FLAG_C);
 
 #### フラグの解除
 ```c
-// FLAG_C をクリア（0 にする）
+// FLAG_C をクリア(0 にする)
 flags &= ~FLAG_C;
 ```
 
@@ -125,23 +125,23 @@ if ((flags & (FLAG_A | FLAG_C)) == (FLAG_A | FLAG_C)) {
 ```
 
 #### マクロによるラッピング
-<pre><code class="example">// ビットを立てる（1にする）
+<pre><code class="example">// ビットを立てる(1にする)
 #define SET_BIT(var, pos)     ((var) |=  (1U << (pos)))
 
-// ビットをクリアする（0にする）
+// ビットをクリアする(0にする)
 #define CLEAR_BIT(var, pos)   ((var) &= ~(1U << (pos)))
 
-// ビットをトグルする（反転させる）
+// ビットをトグルする(反転させる)
 #define TOGGLE_BIT(var, pos)  ((var) ^=  (1U << (pos)))
 
-// ビットが立っているかテストする（非0なら立っている）
+// ビットが立っているかテストする(非0なら立っている)
 #define TEST_BIT(var, pos)    (((var) &   (1U << (pos))) != 0)
 
-// マスクのクリア（マスクで指定したビットをまとめて0にする）
+// マスクのクリア(マスクで指定したビットをまとめて0にする)
 // mask: 1のビットがすべてクリアされる
 #define CLEAR_MASK(var, mask) ((var) &= ~(mask))
 
-// マスクのセット（マスクで指定したビットをまとめて1にする）
+// マスクのセット(マスクで指定したビットをまとめて1にする)
 #define SET_MASK(var, mask)   ((var) |=  (mask))</code></pre>
 
 #### 応用
@@ -458,7 +458,6 @@ C言語では、関数の引数に「配列」を書いても、実際にはポ�
 フィールド幅または精度に、整数値ではなくアスタリスク(*)を指定した場合は対応する実引数の値をフィールド幅または精度に使用して出力する。
 <pre><code class="example">printf("%*d\n", 5, 123); // 123
 printf("%*.*f\n"7, 2, 3.14159); // 3.14</code></pre>
-
 <div class="return-value">戻り値</div>
 成功なら出力した文字数、失敗なら負値。
 
@@ -466,7 +465,6 @@ printf("%*.*f\n"7, 2, 3.14159); // 3.14</code></pre>
 
 ### ファイルへの書式付出力<br>`int fprintf(FILE *stream, const char *format, ...);`
 streamにデータをformatで示す書式で出力する。formatに指定する書式文字列や引数の取り扱いはprintfと同じ。
-
 <div class="return-value">戻り値</div>
 成功なら出力した文字数、失敗なら負値。
 
@@ -481,17 +479,14 @@ formatで指定した書式で引数を文字列に変換し、文字配列sに�
 ---
 
 ### 文字配列への書式付出力<br>`int snprintf(char *s, size_t size, const char *format, ...);`
-null文字を含めたバッファサイズを指定する以外はsprintfと同じ。
-
+sizeにnull文字を含めたバッファサイズを指定する以外はsprintfと同じ。
 <div class="return-value">戻り値</div>
 成功なら出力した文字数('\0'は含まない)、失敗なら負値。
-
 
 ---
 
 ### ファイルへの1文字出力<br>`int fputc(int c, FILE *stream);`
 streamに文字cをunsigned char型に変換して書き込む。ファイル位置指示子を次の書き込み位置に進める。streamが追加モードでオープンされている場合は常にファイルの終わりに書き込む。
-
 <div class="return-value">戻り値</div>
 成功なら書き込んだ文字、書き込みエラーならエラー指示子をセットしてEOFを返す。
 
@@ -499,7 +494,6 @@ streamに文字cをunsigned char型に変換して書き込む。ファイル位
 
 ### ファイルへの1文字出力<br>`int putc(int c, FILE *stream);`
 fputcと同じ。fputcは関数で実現することを要求されているのに対し、putcはマクロでも関数でもよい。処理スピードを上げたいならputc(ただし関数なら同じ)、マクロの副作用の危険を避けるならfputcを使う。
-
 <div class="return-value">戻り値</div>
 fputcと同じ。
 
@@ -507,7 +501,6 @@ fputcと同じ。
 
 ### 標準出力への1文字出力<br>`int putchar(int c);`
 標準出力に1文字書き込むこと以外は、fputcと同じ。putchar(c)は、putc(c, stdout)と等価。
-
 <div class="return-value">戻り値</div>
 fputcと同じ。
 
@@ -515,7 +508,6 @@ fputcと同じ。
 
 ### 標準出力への文字列の出力<br>`int puts(const char *s);`
 標準出力に文字列sを書き込み、さらに改行文字を書き込む。'\0'は書き込まない。fputs(s, stdout)の場合は改行文字を書き込まない。
-
 <div class="return-value">戻り値</div>
 成功なら正値、書き込みエラーならEOF。
 
@@ -523,7 +515,6 @@ fputcと同じ。
 
 ### ファイルへの文字列出力<br>`int fputs(char *s, FILE *stream);`
 streamにsで示す文字列を書き込む。文字列の終了を示す'\0'は書き込まない。自動的に改行文字を書き込むことはしない。
-
 <div class="return-value">戻り値</div>
 成功なら正値、書き込みエラーならEOF。
 
@@ -537,7 +528,6 @@ errnoに設定されているエラー番号の内容を標準エラー出力に
 
 ### 標準入力からの書式付入力<br>`int scanf(const char *format, ...);` <span class="warning">非推奨</span>
 標準入力から、formatで指定する書式文字列に従った変換を行い、引数にデータを読み取る。引数はポインタでなければならない(一般変数には&を付け、配列は配列名を書く)。書式に対し実引数が不足しているときの動作は処理系依存。余分にある時は余分な実引数の評価は行うがデータ入力は行わない。<br>書式文字列は、変換指定と一般文字で構成される。scanfは書式の先頭から遂次変換指定を解釈し、書式に合わないデータが入力されたり、書式文字が正しくないなどの照合誤りが発生した時点で以後の書式変換は行わずにscanfから戻る。この書式に合わないデータは入力バッファに残る。scanfはfscanfの第1引数にstdinを指定したものと等価である。
-
 <div class="subtitle">変換指定の書式</div>
 
 ```
@@ -546,12 +536,11 @@ errnoに設定されているエラー番号の内容を標準エラー出力に
 
 <div class="subtitle">*</div>
 代入禁止。*がある変換指定に対応する入力フィールドは読み飛ばされる。
-
 <div class="subtitle">フィールド幅</div>
 フィールド幅には入力できる最大文字数(バイト数)を指定する。つまり空白が来なくてもこのフィールド幅でデータを区切って入力を行う。
-
 <div class="subtitle">長さ修飾子</div>
 型指定子が示す方の長さを指定する。
+
 <table>
     <tr>
         <th>修飾子</th>
@@ -591,8 +580,8 @@ errnoに設定されているエラー番号の内容を標準エラー出力に
     </tr>
 </table>
 
-
 <div class="subtitle">型指定子</div>
+
 <table>
     <tr>
         <th>指定子</th>
@@ -652,7 +641,6 @@ errnoに設定されているエラー番号の内容を標準エラー出力に
 
 ### ファイルからの書式付入力<br>`int fscanf(FILE *stream, const char *format, ...);`
 streamからformatに従った書式で、データを読み込む。formatに指定する書式文字列や引数の取り扱いはscanfと同じ。
-
 <div class="return-value">戻り値</div>
 変換が１つも行われないまま入力誤りが発生した場合(CTRL+Zなどによる入力終わりの通知があった場合)はEOF、その他の場合は正常に入力できた項目数。先頭データで書式に合わないデータが入力された時は0。
 
@@ -673,7 +661,6 @@ streamからformatに従った書式で、データを読み込む。formatに�
 
 ### ファイルからの文字列入力<br>`char *fgets(char *s, int n, FILE *stream);`
 streamから文字列を読み取りsに格納する。読み取りは改行文字に出会ったか、n-1個の文字を読み取るまで行われる。改行文字に出会った場合は、改行文字を含めてsに格納される。長さ制限を超えた場合はそこまでの文字がsに格納され、改行文字は付加されない。文字列の最後に`'\0'`が付加される。
-
 <div class="return-value">戻り値</div>
 成功ならsへのポインタ、ファイルの終わりあるいはエラーならNULL。ファイルの終わりの場合はsの内容は前の読み取り内容が残るが、エラーの場合sの内容は不定。
 
@@ -688,7 +675,6 @@ streamから1文字読み取る。文字はunsigned char型の1バイトとし�
 
 ### ファイルから1文字入力<br>`int getc(FILE *stream);`
 fgetcと同じ。fgetcは関数で実現することを要求されているのに対しgetcはマクロでも関数でもよい。処理スピードを上げたいならgetc(ただし関数なら同じ)、マクロの副作用の危険を避けるならfgetcを使う。
-
 <div class="return-value">戻り値</div>
 fgetcと同じ。
 
@@ -696,7 +682,6 @@ fgetcと同じ。
 
 ### 標準入力から1文字の入力<br>`int getchar();`
 標準入力から1文字を読み込むこと以外はfgetcと同じ。getchar()はgetc(stdin)と等価。
-
 <div class="return-value">戻り値</div>
 標準入力から1文字を読み込むこと以外はfgetcと同じ。
 
@@ -722,7 +707,6 @@ filenameで示すファイル名のファイルをmodeで示すオープンモ�
 - 入力の後に出力を行う場合、2つの処理の間にファイル位置付け関数(fseek, fsetpos, rewind)を呼び出さなければならない。
 
 オープンしたストリームがコンソール以外の場合はストリームをバッファリングモードで行う。ファイルオープン時に、エラー指示子、ファイル終了指示子はリセットされる。
-
 <div class="return-value">戻り値</div>
 成功ならFILE構造体へのポインタ(ストリームへのポインタ)、失敗ならNULL。
 
@@ -731,7 +715,6 @@ filenameで示すファイル名のファイルをmodeで示すオープンモ�
 ### ファイルクローズ<br>`int fclose(FILE *stream);`
 streamが指すストリームをフラッシュし、ストリームに結合したファイルをクローズする。fcloseにより、出力バッファに残っているデータは書き出され、入力バッファに残っているデータは捨てられる。setbuf、setvbufで割り当てられているバッファをストリームから切り離し、自動的に生成されたバッファを解放する。
 オープンしたファイルはユーザの責任でファイルクローズしなければならない。特にライトモードでオープンしてある場合はfcloseしなければ結果は保証されない。
-
 <div class="return-value">戻り値</div>
 成功なら0、失敗ならEOF。
 
@@ -739,7 +722,6 @@ streamが指すストリームをフラッシュし、ストリームに結合�
 
 ### ファイルへのブロックライト<br>`size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream);`
 sizeバイトのデータブロックを、nmemb個文格納したPtrのデータをstreamに書き込む。ファイル現在位置は書き込みに成功した文字数分進む。エラーの場合のファイルの現在位置は不定。
-
 <div class="return-value">戻り値</div>
 書き込んだブロックの個数。これがnmembに等しくなければエラーがあったことになる。sizeまたはnmembが0なら書き込みは行わずに0を返す。
 
@@ -747,7 +729,6 @@ sizeバイトのデータブロックを、nmemb個文格納したPtrのデー�
 
 ### ファイルからのブロックリード<br>`size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);`
 streamからsizeバイトのデータブロックをnmemb個、ptrに読み取る。ファイル現在位置を読み取った文字数文進める。エラーの場合のファイル現在位置は不定。
-
 <div class="return-value">戻り値</div>
 読み取ったブロックの個数。戻り値がnmembではない場合はファイルの終わりになったか、エラーの時である。sizeまたはnmembが0なら読み取りを行わずに0を返す。
 
@@ -785,7 +766,6 @@ streamがテキストストリームの場合は、次の移動のみを規定�
 </table>
 
 fseekが成功すると、もし直前にungetcが行われていればその動作を解除する。ファイル現在位置は新しい位置に設定される。更新モードのファイルにおいてはfseekの後の入出力動作はどちらも行える。
-
 <div class="return-value">戻り値</div>
 失敗した場合はエラー指示子をセットし非0を返す。成功した場合の規定はなく処理系依存(通常0)。
 
@@ -793,7 +773,6 @@ fseekが成功すると、もし直前にungetcが行われていればその動
 
 ### ファイル現在位置の取得<br>`long int ftell(FILE *stream);`
 streamのファイル現在位置を所得する。バイナリストリームの場合は先頭からファイル現在位置の直前までの文字数となる。テキストストリームの場合は処理系依存。
-
 <div class="return-value">戻り値</div>
 成功ならファイル現在位置、失敗ならerrnoにエラー番号を設定し、-1Lを返す。ファイルを追加モードで開いた場合のファイル位置は直前読み書き位置であるが、1度も読み書きを行わない状態ならftellは0Lを返す。
 
@@ -801,7 +780,6 @@ streamのファイル現在位置を所得する。バイナリストリーム�
 
 ### ファイルの終わりの検知<br>`int feof(FILE *stream);`
 streamがファイルの終わりにあるか調べる。
-
 <div class="return-value">戻り値</div>
 ファイル終了指示子がセットされていれば非0。規格ではその他の場合は規定されていないが通常0。
 
@@ -817,9 +795,7 @@ streamがファイルの終わりにあるか調べる。
 
 <div class="return-value">戻り値</div>
 成功した場合は接続されたパイプとのFILE構造体。失敗した場合はNULLが返る。
-
 <div class="subtitle">type = "r"</div>
-
 <pre><code class="example">#include &lt;stdio.h&gt;
 #include &lt;stdlib.h&gt;
 
@@ -865,7 +841,7 @@ int main() {
     fprintf(fp, "apple\n");
     fprintf(fp, "cherry\n");
 
-    // 終了（これで sort の結果が標準出力に表示される）
+    // 終了(これで sort の結果が標準出力に表示される)
     pclose(fp);
 
     return 0;
@@ -875,7 +851,6 @@ int main() {
 
 ### 開かれたパイプを閉じる<br>`int pclose(FILE *fp);` <span class="label">POSIX</span>
 popenにより開かれたパイプを閉じる。
-
 <div class="return-value">戻り値</div>
 子プロセスの終了ステータス。
 
@@ -889,7 +864,6 @@ popenにより開かれたパイプを閉じる。
 sizeバイトの要素を動的メモリに割り付ける。callocでは領域を0クリアするが、mallocは領域を0クリアしない。sizeに0を指定した時の動作は処理系依存(失敗としてNULLをかえすのか、0の領域を作ってそのポインタを返すのか)。<br>
 取得したメモリへのポインタは、取得したメモリの先頭アドレス(下位アドレス)を指す。取得したメモリはどのようなデータ型でも扱えるように境界調整(アラインメント)されている。取得したメモリの生存期間は、生成されてから解放されるまで。動的メモリ取得関数(malloc, calloc, realloc)を連続して呼び出した時に取得されるメモリの順序と、各ブロックが連続しているかは処理系依存。<br>
 動的メモリ取得関数で取得したメモリは不要になったらfreeで解放する。
-
 <div class="return-value">戻り値</div>
 成功なら取得したメモリへのポインタ、失敗ならNULL。
 
@@ -898,7 +872,6 @@ sizeバイトの要素を動的メモリに割り付ける。callocでは領域�
 ### 配列領域の取得<br>`void *calloc(size_t nmemb, size_t size);`
 sizeバイトの要素をnmemb個、動的メモリに割り付ける。calloc(nmemb, size)はmalloc(nmemb*size)と同じだが取得領域の全てのビットを0で初期化する。<br>
 nmembまたはsizeに0を指定した時の、動作及びその他の扱いはmallocと同じ。
-
 <div class="return-value">戻り値</div>
 成功なら取得したメモリへのポインタ、失敗ならNULL。
 
@@ -907,7 +880,6 @@ nmembまたはsizeに0を指定した時の、動作及びその他の扱いはm
 ### メモリ領域の再割り付け<br>`void *realloc(void *ptr, size_t size);`
 ptrで示す動的メモリを解放し、sizeバイトの新しい動的メモリを割り付ける。前のメモリの内容は、新しいメモリにコピーされる。前のメモリの方が大木場合は、残った部分はコピーされない。新しいメモリほうが大きい場合は、拡張された部分の内容は不定。<br>
 ptrにNULLを指定するとmallocと同じ働きをする。ptrが動的メモリ割り付け関数で取得されたポインタでなかったり、ptrで示す領域がすでに解放されている場合の動作は処理系依存。再割り付けに失敗した場合は前のメモリは解放せずにそのまま残る。再割り付けで新しい領域を割り付けるのか前の領域を拡大・縮小するのかは処理系依存。その他の扱いはmallocに準ずる。
-
 <div class="return-value">戻り値</div>
 成功なら新しいメモリへのポインタ、失敗ならNULL。
 
@@ -925,10 +897,9 @@ randで得る乱数系列の初期値(種)をseedで設定する。srand((unsign
 ---
 
 ### 整数乱数の発生<br>`int rand(void);`
-0~RAND_MAXの範囲の整数乱数を1つ得る。RAND_MAXは32767以上の値と規定されている。randはsrandで種(seed)を与えないと同じ乱数系列(srand(1)と同じ系列)を取る。
-
+0～RAND_MAXの範囲の整数乱数を1つ得る。RAND_MAXは32767以上の値と規定されている。randはsrandで種(seed)を与えないと同じ乱数系列(srand(1)と同じ系列)を取る。
 <div class="return-value">戻り値</div>
-0~RAND_MAXの整数乱数。
+0～RAND_MAXの整数乱数。
 
 ---
 
@@ -936,7 +907,6 @@ randで得る乱数系列の初期値(種)をseedで設定する。srand((unsign
 環境変数リストの中から、nameで示す環境変数の定義値を取得する。得られたポインタが指し示す内容を変更してはいけない。<br>
 環境変数は、OSが管理する環境テーブルの中に環境変数リストとして構成されている。<br>
 環境変数名の英大小文字が区別されるかは処理系依存。
-
 <div class="return-value">戻り値</div>
 nameで示す環境変数が見つかれば、それを定義している文字列へのポインタ。見つからなければNULL。
 
@@ -965,7 +935,6 @@ atexitで設定されている関数でさらにexitを呼び出した場合に�
 
 ### プログラムの実行<br>`int system(const char *string);`
 この関数を呼び出したプロセスを一時停止し、stringで示す別の実行可能プログラムを実行する。実際にはstringはコマンドプロセッサに渡されその上で動作することになる。実行プログラムの終了で元のプロセスに戻り、systemは実行したプログラムが返す値を返す(処理系依存)。
-
 <div class="return-value">戻り値</div>
 stringにNULLを指定した場合はコマンドプロセッサの存在を調べ、あれば0、なければ非0。その他の場合は処理系依存で例えば、stringで示すプログラムが実行できなかった場合は1、実行できたときはそのプログラムが返す値。
 
@@ -996,7 +965,6 @@ stringにNULLを指定した場合はコマンドプロセッサの存在を調�
 
 baseのデータが降順ソートされているなら、comparの返す正と負の条件を逆にする。<br>
 具体的な作り方はqsortを参照。
-
 <div class="return-value">戻り値</div>
 見つかればそのデータへのポインタ、一致するものが無ければNULL、2つ以上一致するものがある場合にその中のどのデータへのポインタを返すかは処理系依存。
 
@@ -1004,19 +972,28 @@ baseのデータが降順ソートされているなら、comparの返す正と�
 
 ### 文字列からint値への変換<br>`int atoi(const char *nptr);`
 nptrで示す10進数文字列をint値に変換する。(int)strtol(nptr, (char **)NULL, 10)と等価とする。違いはerrnoの設定は行わないこと、変換結果が範囲を超える場合の動作は処理系依存。atolは古いC処理系との互換のために残されている。atolはstrtolで代用できる。
-
 <div class="return-value">戻り値</div>
 成功なら変換されたint値、失敗なら0(処理系依存)。
 
 ---
 
-### `strtol()`
-
-
+### 文字列をlong値に変換<br>`long int strtol(const char *nptr, char **endptr, int base);`
+nptrで示される整数文字列をlong int値に変換する。文字列中に符号(+, -)、8進数接頭語(0)、16進接頭語(0x, 0X)を含めることができる。U、Lなどの接尾語は認められない。先頭の空白類文字は無視される。整数文字列として認められない文字(baseの値で異なる)が出現した時点で検索をやめ、そこへのポインタをendptrに返し、そこまでの文字でlong int値にする。<br>
+変換結果がオーバーフローすればオーバーフローした分が捨てられる。endptrが文字列の終わりを示す'\0'であれば文字列を正常に変換できたことを示す。endptrにNULLを指定した場合は変換のみを行う。<br>
+baseは文字列を変換するときの基数で、`0～36`が指定できる。baseを0にすると、文字列nptrの先頭が0なら8進、0x、0Xなら16進、それ以外の数字なら10進とみなす。baseが1のときは数字文字は0だけを認める(事実上意味を持たない)。<br>
+数字文字は`0～9`と、`10～35`を示す文字のa(A)～z(Z)である。数字文字として認められない文字はbaseで示す進数以上の文字である。例えばbaseが8なら、8以上の文字。
+<div class="return-value">戻り値</div>
+成功なら変換したlong int値、失敗なら0L。変換結果がlong int値で表現できる範囲を超えていれば、LONG_MIN_MAX(limits.h)を返し、errnoにERANGEをセットする。
 
 ---
 
-### `strtod()`
+### 文字列をdouble値に変換<br>`double strtod(const char *nptr, char **endptr);`
+nptrで示される浮動小数点数文字列をdouble値に変換する。先頭の空白類文字は無視される。文字列中に符号(+, -)、数値文字(0～9)、小数点(.)、指数(e, E)が数値文字列として認められる。数値文字列として認められない文字が出現した時点で検索をやめ、そこへのポインタをendptrに返し、そこまでの文字でdouble値にする。<br>
+endptrが文字列の終わりを示す'\0'であれば文字列を正常に変換できたことを示す。endptrにNULLを指定した場合は変換のみを行う。<br>
+符号は仮数、指数部の前に1つ、小数点は仮数部に1つ、指数文字は指数部に1つまでとする。<br>
+小数点をどの文字で示すかはロケールに依存する。ISO C99では0x、0Xで始まる16進実数値文字列や"INF"、"NANなどの文字も扱える。
+<div class="return-value">戻り値</div>
+成功なら変換したdouble値、失敗なら0.0。変換結果がdouble値で表現できる範囲を超えていれば±HUGE_VAL(math.h)を返しerrnoにERANGEをセットする。変換結果がアンダーフローした場合は表現できる最も小さな正の値(通常0.0)を返すが、errnoにERANGEをセットするかどうかは処理系依存。
 
 ---
 
@@ -1024,10 +1001,23 @@ nptrで示す10進数文字列をint値に変換する。(int)strtol(nptr, (char
 
 ## 文字列・メモリ操作<br>`<string.h>`
 
-### `strlen()`
 ### `strcpy()`
 ### `strncpy()`
-### `strcat()`
+
+### 文字列の検索<br>`char *strstr(const char *s, const char *key);`
+文字列sの中から文字列keyを探す。
+<div class="return-value">戻り値</div>
+見つかれば最初に見つかった位置へのポインタ、見つからなければNULL。keyが空文字列ならsへのポインタを返す。
+
+---
+
+### 文字列の連結<br>`char *strcat(char *d, const char *s);`
+
+
+
+---
+### `strlen()`
+
 ### `strcmp()`
 ### `strncmp()`
 ### `strchr()`
@@ -1036,12 +1026,7 @@ nptrで示す10進数文字列をint値に変換する。(int)strtol(nptr, (char
 ### `memcmp()`
 
 
-### 文字列の検索<br>`char *strstr(const char *s, const char *key);`
-文字列sの中から文字列keyを探す。
-<div class="return-value">戻り値</div>
-見つかれば最初に見つかった位置へのポインタ、見つからなければNULL。keyが空文字列ならsへのポインタを返す。
 
----
 
 <a id="ctype-h" data-name="文字の分類と変換"></a>
 
@@ -1195,13 +1180,56 @@ argvはargument vector(1次元配列)の意味</code></pre>
 <a id="gcc" data-name="gcc"></a>
 
 ## gcc
+- `-o`で実行ファイル名を指定しなければデフォルトで`a.out`というファイル名になる。
 
 <div class="subtitle">オプション</div>
- 
-<div class="subtitle">gccによる簡単なコンパイル</div>
 
-<pre><code class="tips">gcc test.c -o test</code></pre>
-このコマンドで`test`という実行ファイルが生成される。<br>`-o`は実行ファイルに名前を付けるオプションで、指定しなければデフォルトで`a.out`という実行ファイルが生成される。
+| オプション        | 説明                                                      |
+| ----------------- | --------------------------------------------------------- |
+| -c                | コンパイルのみ(リンクしない、.oを出力)                    |
+| -o &lt;file&gt;   | 出力ファイル名の指定                                      |
+| -I&lt;dir&gt;     | ヘッダーファイル探索パスの追加                            |
+| -L&lt;dir&gt;     | ライブラリ探索パスの追加                                  |
+| -l&lt;name&gt;    | ライブラリのリンク(例：-lm = libm)                        |
+| -static           | 静的リンクを行う(すべて含めたバイナリに)                  |
+| -shared           | 共有ライブラリを作る(.so)                                 |
+| -g                | デバッグ情報を付加(gdbやlldbで使える)                     |
+| -std=c99          | C99標準でコンパイル(他：c89, gnu99, c11, c17, gnu11, etc) |
+| -ansi             | -std=c89 相当＋GNU拡張を無効化                            |
+| -fstrict-aliasing | 型による最適化を有効化(-O2以上で有効)                     |
+| -fno-inline       | 関数のインライン化を抑制(デバッグしやすく)                |
+| -Wall             | 代表的な警告を全て表示(必須級)                            |
+| -Wextra           | -Wall に含まれない追加の警告も出す                        |
+| -Wpedantic        | 標準C規格に厳密でないコードにも警告                       |
+| -Werror           | 警告をエラーとして扱う(品質重視・CI向け)                  |
+| -Wshadow          | 同じ名前の変数が別スコープで影を落とすと警告              |
+| -Wconversion      | 型変換に関する警告を有効化                                |
+| -Wuninitialized   | 未初期化の変数使用を警告(-O1以上で有効)                   |
+| -O0               | 最適化なし(デフォルト、デバッグ向け)                      |
+| -O1               | 軽い最適化                                                |
+| -O2               | 中程度の最適化(実用性高、標準的)                          |
+| -O3               | 積極的な最適化(高速だがコード肥大の傾向)                  |
+| -Os               | サイズ最適化(コードを小さく)                              |
+| -Ofast            | -O3に加えて規格無視の最適化(安全性注意)                   |
+
+---
+
+<div class="subtitle">実用的な組み合わせ</div>
+
+```c
+// 開発中(デバッグ重視)
+gcc -Wall -Wextra -g -O0 main.c -o main
+```
+
+```c
+// 実行速度重視(リリース用)
+gcc -Wall -Wextra -O2 main.c -o main
+```
+
+```c
+// 品質厳格チェック(CIなど)
+gcc -Wall -Wextra -Wpedantic -Werror -O2 main.c -o main
+```
 
 ---
 
