@@ -1002,8 +1002,42 @@ endptrが文字列の終わりを示す'\0'であれば文字列を正常に変�
 
 ## 文字列・メモリ操作<br>`<string.h>`
 
-### `strcpy()`
-### `strncpy()`
+### 文字列のコピー<br>`char *strcpy(char *d, const *s);` <span class="warning">非推奨</span>
+文字列dに文字列sをコピーする。配列dにはコピーする文字列の長さ+1('\0'の分)の領域が必要。もしsの方が長いと、dの範囲を超えてコピーしてしまうので、周辺領域を破壊してしまう。このような危険を避けるためにはstrncpyを使用する。２つの領域に重なりがある場合の動作は処理系依存。
+<div class="return-value">戻り値</div>
+dへのポインタ。
+
+---
+
+### 長さを指定した文字列のコピー<br>`char *strncpy(char *d, const char *s, size_t n);`
+文字配列dに文字列sをコピーする。sの長さがn未満の場合は、sをコピーした後ろに'\0'を全体でnになるまで補う。sの長さがn以上の場合は、sの先頭からn文字目までをコピーし、'\0'を補わない。nに送り先のdの長さ-1を指定すれば、dの領域を超えてコピーすることはないので、strcpyより安全である。<br>
+ただし、sの長さがn以上の場合(つまりsの部分文字列をコピーする場合)に、最後に'\0'が付加されないという重大な欠陥があるので、この場合はユーザが補わなければならない。dとsの領域に重なりがある場合の動作は処理系依存。
+<div class="return-value">戻り値</div>
+dへのポインタ。
+
+---
+
+### 文字列の連結<br>`char *strcat(char *d, const char *s);` <span class="warning">非推奨</span>
+
+文字列dの文字列の終わりに文字列sを連結する。2つの領域に重なりがある場合の動作は処理系依存。dは文字列として初期化されていなければいけない。
+<div class="return-value">戻り値</div>
+dへのポインタ。
+
+---
+
+### 長さを指定した文字列の連結<br>`char *strncat(char *d, const char *s, size_t n);`
+文字配列dの文字列の終末に、文字列sを連結する。sの長さがn未満の場合はsの終わりまで連結する。sの長さがn以上の場合はsのn文字目までを連結する。いずれの場合も最後に１つの'/0'を補う。strncpyの'/0'を補う動作とは異なる。2つの領域に重なりがある場合の動作は処理系依存。dは文字列として初期化されていなければならない。
+<div class="return-value">戻り値</div>
+dへのポインタ。
+
+---
+
+### 文字列の長さの取得<br>`size_t strlen(const char *s);`
+文字列sの長さ('\0'は含まない)を符号なし整数値で返す。
+<div class="return-value">戻り値</div>
+文字列の長さ。
+
+---
 
 ### 文字列の検索<br>`char *strstr(const char *s, const char *key);`
 文字列sの中から文字列keyを探す。
@@ -1012,22 +1046,57 @@ endptrが文字列の終わりを示す'\0'であれば文字列を正常に変�
 
 ---
 
-### 文字列の連結<br>`char *strcat(char *d, const char *s);`
-
-
+### 文字列の比較<br>`int strcmp(const char *s1, const char *ch2);`
+文字列s1とs2のな要を文字コード順で比較する。
+<div class="return-value">戻り値</div>
+s1 < s2なら負の値、s1 == s2なら0、s1 > s2なら正の値。規格では最初に異なる文字の対の値(unsigned charとみなした)の差の符号となっている。strcmp("a", "aa")
+は'/0'-'a'の-97で判定する。
 
 ---
-### `strlen()`
 
-### `strcmp()`
-### `strncmp()`
-### `strchr()`
-### `memcpy()`
-### `memset()`
-### `memcmp()`
+### 長さを指定した文字列の比較<br>`int strncmp(const char *s1, const char *s2, size_t n);`
+文字列s1とs2の先頭からn文字の内容を文字コード順で比較する。
+<div class="return-value">戻り値</div>
+s1 < s2なら負の値、s1 == s2なら0、s1 > s2なら正の値。
 
+---
 
+### 指定文字の検索<br>`char *strchr(const char *s, int c);`
+文字列sの中から文字cを探す。'\0'も文字列の一部として扱う。つまり'\0'をcに指定して検索できる。
+<div class="return-value">戻り値</div>
+見つかれば最初に見つかった文字へのポインタ。見つからなければNULL。
 
+---
+
+### メモリブロックの初期化<br>`void *memset(void *s, int c, size_t n);`
+sのnバイトを文字cで初期化する。
+<div class="return-value">戻り値</div>
+sへのポインタ。
+
+---
+
+### メモリブロックのコピー<br>`void *memcpy(void *d, const void *s, size_t n);`
+
+sのnバイトの内容をdにコピーする。2つの領域に重なりがある場合の動作は処理系依存。その場合はmemmoveを使う。nには配列の要素数ではなくバイト数を指定する。
+<div class="return-value">戻り値</div>
+
+dへのポインタ。
+
+---
+
+### メモリブロックの移動<br>`void *memmove(void *d, const void *s, size_t n);`
+sのnバイトの内容をdにコピーする。2つの領域が重なっていても正常にコピーできる。memmoveよりmemcpyの方が処理時間は早いが、memcpyは2つの領域が重なっている場合は使えない。2つの領域が重ならないことがはっきりしていればmemcpyを使い、重なる場合はmemmoveを使う。
+<div class="return-value">戻り値</div>
+dへのポインタ。
+
+---
+
+### メモリブロックの比較<br>`int memcmp(const void *s1, const void *s2, size_t n);`
+s1とs2のバイト内容を、文字コード順で比較する。
+<div class="return-value">戻り値</div>
+s1 < s2なら負の値、s1 == s2なら0、s1 > s2なら正の値。
+
+---
 
 <a id="ctype-h" data-name="文字の分類と変換"></a>
 
