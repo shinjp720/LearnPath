@@ -3,6 +3,7 @@
 
 # C言語
 
+## コメント
 - `/* コメント */`<br>複数行も可能
 - `// コメント`<br>行末までコメント
 
@@ -1139,13 +1140,31 @@ s1 < s2なら負の値、s1 == s2なら0、s1 > s2なら正の値。
 
 ## 数学関数<br>`<math.h>`
 
-### `pow()`
-### `sqrt()`
-### `fabs()`
+### 累乗<br>`double pow(double x, double y);`
+<div class="return-value">戻り値</div>
+xのy乗を返す。xが負でyが小数部のある実数(整数にならない実数)の場合、xが0でy <= 0の場合は定義域エラーとなる。引数の値によって値域エラーとなる場合がある。
 
-### `floor()`
-### `ceil()`
+---
 
+### 平方根<br>`double sqrt(double x);`
+<div class="return-value">戻り値</div>
+xの平方根(ルート)を返す。xが負なら定義域エラーとなる。
+
+---
+
+### 実数の絶対値<br>`double fabs(double x);`
+<div class="return-value">戻り値</div>
+double値xの絶対値を返す。
+
+### 引数を上回らない最大整数<br>`double floor(double x);`
+<div class="return-value">戻り値</div>
+xの小数点部を数直線上で左方向へ切り下げる。ceilは右方向へ切り上げになる。
+
+---
+
+### 引数を下回らない最小整数<br>`double ceil(double x);`
+<div class="return-value">戻り値</div>
+xの小数点部を数直線上で右方向へ切り上げる。floorは左方向へ切り下げになる。
 
 ---
 
