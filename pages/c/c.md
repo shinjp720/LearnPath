@@ -796,6 +796,7 @@ streamがファイルの終わりにあるか調べる。
 <div class="return-value">戻り値</div>
 成功した場合は接続されたパイプとのFILE構造体。失敗した場合はNULLが返る。
 <div class="subtitle">type = "r"</div>
+
 <pre><code class="example">#include &lt;stdio.h&gt;
 #include &lt;stdlib.h&gt;
 
