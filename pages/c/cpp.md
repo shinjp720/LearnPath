@@ -7,7 +7,11 @@
 
 ---
 
+<<<<<<< HEAD
 ## 型<a id="type" data-name="型"></a>
+=======
+## <a id="type" data-name="型"></a>型
+>>>>>>> c7eda4529132ab22b031f1347a5a443cc9c4fbf3
 
 ### auto(型推論)
 <span class="code-like">`auto 変数名 = 初期値`</span>
@@ -96,7 +100,11 @@ int c{30};
 int d = {40};
 ```
 
+<<<<<<< HEAD
 ## 制御構文<a id="control-syntax" data-name="制御構文"></a>
+=======
+## <a id="control-syntax" data-name="制御構文"></a>制御構文
+>>>>>>> c7eda4529132ab22b031f1347a5a443cc9c4fbf3
 
 ### for文
 <div class="subtitle"></a>範囲for</div>
@@ -111,7 +119,11 @@ int d = {40};
 
 
 
+<<<<<<< HEAD
 ## クラス<a id="class" data-name="クラス"></a>
+=======
+## <a id="class" data-name="クラス"></a>クラス
+>>>>>>> c7eda4529132ab22b031f1347a5a443cc9c4fbf3
 
 ### コンストラクタ
 コンストラクタはクラスのインスタンス化のときに1度だけ必ず呼ばれる特殊なメンバ関数で、初期化処理を自動化できる。
@@ -162,8 +174,12 @@ Foo f; // ❌ コンパイルエラー
 ```
 
 ### explicit指定子
+<<<<<<< HEAD
 特に以下のような単引数のコンストラクタでは、暗黙的にコンストラクタが呼ばれるが、意図していないことが多く、見た目では非常に分かりづらい。<br>
 そこで、コンストラクタに<span class="code-like">explicit</span>を付けると暗黙的なコンストラクタの呼び出しを禁止することができる。
+=======
+以下のような例では暗黙的にコンストラクタが呼ばれるが、<span class="code-like">explicit</span>を付けると暗黙的なコンストラクタの呼び出しを禁止する。
+>>>>>>> c7eda4529132ab22b031f1347a5a443cc9c4fbf3
 
 ```cpp
 struct Foo {
@@ -276,7 +292,11 @@ public:
 
 デストラクタはオーバーロードができず、引数も、戻り値もない。
 
+<<<<<<< HEAD
 ## 継承<a id="inheritance" data-name="継承"></a>
+=======
+## <a id="inheritance" data-name="継承"></a>継承
+>>>>>>> c7eda4529132ab22b031f1347a5a443cc9c4fbf3
 あるクラスの異なる部分を追加、変更してクラスを再利用することを継承という。
 継承すると基底クラスのメンバ変数とメンバ関数を全て引き継ぐ。
 
