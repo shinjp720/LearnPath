@@ -51,6 +51,18 @@ pre code {
     margin: 15px;
 }
 
+.code-like {
+    background-color: black;
+    color: white;
+    font-family: monospace;
+    /* コードっぽく */
+    display: inline-block;
+    /* 文字列にフィットさせる */
+    padding: 0.4em 0.4em;
+    /* ちょっと余白を付けると見やすい */
+}
+
+
 /* 警告 */
 .warning {
     color: rgb(255, 255, 255);
