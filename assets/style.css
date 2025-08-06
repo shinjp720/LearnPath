@@ -25,6 +25,11 @@ table {
     margin: 15px;
 }
 
+table caption {
+    text-align: left;
+    font-weight: bold;
+}
+
 th {
     background-color: #dfdfdf;
 }

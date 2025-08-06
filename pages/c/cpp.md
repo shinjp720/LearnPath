@@ -10,7 +10,7 @@
 ## 型<a id="type" data-name="型"></a>
 
 ### auto(型推論)
-<span class="code-like">`auto 変数名 = 初期値`</span>
+<span class="code-like">auto 変数名 = 初期値</span>
 
 変数の宣言時に初期値を与えている場合、初期値と同じ型に推論してくれる。
 
@@ -98,6 +98,48 @@ int d = {40};
 
 ## 制御構文<a id="control-syntax" data-name="制御構文"></a>
 
+## if文
+<div class="subtitle">初期化付きif文 <span class="label">C++17以降</span> </div>
+
+```cpp
+if (型 変数名 = 式; 条件)
+{
+    //
+}
+```
+
+通常ではif文の前に変数を用意してif文で評価するような文をまとめることができる。
+
+```cpp
+int result = func();
+if (result == 0) 
+{
+    //
+}
+```
+
+これが
+
+```cpp
+if (int result = func(); result == 0)
+{
+    //
+}
+```
+
+このように書ける
+
+<div class="subtitle">初期化付きswitch文</div>
+switch文も初期化付きif文と同じように書ける。
+
+```cpp
+switch (型 変数名 = 式; 条件)
+{
+    //
+}
+```
+
+
 ### for文
 <div class="subtitle"></a>範囲for</div>
 
@@ -105,11 +147,9 @@ int d = {40};
 
 とすると配列の各要素を順番に回すことができる。
 
-<span class="code-like"><a id="範囲for"></a>`for (auto 変数名: 配列)`</span>
+<span class="code-like"><a id="範囲for"></a>for (auto 変数名: 配列)</span>
 
 とすると配列の要素の型に自動で推論される。
-
-
 
 ## クラス<a id="class" data-name="クラス"></a>
 
@@ -158,12 +198,12 @@ Foo f;  // OK
 struct Foo {
     Foo() = delete;  // デフォルトコンストラクタを禁止
 };
-Foo f; // ❌ コンパイルエラー
+Foo f; // コンパイルエラー
 ```
 
 ### explicit指定子
 特に以下のような単引数のコンストラクタでは、暗黙的にコンストラクタが呼ばれるが、意図していないことが多く、見た目では非常に分かりづらい。<br>
-そこで、コンストラクタに<span class="code-like">explicit</span>を付けると暗黙的なコンストラクタの呼び出しを禁止することができる。
+そこで、コンストラクタに <span class="code-like">explicit</span> を付けると暗黙的なコンストラクタの呼び出しを禁止することができる。
 
 ```cpp
 struct Foo {
@@ -215,6 +255,10 @@ public:
   1. メンバ変数が宣言順に初期化される。
   2. 初期化リストで指定したコンストラクタが呼ばれる。
 
+<span class="code-like">Foo(int n) : x(n) {}</span>
+
+このように引数を初期化リストに渡せる。
+
 <pre><code class="caution">初期化の順序は、初期化リストの順番ではなくクラスのメンバ変数の宣言順！メンバ変数のデータに依存する処理の場合バグにつながる。</code></pre>
 
 <div class="subtitle">コンストラクタ本体での代入</div>
@@ -234,10 +278,6 @@ public:
 - これは初期化ではなく代入。
 - std::stringなら、まずデフォルトコンストラクタで空文字列を作ってから"bob"を代入するので余計なコストがかかる可能性がある。
 - できるだけメンバ初期化リストを使う方が効率的。
-
-<span class="code-like">Foo(int n) : x(n) {}</span>
-
-このように引数を初期化リストに渡せる。
 
 <div class="subtitle">メンバ初期化リストが必須になる場合</div>
 
@@ -276,6 +316,99 @@ public:
 
 デストラクタはオーバーロードができず、引数も、戻り値もない。
 
+### フレンド関数
+フレンド関数を使うと非公開のメンバ変数にアクセスすることが可能となる。<br>
+非メンバ関数をフレンド関数として宣言するには、その非メンバ関数のプロトタイプ宣言に <span class="code-like">friend</span> を付けたものをクラス内に記述する。
+
+```cpp
+class Vector2d
+{
+    float x;
+    float y;
+
+public:
+    Vector2d();
+    Vector2d(float, float);
+    friend Vector2d add(Vector2d &, Vector2d &); // フレンド関数
+};
+Vector2d::Vector2d() : x(0), y(0) {}
+Vector2d::Vector2d(float x, float y)
+{
+    this->x = x;
+    this->y = y;
+}
+
+Vector2d add(Vector2d &v1, Vector2d &v2)
+{
+    Vector2d result{};
+    result.x = v1.x + v2.x;
+    result.y = v1.y + v2.y;
+    return result;
+}
+```
+
+### staticメンバ変数
+staticクラスメンバはメンバ変数の一種だが、特定のインスタンスと紐づかずに、クラスと紐づく。
+メンバ変数の宣言時に <span class="code-like">static</span> を付けることで宣言することができ、そのままではメモリの割り当てが行われないので、クラス外(通常関数の定義を行う場所)で定義する必要がある。
+
+```cpp
+class A
+{
+    int value;
+    static int count; // ここで宣言
+public:
+    A();
+    A(int i);
+};
+int A::count = 0; // ここで定義
+A::A() : A(0) {}
+A::A(int i) : value(i) { count++; }
+```
+
+staticメンバ変数はアクセス修飾子の影響を受ける。
+
+C++17以降では <span class="code-like">inline</span> を付けることでヘッダに書くことがでる。
+
+```cpp
+class Foo {
+public:
+    inline static int counter = 0; // 定義と宣言をクラス内で完結
+};
+```
+
+### staticメンバ関数
+staticメンバ変数同様に、特定のインスタンスに紐づかない特別なメンバ関数。
+
+```cpp
+class A
+{
+    int value;
+    static int count;
+
+public:
+    A(int i);
+    A();
+    static void printCount(); // ここで宣言
+};
+int A::count = 0;
+A::A(int i) : value(i) { count++; }
+A::A() : A(0) {}
+void A::printCount()
+{
+    cout << "count: " << count << endl; // ここで定義
+}
+
+int main()
+{
+    A::printCount(); // クラスから呼び出し
+    A a(10);
+    a.printCount(); // インスタンスからも呼べる
+    A b{};
+    a.printCount();
+}
+```
+
+
 ## 継承<a id="inheritance" data-name="継承"></a>
 あるクラスの異なる部分を追加、変更してクラスを再利用することを継承という。
 継承すると基底クラスのメンバ変数とメンバ関数を全て引き継ぐ。
@@ -290,7 +423,7 @@ class 派生クラス名 : アクセス修飾子 基底クラス名
 ```
 
 ### 仮想関数
-派生クラスで基底クラスの関数の処理内容を変更したい場合は基底クラスの宣言時に`virtual`を付けてオーバーライドする。
+派生クラスで基底クラスの関数の処理内容を変更したい場合は基底クラスの宣言時に <span class="code-like">virtual</span> を付けてオーバーライドする。
 
 ```cpp
 class A
@@ -320,7 +453,7 @@ virtual 戻り値の型 関数名([引数]) = 0; // 純粋仮想関数
 
 ### オーバーロード
 基底クラスの関数を派生クラスでオーバーロード(シグネチャが異なる関数の定義)する際にも名前の隠蔽が発生して、基底クラスの関数が隠される(つまり派生クラスで同名の関数を定義すると名前の隠蔽が発生する)。<br>
-これを避けるには`using`を使って名前隠蔽を解除する。
+これを避けるには <span class="code-like">using</span> を使って名前隠蔽を解除する。
 
 ```cpp
 class Derived : public Base
