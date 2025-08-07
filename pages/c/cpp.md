@@ -544,3 +544,65 @@ public:
 ## 標準入出力<br>`iostream`
 
 ### istreamから1行読み込む<br>`std::istream& getline(std::istream& input, std::string& str);`
+
+---
+
+## リンケージ<a id="linkage" data-name="リンケージ"></a>
+リンケージを用いるとC++からCで書かれたプログラムを呼び出すことが出きる。
+
+<div class="subtitle">リンケージの手順</div>
+
+1. ファイルを用意して
+
+```c
+// hello.c
+#include <stdio.h>
+
+void helloFromC(void)
+{
+    printf("hello from C!!\n");
+}
+```
+
+```cpp
+// main.c
+extern "C" void helloFromC(void); // extern "C"を書く
+
+int main()
+{
+    helloFromC(); // 呼び出し
+    return 0;
+}
+```
+
+2. <span class="code-like">gcc</span> でCファイルをコンパイル。
+
+```bash
+gcc -c hello.c -o hello.o
+```
+
+3. <span class="code-like">g++</span> でC++ファイルをコンパイル。
+
+```bash
+g++ -c main.cpp -o main.o
+```
+
+4. <span class="code-like">g++</span> でリンク。
+
+```bash
+g++ main.o hello.o -o program
+```
+
+5. 実行。
+
+```bash
+./program
+```
+
+```
+hello from C!!
+```
+
+<pre><code class="caution">CからC++のプログラムを実行するのは可能だが、クラス、継承、STL、例外処理などのC++の機能はCから直接扱うことができないため、CとのインターフェースをC++でラップして、C側には単純な戻り値、関数のみを公開する形にする必要がある。</code></pre>
+
+---
