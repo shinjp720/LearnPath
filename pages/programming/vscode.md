@@ -72,9 +72,9 @@
 <table>
     <caption>サイドバー関連</caption>
         <tr><th>ショートカットキー</th><th>意味</th></tr>
-        <tr><td>Ctrl+B</td><td>エクスプローラーの表示</td></tr>
+        <tr><td>Ctrl+B</td><td>サイドバーの表示</td></tr>
         <tr><td>Ctrl+Shift+E</td><td>エクスプローラーに移動</td></tr>
-        <tr><td>Ctrl+J</td><td>ターミナル部の表示</td></tr>
+        <tr><td>Ctrl+J</td><td>パネルの表示</td></tr>
         <tr><td>Ctrl+@</td><td>ターミナルに移動</td></tr>
 </table>
 
