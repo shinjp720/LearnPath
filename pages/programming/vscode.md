@@ -94,3 +94,11 @@
         <tr><td>Ctrl+R</td><td>最近使用したワークスペースを開く</td></tr>
         <tr><td>Ctrl+K, Z</td><td>禅モード</td></tr>
 </table>
+
+<table>
+    <caption>折りたたみ</caption>
+        <tr><th>ショートカットキー</th><th>意味</th></tr>
+        <tr><td>Ctrl+K, Ctrl+J</td><td>全て展開</td></tr>
+        <tr><td>Ctrl+K, Ctrl+[</td><td>再帰的に折りたたむ</td></tr>
+        <tr><td>Ctrl+K, Ctrl+]</td><td>再帰的に展開</td></tr>
+</table>
