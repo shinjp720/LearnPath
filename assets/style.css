@@ -153,6 +153,7 @@ pre code {
 
 /* メインコンテンツ */
 #main {
+    background-color: #ffffff18;
     flex: 1;
     overflow-y: auto;
     height: 100vh;
@@ -168,14 +169,25 @@ pre code {
     flex-shrink: 0;
 }
 
-#navi,
+/* #navi,
 #toc {
     color: black;
     background-color: #cfcfcf;
 }
 
 #toc li:hover {
-    color: white;
+    color: rgb(227, 201, 201);
+} */
+
+/* ボタンはデフォルト非表示（PC用） */
+#menuBtn,
+#tocBtn {
+    display: none;
+}
+
+/* オーバーレイはデフォルト非表示 */
+#overlay {
+    display: none;
 }
 
 /* ----------- スマホ・縦長用 スライドイン設定 ----------- */
@@ -227,6 +239,7 @@ pre code {
     /* 開閉ボタンの見た目と位置 */
     #menuBtn,
     #tocBtn {
+        display: block;
         position: fixed;
         top: 10px;
         padding: 0.5rem 1rem;
@@ -243,5 +256,22 @@ pre code {
 
     #tocBtn {
         right: 10px;
+    }
+
+    /* オーバーレイ（メニュー開いた時に背景を覆う） */
+    #overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.4);
+        z-index: 900;
+        /* メニューより下 */
+    }
+
+    #overlay.show {
+        display: block;
     }
 }

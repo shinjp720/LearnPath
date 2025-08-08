@@ -255,10 +255,94 @@ C言語では、関数の引数に「配列」を書いても、実際にはポ�
 ---
 
 ## プリプロセッサ <a id="preprocessor" data-name="プリプロセッサ"></a>
+プリプロセッサディレクティブは、コンパイルの前段階でソースコードに対して特定の処理を行う仕組み。
 
+### `#include`
+他のファイルを読み込んで挿入する。
 
+- システム標準のディレクトリから探す<br><span class="code-like">#include &lt;stdio.h&gt;</span>
+- カレントディレクトリを優先的に探す<br><span class="code-like">#include "my_header.h"</span>
 
+---
 
+### `#define`
+マクロ定義(定数や簡単な関数のようなもの)
+
+```c
+#define PI 3.14159
+#define SQUARE(x) ((x)*(x))  // マクロ関数
+```
+
+単なる文字列置換なので、副作用に注意が必要。
+
+---
+
+### `#undef`
+マクロ定義を解除する。
+
+```c
+#undef PI
+```
+
+---
+
+### 条件付きコンパイル
+
+```c
+#ifdef DEBUG
+    printf("Debug mode\n");
+#endif
+
+#ifndef RELEASE
+    printf("Not release mode\n");
+#endif
+
+#if VERSION == 2
+    printf("Version 2\n");
+#else
+    printf("Other version\n");
+#endif
+```
+
+複雑な条件式
+
+```c
+#define VERSION 2
+
+#if VERSION == 1
+    printf("v1\n");
+#elif VERSION == 2
+    printf("v2\n");
+#else
+    printf("other\n");
+#endif
+```
+
+---
+
+### `#pragma`
+コンパイラに特定の指示を与える(実装依存)
+
+```c
+#pragma once  // 多重インクルード防止（モダンな方法）
+```
+
+---
+
+### 多重インクルード防止
+
+```c
+#ifndef MY_HEADER_H
+#define MY_HEADER_H
+
+// ヘッダーの内容
+
+#endif
+```
+
+---
+
+<pre><code class="tips"><span class="code-like">gcc -E ファイル名.c</span> でプリプロセスを展開したものを出力する。</code></pre>
 
 ---
 

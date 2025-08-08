@@ -89,19 +89,33 @@ function importAnchors() {
 
 
 // ハンバーガーメニュー
+const navi = document.getElementById('navi');
+const toc = document.getElementById('toc');
+const overlay = document.getElementById('overlay');
+
 document.getElementById('menuBtn').addEventListener('click', () => {
-    document.getElementById('navi').classList.toggle('open');
+    navi.classList.toggle('open');
+    if (navi.classList.contains('open')) {
+        overlay.classList.add('show');
+    } else {
+        overlay.classList.remove('show');
+    }
 });
 
 document.getElementById('tocBtn').addEventListener('click', () => {
-    document.getElementById('toc').classList.toggle('open');
+    toc.classList.toggle('open');
+    if (toc.classList.contains('open')) {
+        overlay.classList.add('show');
+    } else {
+        overlay.classList.remove('show');
+    }
 });
 
-
-// window.addEventListener('popstate', (event) => {
-//     const href = event.href;
-//     loadContents(href);
-// });
+overlay.addEventListener('click', () => {
+    navi.classList.remove('open');
+    toc.classList.remove('open');
+    overlay.classList.remove('show');
+});
 
 
 

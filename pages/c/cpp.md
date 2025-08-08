@@ -207,7 +207,7 @@ constexpr int MAX_USERS = 100;  // これも暗黙にinlineになる
 
 ---
 
-## クラス<a id="class" data-name="クラス"></a>
+## クラス <a id="class" data-name="クラス"></a>
 
 ### コンストラクタ
 コンストラクタはクラスのインスタンス化のときに1度だけ必ず呼ばれる特殊なメンバ関数で、初期化処理を自動化できる。
@@ -426,14 +426,15 @@ public:
     A();
     A(int i);
 };
+
 int A::count = 0; // ここで定義
-A::A() : A(0) {}
 A::A(int i) : value(i) { count++; }
+A::A() : A(0) {}
 ```
 
 staticメンバ変数はアクセス修飾子の影響を受ける。
 
-C++17以降では <span class="code-like">inline</span> を付けることでヘッダに書くことがでる。
+<span class="label">C++17以降</span> では <span class="code-like">inline</span> を付けることでヘッダに書くことがでる。
 
 ```cpp
 class Foo {
@@ -547,7 +548,7 @@ public:
 
 ---
 
-## リンケージ<a id="linkage" data-name="リンケージ"></a>
+## リンケージ <a id="linkage" data-name="リンケージ"></a>
 リンケージとは、識別子(変数または関数)が他のスコープから参照できるかどうかを表す。<br>
 リンケージを用いるとC++からCで書かれたプログラムを呼び出すことが出きる。
 
