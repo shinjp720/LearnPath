@@ -177,3 +177,71 @@ pre code {
 #toc li:hover {
     color: white;
 }
+
+/* ----------- スマホ・縦長用 スライドイン設定 ----------- */
+@media screen and (max-width: 768px) {
+    #container {
+        display: block;
+        /* 横並び解除 */
+    }
+
+    #navi,
+    #toc {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        width: 250px;
+        background-color: white;
+        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease;
+        z-index: 1000;
+    }
+
+    /* 左メニューは左から隠す */
+    #navi {
+        left: 0;
+        transform: translateX(-100%);
+    }
+
+    /* 右目次は右から隠す */
+    #toc {
+        right: 0;
+        transform: translateX(100%);
+    }
+
+    /* 開いたときの状態 */
+    #navi.open {
+        transform: translateX(0);
+    }
+
+    #toc.open {
+        transform: translateX(0);
+    }
+
+    /* メインは全幅に */
+    #main {
+        width: 100%;
+        height: auto;
+    }
+
+    /* 開閉ボタンの見た目と位置 */
+    #menuBtn,
+    #tocBtn {
+        position: fixed;
+        top: 10px;
+        padding: 0.5rem 1rem;
+        background: #333;
+        color: white;
+        border: none;
+        cursor: pointer;
+        z-index: 1100;
+    }
+
+    #menuBtn {
+        left: 10px;
+    }
+
+    #tocBtn {
+        right: 10px;
+    }
+}

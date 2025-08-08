@@ -87,6 +87,17 @@ function importAnchors() {
     return ulTag;
 }
 
+
+// ハンバーガーメニュー
+document.getElementById('menuBtn').addEventListener('click', () => {
+    document.getElementById('navi').classList.toggle('open');
+});
+
+document.getElementById('tocBtn').addEventListener('click', () => {
+    document.getElementById('toc').classList.toggle('open');
+});
+
+
 // window.addEventListener('popstate', (event) => {
 //     const href = event.href;
 //     loadContents(href);
