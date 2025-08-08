@@ -165,19 +165,18 @@ pre code {
     width: 250px;
     overflow-y: auto;
     height: 100vh;
-    /* background-color: #f0f0f0; */
     flex-shrink: 0;
 }
 
-/* #navi,
+#navi,
 #toc {
     color: black;
-    background-color: #cfcfcf;
+    background-color: #f3f1f1;
 }
 
 #toc li:hover {
-    color: rgb(227, 201, 201);
-} */
+    color: rgb(255, 255, 255);
+}
 
 /* ボタンはデフォルト非表示（PC用） */
 #menuBtn,
@@ -203,7 +202,7 @@ pre code {
         top: 0;
         bottom: 0;
         width: 250px;
-        background-color: white;
+        background-color: #f3f1f1;
         box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
         transition: transform 0.3s ease;
         z-index: 1000;
