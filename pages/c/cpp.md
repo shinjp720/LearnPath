@@ -7,17 +7,27 @@
 
 ---
 
-## 型<a id="type" data-name="型"></a>
+## 型 <a id="type" data-name="型"></a>
 
 ### auto(型推論)
 <span class="code-like">auto 変数名 = 初期値</span>
 
 変数の宣言時に初期値を与えている場合、初期値と同じ型に推論してくれる。
 
+
 <pre><code class="caution">ただし配列のautoによる初期化は、()ではエラーとなったり、{}だと環境依存になったり、型が配列ではなくなったりするので注意が必要。
 </code></pre>
 
 また、[for文](#範囲for)でも使える。
+
+<div class="subtitle">参照型への型推論</div>
+
+autoを使って参照として型推論したい場合は次のように記述する。
+
+```cpp
+auto& 変数名 = 式;
+```
+
 
 <div class="subtitle"><a id="auto戻り値推論"></a>auto戻り値推論 <span class="label">C++14以降</span> </div>
 C++14以降ではauto戻り値推論が導入された。
@@ -103,7 +113,99 @@ int d = {40};
 
 ---
 
-## 制御構文<a id="control-syntax" data-name="制御構文"></a>
+## 変数 <a id="valiable" data-name="変数"></a>
+
+### 左辺値と右辺値
+変数・引数・数値といった値は、大別して左辺値と右辺値という2つに分類される。
+
+<div class="subtitle">左辺値(lvalue)</div>
+
+- 値を代入することができ、式の評価後もオブジェクトが存在し続ける。
+- &でアドレスが取れる。
+- 代入式の左側に置ける(名前の由来であり、必ずしも左限定ではない)。
+
+<div class="subtitle">右辺値(rvalue)</div>
+
+- 一時的な値で、式が終わると消える。
+- 通常はアドレスを取れない。
+- 関数の戻り値やリテラル、計算結果など。
+
+---
+
+### 右辺値参照 <span class="label">C++11以降</span>
+右辺値参照とは、通常はコピーする必要がある一時オブジェクト(右辺値)から中身を奪う(所有権のムーブ)ことで、コピーすることによるコストを削減して、計算結果や一時生成オブジェクトを効率的に再利用するための仕組み。
+
+<div class="subtitle">基本構文</div>
+<span class="code-like">型&& 変数名 = 右辺値;</span>
+
+```cpp
+#include <iostream>
+#include <vector>
+
+struct MyData {
+    std::vector<int> data;
+
+    // コンストラクタ
+    MyData(size_t n) : data(n) { // n個分のintを要素に持つ配列data
+        std::cout << "Constructed\n";
+    }
+
+    // コピーコンストラクタ
+    MyData(const MyData& other) : data(other.data) {
+        std::cout << "Copied\n";
+    }
+
+    // ムーブコンストラクタ
+    MyData(MyData&& other) noexcept : data(std::move(other.data)) {
+        std::cout << "Moved\n";
+    }
+};
+
+// 大きなデータを作る関数
+MyData create_data() {
+    MyData tmp(1000000); // 100万要素
+    return tmp;          // 戻り値は右辺値
+}
+
+int main() {
+    std::cout << "=== コピーの場合 ===\n";
+    MyData a(1000000);
+    MyData b = a; // 左辺値なのでコピー
+
+    std::cout << "\n=== ムーブの場合 ===\n";
+    MyData c = create_data(); // 右辺値なのでムーブ
+}
+```
+
+<div class="subtitle">右辺値参照のオーバーロード</div>
+右辺値参照は通常の参照とは異なり、オーバーロードすることができる。
+
+```cpp
+#include <iostream>
+using namespace std;
+
+void show(int &v)
+{
+    cout << "参照: " << i << endl;
+}
+
+void show(int &&v)
+{
+    cout << "右辺値参照: " << i << endl;
+}
+
+int main()
+{
+    int i = 10;
+
+    show(i);   // 変数は左辺値
+    show(100); // リテラルは右辺値
+}
+```
+
+---
+
+## 制御構文 <a id="control-syntax" data-name="制御構文"></a>
 
 ### if文
 <div class="subtitle">初期化付きif文 <span class="label">C++17以降</span> </div>
@@ -164,7 +266,7 @@ switch (型 変数名 = 式; 条件)
 
 ---
 
-## 関数<a id="fuction" data-name="関数"></a>
+## 関数 <a id="fuction" data-name="関数"></a>
 
 ### inline
 inlineは関数や変数の定義をヘッダファイルに直接書けるようにする仕組みで、通常ヘッダファイルに直接定義を書いて複数のファイルから読み込むと多重定義でエラーとなるが、 <span class="code-like">inline 戻り値 関数名([引数])</span> とするとエラーにならない。
@@ -486,7 +588,53 @@ int main()
 
 ---
 
-## 継承<a id="inheritance" data-name="継承"></a>
+### コピーとムーブ
+コピーコンストラクタとムーブコンストラクタは、ともに他のインスタンスを元に初期化するためのコンストラクタであるが、その役割には明確な違いがある。
+
+#### コピーコンストラクタ
+文字通り複製という意味で、元のインスタンスとメンバ変数が同じになるように初期化する。ただし、メンバ変数が動的確保したポインタを持っていた場合、多重解放しないように新たにメモリ領域を動的確保してコピーするのが一般的。<br>
+動的確保してコピーを行う分のコストがかかるため、処理が遅くなる恐れがある。
+
+#### ムーブコンストラクタ
+一方、ムーブではコピーとは異なり、所有権の移動を行うため処理が高速になることが期待できる。
+
+```cpp
+#include <iostream>
+#include <utility>
+
+class Home // 家クラス
+{
+    int *m_land; // 土地
+public:
+    explicit Home(std::size_t size)
+        : m_land{new int[size]} {} // 動的確保
+    Home(Home &&other) // 右辺値参照のムーブコンストラクタ
+        : m_land{other.m_land} // ムーブ元のポインタをコピーする
+    {
+        other.m_land = nullptr; // ムーブ元のポインタを空にする
+    }
+    int *land() const { return m_land; }
+};
+
+int main()
+{
+    Home A{100};
+    std::cout << "Aのアドレス: " << A.land() << std::endl;
+    // 所有権の移動
+    Home B{std::move(A)};
+
+    std::cout << "Bのアドレス: " << B.land() << std::endl;
+    std::cout << "所有権が変わった後のAのアドレス: " << A.land() << std::endl;
+}
+```
+
+ポイントは`<utility>`の`std::move()`によってAが右辺値へとキャストされて、ムーブコンストラクタへとバインドされているということ。
+
+
+---
+
+
+## 継承 <a id="inheritance" data-name="継承"></a>
 あるクラスの異なる部分を追加、変更してクラスを再利用することを継承という。
 継承すると基底クラスのメンバ変数とメンバ関数を全て引き継ぐ。
 
@@ -549,7 +697,129 @@ public:
 
 ---
 
-## 標準入出力<br>`iostream`
+
+## プリプロセッサ <a id="linkage" data-name="プリプロセッサ"></a>
+プリプロセッサディレクティブは、コンパイルの前段階でソースコードに対して特定の処理を行う仕組み。<br>
+基本的な構文はC言語と同じで、C++では追加の機能がある。
+
+### `##演算子`
+このように記述すると
+
+```cpp
+#define concat(left, right) leftright
+concat(foo, bar) // leftrightに置き換わる
+```
+
+引数の`foo, bar`は無視され`leftright`という識別子に置き換わるので、
+
+```cpp
+#define concat(left, right) left##right
+concat(foo, bar) // foobarに置き換わる
+```
+
+`##`を使うと`foobar`という識別子に置き換わる。<br>
+`##`演算子はマクロ定義の中でのみ有効。
+
+---
+
+### `#演算子`
+マクロの引数を文字列に変換することを意図して
+
+```cpp
+#define tostring(value) "value"
+tostring(hoge) // "value"に置き換わる
+```
+
+と書くと`"value"`に置き換わるので、
+
+```cpp
+#define tostring(value) #value
+tostring(hoge) // "hoge"に置き換わる
+```
+
+文字列に置き換わる。
+
+---
+
+## 動的確保 <a id="dynamic_allocation" data-name="動的確保"></a>
+C++における動的確保は様々なやり方があり、それぞれの確保方法は用途・安全性・パフォーマンスが異なる。
+
+### 低レベルな動的確保
+malloc, calloc, realloc, freeによりメモリブロックを確保して解放する。C++では基本的に非推奨で、主にnew/コンテナが使われる。
+
+---
+
+### new/deleteによる動的確保
+<div class="subtitle">単一オブジェクト</div>
+
+```cpp
+int* p = new int(42); // 値42で初期化
+delete p;             // 解放
+```
+
+<div class="subtitle">配列</div>
+
+```cpp
+int* arr = new int[10](); // ()で0初期化
+delete[] arr;             // 配列はdelete[]
+```
+
+### スマートポインタによる動的確保 <span class="label">C++11以降</span>
+C++11以降は`RAII(Resource Acquisition Is Initialization)`を活用して、自動的に解放する方法が主流。
+
+<div class="subtitle">std::unique_ptr</div>
+単一所有権。コピー不可。スコープ終了時に自動解放。
+
+```cpp
+#include <memory>
+
+auto p = std::make_unique<int>(42);     // 自動解放
+auto arr = std::make_unique<int[]>(10); // 配列もOK
+```
+
+<div class="subtitle">std::shared_ptr</div>
+参照カウント方式で複数所有可能。最後の所有者が消えると解放。
+
+```cpp
+#include <memory>
+
+auto p = std::make_shared<int>(42);
+```
+
+<div class="subtitle">std::weak_ptr</div>
+shared_ptrの弱参照(所有権なし、循環参照回避)
+
+---
+
+### 標準コンテナによる動的確保
+<code>std::vector, std::string, std::map</code>などは内部で自動的に動的確保する。
+
+解放はコンテナの寿命に任せる(RAII)
+
+```cpp
+std::vector<int> v(10, 42); // 内部で動的確保
+```
+
+### 配置new(placement new)
+確保済みメモリ領域にオブジェクトを構築する。<br>
+メモリ確保とオブジェクト構築を分けた場合に使う<br>
+主にカスタムメモリアロケータや低レベルライブラリで使用する。
+
+```cpp
+#include <new>
+
+char buf[sizeof(int)];
+int* p = new(buf) int(42); // buf内にint構築
+p->~int();                 // 明示的にデストラクタ呼び出し
+```
+
+### カスタムアロケータ
+標準コンテナに独自のメモリ管理方法を渡すことができる。<br>
+ゲームや組み込みなどで頻繁に使われる。
+
+---
+
+## 標準入出力<br>`iostream` <a id="iostream" data-name="標準入出力"></a>
 
 ### istreamから1行読み込む<br>`std::istream& getline(std::istream& input, std::string& str);`
 
@@ -612,6 +882,6 @@ g++ main.o hello.o -o program
 hello from C!!
 ```
 
-<pre><code class="caution">CからC++のプログラムを実行するのは可能だが、クラス、継承、STL、例外処理などのC++の機能はCから直接扱うことができないため、CとのインターフェースをC++でラップして、C側には単純な戻り値、関数のみを公開する形にする必要がある。</code></pre>
+<pre><code class="caution">CからC++のプログラムを実行することも可能だが、クラス、継承、STL、例外処理などのC++の機能はCから直接扱うことができないため、CとのインターフェースをC++でラップして、C側には単純な戻り値、関数のみを公開する形にする必要がある。</code></pre>
 
 ---

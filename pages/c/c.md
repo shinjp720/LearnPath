@@ -289,11 +289,11 @@ C言語では、関数の引数に「配列」を書いても、実際にはポ�
 ### 条件付きコンパイル
 
 ```c
-#ifdef DEBUG
+#ifdef DEBUG // 定義されていれば
     printf("Debug mode\n");
 #endif
 
-#ifndef RELEASE
+#ifndef RELEASE // 定義されていなければ
     printf("Not release mode\n");
 #endif
 
@@ -315,6 +315,29 @@ C言語では、関数の引数に「配列」を書いても、実際にはポ�
     printf("v2\n");
 #else
     printf("other\n");
+#endif
+```
+
+---
+
+### defined()
+以下の2つは
+
+```c
+#ifdef DEBUG
+    printf("debug mode.\n");
+#endif
+
+#if defined(DEBUG)
+    printf("debug mode.\n");
+#endif
+```
+
+意味的に同じだが、`defined()`は式として評価されるので、`&&`や`||`が使える。
+
+```c
+#if defined(DEBUG) && !defined(NDEBUG)
+    printf("Debug mode without NDEBUG\n");
 #endif
 ```
 
