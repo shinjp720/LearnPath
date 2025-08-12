@@ -178,7 +178,7 @@ int main() {
 ```
 
 <div class="subtitle">右辺値参照のオーバーロード</div>
-右辺値参照は通常の参照とは異なり、オーバーロードすることができる。
+右辺値参照はオーバーロードすることができる。
 
 ```cpp
 #include <iostream>
@@ -429,9 +429,9 @@ auto show = [a]()
 
 - 即席で名前のない関数オブジェクトを作れる
 
-  STLアルゴリズムやイベントコールバックの引数として、そのばで処理を渡せる。
+  STLアルゴリズムやイベントコールバックの引数として、その場で処理を渡せる。
 
-  クラスにわざわざ関数メンバをよういする必要がなくなる。
+  クラスにわざわざ関数メンバを用意する必要がなくなる。
 
 - 型推論が効く
 
@@ -447,6 +447,7 @@ auto show = [a]()
 - 関数オブジェクトより柔軟
 
   ローカル変数をキャプチャできる点で、従来のstruct関数オブジェクトより便利。
+
   関数ポインタにはできないこと(キャプチャやジェネリックラムダ)ができる。
 
 - ジェネリックラムダ <span class="label">C++14以降</span>
@@ -566,7 +567,8 @@ Foo f; // コンパイルエラー
 ---
 
 ### explicit指定子
-以下のような単引数のコンストラクタでは暗黙的にそのコンストラクタが呼ばれるが、意図していないことが多く、見た目では非常に分かりづらい。<br>
+以下のような単引数のコンストラクタは、暗黙的にそのコンストラクタが呼ばれる。<br>
+ただ、書き方によってはコンストラクタの呼び出しを意図していないことがあり、見た目では非常に分かりづらい。<br>
 そこで、コンストラクタに <span class="code-like">explicit</span> を付けると暗黙的なコンストラクタの呼び出しを禁止することができる。
 
 ```cpp
@@ -575,7 +577,7 @@ struct Foo {
     Foo(int i) : i{i} {}
 };
 
-Foo a = 10;  // ← Foo(int) が暗黙的に呼ばれる
+Foo a = 10;  // Foo{int} が暗黙的に呼ばれる
 ```
 
 ```cpp
@@ -583,6 +585,117 @@ explicit Foo(int) : i{i} {}
 ```
 
 特に理由がなければexplicitを指定するようにした方がいい。
+
+---
+
+### 演算子のオーバーロード
+演算子のオーバーロードとは、既存の演算子をクラスと紐づけて意味を再定義できる仕組み。
+
+<div class="subtitle">基本構文</div>
+
+<span class="code-like">戻り値の型 operator演算子(引数);</span>
+
+<div class="subtitle">メンバ関数としての単項・二項演算子</div>
+メンバ関数として単項演算子をオーバーロードする場合は、引数をひとつ渡す必要があるが、メンバ関数となる演算子のオーバーロードが対象のクラスと紐づいているので、暗黙的に <span class="code-like">this</span> ポインタがその対象となるオブジェクトを指す。つまり引数なしでオーバーロードすることにより記述できる。<br>
+一方、二項演算子の場合は左辺オペランドがクラス自身で右辺オペランドが関数の引数となる。
+
+<div class="subtitle">非メンバ関数としての単項・二項演算子</div>
+非メンバ関数(またはフレンド関数)として単項演算子をオーバーロードする場合は、明示的に引数としてオペランドを渡す必要がある。<br>
+二項演算子の場合は第１引数が左辺オペランドで第２引数が右辺オペランドとなる。
+
+<div class="subtitle">メンバ関数として定義</div>
+
+```cpp
+class Vec
+{
+public:
+    int x, y;
+    Vec(int x, int y) : x{x}, y{y} {}
+
+    // +演算子のオーバーロード
+    Vec operator+(const Vec &other) const
+    {
+        return Vec(x + other.x, y + other.y);
+    }
+};
+
+int main()
+{
+    Vec a(1, 2), b(3, 4);
+    Vec c = a + b; // a.operator+(b) が呼ばれる
+    std::cout << c.x << ", " << c.y << std::endl; // 4, 6
+}
+```
+
+<div class="subtitle">非メンバ関数として定義</div>
+特に左辺オペランドが自作クラスではない場合や、 <span class="code-like">&gt;&gt;/&lt;&lt;</span> のようなストリーム演算子でよく使われる。
+
+```cpp
+class Vec
+{
+public:
+    int x, y;
+    Vec(int x, int y) : x(x), y(y) {}
+};
+
+// 出力用 << のオーバーロード
+std::ostream &operator<<(std::ostream &os, const Vec &v)
+{
+    os << "(" << v.x << ", " << v.y << ")";
+    return os;
+}
+
+int main()
+{
+    Vec v(5, 7);
+    std::cout << v << std::endl; // operator<<(cout, v) が呼ばれる
+}
+```
+
+<div class="subtitle">フレンド関数として定義</div>
+
+```cpp
+class Integer
+{
+    int m_i;
+
+public:
+    Integer(int i) : m_i{i} {}
+    void show(void) { std::cout << m_i << std::endl; }
+    friend int operator-(const Integer i) // 単項演算子
+    {
+        return -i.m_i;
+    }
+    friend int operator-(const Integer lhs, Integer rhs) // 二項演算子
+    {
+        return lhs.m_i - rhs.m_i;
+    }
+};
+
+int main()
+{
+    Integer x{20}, y{8};
+    std::cout << -x << std::endl; // -20
+
+    std::cout << x - y << std::endl; // 12
+}
+```
+
+<div class="subtitle">オーバーロードできる演算子</div>
+
+| 演算子の種類       | 演算子                                      |
+| ------------------ | ------------------------------------------- |
+| 算術演算子         | `a++ a-- ++a --a +a -a a+b a-b a*b a/b a%b` |
+| シフト演算子       | `>> <<`                                     |
+| 比較演算子         | `== != < <= > >=`                           |
+| ビット演算子       | `& ^ ~`                                     |
+| 論理演算子         | `&& \| !`                                   |
+| ポインタ関係       | `*a &a -> ->*`                              |
+| new/delete         | `new new[] delete delete[]`                 |
+| カンマ演算子       | `,`                                         |
+| 代入演算子         | `= += -= *= /= %= <<=  >>= &= ^= =`         |
+| 関数呼び出し演算子 | `()`                                        |
+| 添字演算子         | `[]`                                        |
 
 ---
 
@@ -642,7 +755,7 @@ public:
 ```
 
 - これは初期化ではなく代入。
-- std::stringなら、まずデフォルトコンストラクタで空文字列を作ってから"bob"を代入するので余計なコストがかかる可能性がある。
+- std::stringであれば、まずデフォルトコンストラクタで空文字列を作ってから"bob"を代入するので余計なコストがかかる可能性がある。
 - できるだけメンバ初期化リストを使う方が効率的。
 
 <div class="subtitle">メンバ初期化リストが必須になる場合</div>
@@ -653,9 +766,9 @@ public:
 
 ```cpp
 struct Bar {
-    int& ref;        // 参照は必須
-    const int c;     // const も必須
-    std::string s;   // string も初期化リスト推奨
+    int& ref;      // 参照は必須
+    const int c;   // const も必須
+    std::string s; // string も初期化リスト推奨
 
     Bar(int x) : ref(x), c(42), s("hello") {} // 必須＆推奨
 };
@@ -665,6 +778,9 @@ struct Bar {
 
 ### デストラクタ
 デストラクタはクラスのインスタンスが破棄されるときに呼ばれる特殊なメンバ関数で、メモリの解放や後始末を行う。
+
+<pre><code class="caution">デストラクタ内でクラス自身のメモリを解放するのは、インスタンスがスタックに生成された場合に二重解放となり危険。
+デストラクタ内でのメモリの解放は、メンバ変数に動的メモリへのポインタを持っている場合に限る。</code></pre>
 
 <div class="subtitle">基本構文</div>
 
@@ -795,6 +911,8 @@ int main()
 #### ムーブコンストラクタ
 一方、ムーブではコピーとは異なり、所有権の移動を行うため処理が高速になることが期待できる。
 
+下記の例では、`<utility>`の`std::move()`によって右辺値へキャストされているので、所有権が移動することが明確になる。
+
 ```cpp
 #include <iostream>
 #include <utility>
@@ -824,8 +942,6 @@ int main()
     std::cout << "所有権が変わった後のAのアドレス: " << A.land() << std::endl;
 }
 ```
-
-ポイントは`<utility>`の`std::move()`によってAが右辺値へとキャストされて、ムーブコンストラクタへとバインドされているということ。
 
 ---
 
