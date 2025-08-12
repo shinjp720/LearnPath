@@ -92,6 +92,7 @@
         <tr><td>Ctrl+K, Ctrl+S</td><td>キーボードショートカットを開く</td></tr>
         <tr><td>F1 または Ctrl+Shift+P</td><td>コマンドパレットを開く</td></tr>
         <tr><td>Ctrl+R</td><td>最近使用したワークスペースを開く</td></tr>
+        <tr><td>Ctrl+K, V</td><td>Markdownプレビューを横に表示</td></tr>
         <tr><td>Ctrl+K, Z</td><td>禅モード</td></tr>
 </table>
 

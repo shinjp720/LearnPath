@@ -268,6 +268,199 @@ switch (型 変数名 = 式; 条件)
 
 ## 関数 <a id="fuction" data-name="関数"></a>
 
+### 関数のオーバーロード
+C++では引数の数や引数の型が違う、同じ名前の関数を複数定義することができる。
+
+```cpp
+int func(int a, int b)
+{
+    return a + b;
+}
+
+int func(int a, int b, int c)
+{
+    return func(a, b) + c; // 別の関数に委譲することもできる
+}
+```
+
+---
+
+### デフォルト引数
+関数の呼び出しの時に実引数が省略された場合に渡すデフォルト値を指定することができる。
+
+```cpp
+int sum(int a, int b = 0, int c = 0)
+{
+    return a + b + c;
+}
+
+sum(4, 6) // 実引数を左から順番に渡し、cはデフォルト値が使われる
+
+sum(5) // bとcがデフォルト値
+```
+
+---
+
+### 関数オブジェクト
+関数オブジェクトとは、関数のように振る舞うオブジェクトで、クラスや構造体に関数呼び出し演算子(operator())を定義したもの。
+
+```cpp
+// 関数オブジェクト
+struct Adder
+{
+    int value;
+    Adder(int v) : value(v) {}
+
+    // 関数呼び出し演算子をオーバーロード
+    int operator()(int x) const
+    {
+        return x + value;
+    }
+};
+int main()
+{
+    Adder add5(5);
+    std::cout << add5(10) << std::endl; // 15 と表示される
+}
+```
+
+---
+
+### ラムダ式
+ラムダ式とはその場で関数を定義する構文で、述語を必要とするアルゴリズムや、コールバック関数を登録するような場合に強力な機能。
+
+<div class="subtitle">基本構文</div>
+<span class="code-like">[](引数) -> 戻り値の型 { 関数の処理内容 };</span>
+
+戻り値は省略可能。ただし、複数のreturn文で異なる型を返す場合エラーとなる。
+
+<div class="subtitle">キャプチャ</div>
+[]の中にラムダ式を定義した時点のスコープにある変数の値をコピーして使うことができる。
+
+```cpp
+int a = 100;
+auto show = [a]()
+{
+    std::cout << a << std::endl;
+};
+```
+
+<div class="subtitle">コピーキャプチャ</div>
+<span class="code-like">auto func = [a]() {}</span><br>
+指定した変数のみをコピーキャプチャ。<br>
+コピーキャプチャはデフォルトで <span class="code-like">const</span> となり、キャプチャされた変数の書き換えはできない。<br>
+キャプチャされた変数の値を書き換えたい場合は <span class="code-like">mutable</span> を指定する。<br>
+<span class="code-like">[=]() mutable { 関数の処理内容 };</span><br>
+キャプチャした時点の変数の値をコピーするので、元の変数の値が書き換えられてもキャプチャした変数の値は変わらない。<br>
+あくまでコピーキャプチャは値のコピーなので値を書き換えても元の変数の値は変わらない。
+
+<div class="subtitle">参照キャプチャ</div>
+<span class="code-like">auto func = [&a]() {}</span><br>
+指定した変数のみを参照キャプチャ。<br>
+参照でキャプチャした場合は、デフォルトで値の書き換えが可能で、書き換えると元の変数の値も書き換えられる。<br>
+元の変数が <span class="code-like">const</span> の場合は書き換えができない。
+
+<div class="subtitle">全部コピーキャプチャ</div>
+<span class="code-like">auto func = [=]() {}</span><br>
+ラムダ式を定義した時点のスコープの全ての変数をコピーキャプチャする。<br>
+ラムダ式内で使っている変数をコンパイラが自動でキャプチャしてくれるのでパフォーマンスには影響しない。
+
+<div class="subtitle">全部参照キャプチャ</div>
+<span class="code-like">auto func = [&]() {}</span><br>
+ラムダ式を定義した時点のスコープの全ての変数を参照キャプチャする。
+
+<div class="subtitle">組み合わせ</div>
+
+```cpp
+[=, &a, &b]() {} // デフォルトでコピー、aとbは参照
+[&, d, e]() {}   // デフォルトで参照、dとｅはコピー
+```
+
+[]の中にはどれをどのようにキャプチャするか指定できる。
+デフォルトは先頭に、`&`か`=`のいずれかしか置けない。
+
+---
+
+### ラムダ式を使うメリット
+
+- 関数を書く手間を減らせる
+
+  わざわざ別の関数や関数オブジェクト(struct + operator())を作らなくても、その場で処理を書ける。
+
+  ```cpp
+  #include <algorithm>
+  #include <vector>
+  #include <iostream>
+
+  int main() {
+      std::vector<int> v{3, 1, 4, 1, 5};
+
+      // ラムダ式で降順ソート
+      std::sort(v.begin(), v.end(), [](int a, int b) {
+          return a > b;
+      });
+
+      for (int x : v) std::cout << x << ' ';
+  }
+  ```
+
+- スコープ内の変数をキャプチャできる
+
+  関数に引数として渡さなくても、ラムダ式の外側で定義された変数を直接使える。特に関数オブジェクトや関数ポ
+  インタでは難しい、ローカル変数の取り込みが可能。
+
+  ```cpp
+  #include <iostream>
+  #include <vector>
+  #include <algorithm>
+
+  int main() {
+      int threshold = 3;
+      std::vector<int> v{1, 2, 3, 4, 5};
+
+      // threshold をキャプチャしてフィルタ
+      v.erase(std::remove_if(v.begin(), v.end(), [threshold](int x) {
+          return x < threshold;
+      }), v.end());
+
+      for (int x : v) std::cout << x << ' ';
+      }
+  ```
+
+- 即席で名前のない関数オブジェクトを作れる
+
+  STLアルゴリズムやイベントコールバックの引数として、そのばで処理を渡せる。
+
+  クラスにわざわざ関数メンバをよういする必要がなくなる。
+
+- 型推論が効く
+
+  ラムダ式は自動的に関数オブジェクトの型が生成されるので、自分で関数オブジェクト型を書く必要が無い。
+
+  autoと組み合わせれば、関数ポインタや複雑なテンプレート型を明示せずに使える
+
+  ```cpp
+  auto func = [](int x) { return x * 2; };
+  std::cout << func(5) << "\n";  // 10
+  ```
+
+- 関数オブジェクトより柔軟
+
+  ローカル変数をキャプチャできる点で、従来のstruct関数オブジェクトより便利。
+  関数ポインタにはできないこと(キャプチャやジェネリックラムダ)ができる。
+
+- ジェネリックラムダ <span class="label">C++14以降</span>
+
+  引数の型を <span class="code-like">auto</span> にして汎用関数として使える。
+
+  ```cpp
+  auto print = [](auto x) { std::cout << x << "\n"; };
+  print(42);      // int
+  print("Hello"); // const char*
+  ```
+
+---
+
 ### inline
 inlineは関数や変数の定義をヘッダファイルに直接書けるようにする仕組みで、通常ヘッダファイルに直接定義を書いて複数のファイルから読み込むと多重定義でエラーとなるが、 <span class="code-like">inline 戻り値 関数名([引数])</span> とするとエラーにならない。
 
@@ -340,7 +533,9 @@ public:
 ---
 
 ### デフォルトコンストラクタ
-引数を取らないコンストラクタの事で、そのクラスのオブジェクトを <span class="code-like">T obj;</span> や <span class="code-like">T obj{};</span> (C++11以降推奨)のように引数なしでインスタンス化する時に呼ばれる。
+デフォルトコンストラクタとは、引数を取らないコンストラクタの事で、そのクラスのオブジェクトを <span class="code-like">T obj;</span> や <span class="code-like">T obj{};</span> (C++11以降では{}が推奨)のように引数なしでインスタンス化する時に呼ばれるコンストラクタ。
+
+デフォルトコンストラクタを定義していなくても、コンパイラにより自動生成される場合がある。
 
 <div class="subtitle">デフォルトコンストラクタの自動生成ルール</div>
 
@@ -351,41 +546,43 @@ public:
 ```cpp
 struct Foo {
     int x;
-    Foo(int n) : x(n) {}
+    Foo(int n) : x{n} {}
     Foo() = default;  // 明示的にデフォルトコンストラクタを復活
 };
 
 Foo f;  // OK
 ```
 
-- 作らせたくない場合は <span class="code-like">= delete</span> を使う。
+- 逆に作らせたくない場合は <span class="code-like">= delete</span> を使う。
 
 ```cpp
 struct Foo {
     Foo() = delete;  // デフォルトコンストラクタを禁止
 };
+
 Foo f; // コンパイルエラー
 ```
 
 ---
 
 ### explicit指定子
-特に以下のような単引数のコンストラクタでは、暗黙的にコンストラクタが呼ばれるが、意図していないことが多く、見た目では非常に分かりづらい。<br>
+以下のような単引数のコンストラクタでは暗黙的にそのコンストラクタが呼ばれるが、意図していないことが多く、見た目では非常に分かりづらい。<br>
 そこで、コンストラクタに <span class="code-like">explicit</span> を付けると暗黙的なコンストラクタの呼び出しを禁止することができる。
 
 ```cpp
 struct Foo {
-    Foo(int) {}
+    int i;
+    Foo(int i) : i{i} {}
 };
 
 Foo a = 10;  // ← Foo(int) が暗黙的に呼ばれる
 ```
 
 ```cpp
-explicit Foo(int) {}
+explicit Foo(int) : i{i} {}
 ```
 
-特に理由がなければexplicitを指定する。
+特に理由がなければexplicitを指定するようにした方がいい。
 
 ---
 
@@ -490,7 +687,7 @@ public:
 ---
 
 ### フレンド関数
-フレンド関数を使うと非公開のメンバ変数にアクセスすることが可能となる。<br>
+フレンド関数を使うと非公開(`private`)のメンバ変数に、非メンバ関数からアクセスすることが可能となる。<br>
 非メンバ関数をフレンド関数として宣言するには、その非メンバ関数のプロトタイプ宣言に <span class="code-like">friend</span> を付けたものをクラス内に記述する。
 
 ```cpp
@@ -523,7 +720,7 @@ Vector2d add(Vector2d &v1, Vector2d &v2)
 ---
 
 ### staticメンバ変数
-staticクラスメンバはメンバ変数の一種だが、特定のインスタンスと紐づかずに、クラスと紐づく。
+staticメンバ変数はメンバ変数の一種だが、特定のインスタンスと紐づかずに、クラスと紐づく。つまりインスタンが無くてもアクセスができるということ。<br>
 メンバ変数の宣言時に <span class="code-like">static</span> を付けることで宣言することができ、そのままではメモリの割り当てが行われないので、クラス外(通常関数の定義を行う場所)で定義する必要がある。
 
 ```cpp
@@ -589,7 +786,7 @@ int main()
 ---
 
 ### コピーとムーブ
-コピーコンストラクタとムーブコンストラクタは、ともに他のインスタンスを元に初期化するためのコンストラクタであるが、その役割には明確な違いがある。
+コピーコンストラクタとムーブコンストラクタは、共に他のインスタンスを元にクラスを初期化するためのコンストラクタだが、その役割には明確な違いがある。
 
 #### コピーコンストラクタ
 文字通り複製という意味で、元のインスタンスとメンバ変数が同じになるように初期化する。ただし、メンバ変数が動的確保したポインタを持っていた場合、多重解放しないように新たにメモリ領域を動的確保してコピーするのが一般的。<br>
@@ -613,7 +810,7 @@ public:
     {
         other.m_land = nullptr; // ムーブ元のポインタを空にする
     }
-    int *land() const { return m_land; }
+    int *land() con     st { return m_land; }
 };
 
 int main()
@@ -630,8 +827,71 @@ int main()
 
 ポイントは`<utility>`の`std::move()`によってAが右辺値へとキャストされて、ムーブコンストラクタへとバインドされているということ。
 
-
 ---
+
+### メンバ関数でラムダ式
+クラスのメンバ関数内でラムダ式を使う場合、メンバ変数をラムダ式にキャプチャすることは仕様上禁止されているので、 <span class="code-like">this</span> ポインタを使う。
+
+```cpp
+class A
+{
+    int m_i;
+public:
+    void set_i(int); // setter
+    void show(void) { std::cout << m_i << std::endl; } // getter
+};
+void A::set_i(int value)
+{
+    // ここでthisポインタを指定
+    [this, value]()
+    {
+        m_i = value; // そのままアクセスできる
+    }();
+}
+```
+
+このように非const関数でthisポインタをキャプチャすると、メンバ変数を書き換えることができる。
+
+逆にメンバ変数の読み取りのみで、書き換えを禁止したい場合はメンバ関数自体にconst指定するか、 <span class="label">C++17以降</span> であれば <span class="code-like">*this</span> によりコピーキャプチャとなる。
+
+```cpp
+class A
+{
+    int m_i;
+
+public:
+    void set_i(int);
+    void show(void) const { std::cout << "m_i: " << m_i << std::endl; };
+    explicit A(int i) : m_i{i} {}
+};
+
+void A::set_i(int value)
+{
+    [*this, value]() mutable
+    {
+        m_i = value;
+        std::cout << "lambda内 ";
+        show();
+    }();
+    std::cout << "set_i内 ";
+    A::show();
+}
+```
+
+<span class="label">C++14以前</span> で同様の事をしたい場合は、手動でコピーする。
+
+```cpp
+void A::set_i(int value) const
+{
+    auto copy = *this; // 手動でコピー
+    [copy, value]() mutable
+    {
+        copy.m_i = value; // ラムダ式内でのみ有効な値となる
+    }();
+}
+```
+
+
 
 
 ## 継承 <a id="inheritance" data-name="継承"></a>
