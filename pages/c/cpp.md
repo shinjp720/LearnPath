@@ -3,7 +3,7 @@
 
 # C++
 
-- 説明文
+- C++は、C言語を基盤にオブジェクト指向プログラミングの概念を取り入れた プログラミング言語。
 
 ---
 
@@ -132,79 +132,6 @@ int d = {40};
 
 ---
 
-### 右辺値参照 <span class="label">C++11以降</span>
-右辺値参照とは、通常はコピーする必要がある一時オブジェクト(右辺値)から中身を奪う(所有権のムーブ)ことで、コピーすることによるコストを削減して、計算結果や一時生成オブジェクトを効率的に再利用するための仕組み。
-
-<div class="subtitle">基本構文</div>
-<span class="code-like">型&& 変数名 = 右辺値;</span>
-
-```cpp
-#include <iostream>
-#include <vector>
-
-struct MyData {
-    std::vector<int> data;
-
-    // コンストラクタ
-    MyData(size_t n) : data(n) { // n個分のintを要素に持つ配列data
-        std::cout << "Constructed\n";
-    }
-
-    // コピーコンストラクタ
-    MyData(const MyData& other) : data(other.data) {
-        std::cout << "Copied\n";
-    }
-
-    // ムーブコンストラクタ
-    MyData(MyData&& other) noexcept : data(std::move(other.data)) {
-        std::cout << "Moved\n";
-    }
-};
-
-// 大きなデータを作る関数
-MyData create_data() {
-    MyData tmp(1000000); // 100万要素
-    return tmp;          // 戻り値は右辺値
-}
-
-int main() {
-    std::cout << "=== コピーの場合 ===\n";
-    MyData a(1000000);
-    MyData b = a; // 左辺値なのでコピー
-
-    std::cout << "\n=== ムーブの場合 ===\n";
-    MyData c = create_data(); // 右辺値なのでムーブ
-}
-```
-
-<div class="subtitle">右辺値参照のオーバーロード</div>
-右辺値参照はオーバーロードすることができる。
-
-```cpp
-#include <iostream>
-using namespace std;
-
-void show(int &v)
-{
-    cout << "参照: " << i << endl;
-}
-
-void show(int &&v)
-{
-    cout << "右辺値参照: " << i << endl;
-}
-
-int main()
-{
-    int i = 10;
-
-    show(i);   // 変数は左辺値
-    show(100); // リテラルは右辺値
-}
-```
-
----
-
 ## 制御構文 <a id="control-syntax" data-name="制御構文"></a>
 
 ### if文
@@ -302,25 +229,25 @@ sum(5) // bとcがデフォルト値
 ---
 
 ### 関数オブジェクト
-関数オブジェクトとは、関数のように振る舞うオブジェクトで、クラスや構造体に関数呼び出し演算子(operator())を定義したもの。
+関数オブジェクトとは、関数のように振る舞うオブジェクトで、クラスや構造体に関数呼び出し演算子 <span class="code-like">operator()</span> を定義したもの。
 
 ```cpp
-// 関数オブジェクト
-struct Adder
+struct Adder // 関数オブジェクト
 {
     int value;
-    Adder(int v) : value(v) {}
-
+    Adder(int v) : value{v} {}
     // 関数呼び出し演算子をオーバーロード
     int operator()(int x) const
     {
         return x + value;
     }
 };
+
 int main()
 {
-    Adder add5(5);
-    std::cout << add5(10) << std::endl; // 15 と表示される
+    Adder add5{5};
+    std::cout << add5(10) << std::endl; // 関数のように振る舞う
+    // 15
 }
 ```
 
@@ -335,15 +262,7 @@ int main()
 戻り値は省略可能。ただし、複数のreturn文で異なる型を返す場合エラーとなる。
 
 <div class="subtitle">キャプチャ</div>
-[]の中にラムダ式を定義した時点のスコープにある変数の値をコピーして使うことができる。
-
-```cpp
-int a = 100;
-auto show = [a]()
-{
-    std::cout << a << std::endl;
-};
-```
+[]の中にラムダ式を定義した時点のスコープにある変数をキャプチャして使うことができる。
 
 <div class="subtitle">コピーキャプチャ</div>
 <span class="code-like">auto func = [a]() {}</span><br>
@@ -360,12 +279,12 @@ auto show = [a]()
 参照でキャプチャした場合は、デフォルトで値の書き換えが可能で、書き換えると元の変数の値も書き換えられる。<br>
 元の変数が <span class="code-like">const</span> の場合は書き換えができない。
 
-<div class="subtitle">全部コピーキャプチャ</div>
+<div class="subtitle">デフォルトコピーキャプチャ</div>
 <span class="code-like">auto func = [=]() {}</span><br>
 ラムダ式を定義した時点のスコープの全ての変数をコピーキャプチャする。<br>
 ラムダ式内で使っている変数をコンパイラが自動でキャプチャしてくれるのでパフォーマンスには影響しない。
 
-<div class="subtitle">全部参照キャプチャ</div>
+<div class="subtitle">デフォルト参照キャプチャ</div>
 <span class="code-like">auto func = [&]() {}</span><br>
 ラムダ式を定義した時点のスコープの全ての変数を参照キャプチャする。
 
@@ -385,85 +304,87 @@ auto show = [a]()
 
 - 関数を書く手間を減らせる
 
-  わざわざ別の関数や関数オブジェクト(struct + operator())を作らなくても、その場で処理を書ける。
+    わざわざ別の関数や関数オブジェクト(struct + operator())を作らなくても、その場で処理を書ける。
 
-  ```cpp
-  #include <algorithm>
-  #include <vector>
-  #include <iostream>
+    ```cpp
+    #include <algorithm>
+    #include <vector>
+    #include <iostream>
 
-  int main() {
-      std::vector<int> v{3, 1, 4, 1, 5};
+    int main()
+    {
+        std::vector<int> v{3, 1, 4, 1, 5};
 
-      // ラムダ式で降順ソート
-      std::sort(v.begin(), v.end(), [](int a, int b) {
-          return a > b;
-      });
+        // ラムダ式で降順ソート
+        std::sort(v.begin(), v.end(), [](int a, int b) {
+            return a > b;
+        });
 
-      for (int x : v) std::cout << x << ' ';
-  }
-  ```
+        for (int x : v) std::cout << x << ' ';
+    }
+    ```
 
 - スコープ内の変数をキャプチャできる
 
-  関数に引数として渡さなくても、ラムダ式の外側で定義された変数を直接使える。特に関数オブジェクトや関数ポ
-  インタでは難しい、ローカル変数の取り込みが可能。
+    関数に引数として渡さなくても、ラムダ式の外側で定義された変数を直接使える。特に関数オブジェクトや関数ポ
+    インタでは難しい、ローカル変数の取り込みが可能。
 
-  ```cpp
-  #include <iostream>
-  #include <vector>
-  #include <algorithm>
+    ```cpp
+    #include <iostream>
+    #include <vector>
+    #include <algorithm>
 
-  int main() {
-      int threshold = 3;
-      std::vector<int> v{1, 2, 3, 4, 5};
+    int main()
+    {
+        int threshold = 3;
+        std::vector<int> v{1, 2, 3, 4, 5};
 
-      // threshold をキャプチャしてフィルタ
-      v.erase(std::remove_if(v.begin(), v.end(), [threshold](int x) {
-          return x < threshold;
-      }), v.end());
+        // threshold をキャプチャしてフィルタ
+        v.erase(std::remove_if(v.begin(), v.end(), [threshold](int x) {
+            return x < threshold;
+        }), v.end());
 
-      for (int x : v) std::cout << x << ' ';
-      }
-  ```
+        for (int x : v) std::cout << x << ' ';
+    }
+    ```
 
 - 即席で名前のない関数オブジェクトを作れる
 
-  STLアルゴリズムやイベントコールバックの引数として、その場で処理を渡せる。
+    STLアルゴリズムやイベントコールバックの引数として、その場で処理を渡せる。
 
-  クラスにわざわざ関数メンバを用意する必要がなくなる。
+    クラスにわざわざ関数メンバを用意する必要がなくなる。
 
 - 型推論が効く
 
-  ラムダ式は自動的に関数オブジェクトの型が生成されるので、自分で関数オブジェクト型を書く必要が無い。
+    ラムダ式は自動的に関数オブジェクトの型が生成されるので、自分で関数オブジェクト型を書く必要が無い。
 
-  autoと組み合わせれば、関数ポインタや複雑なテンプレート型を明示せずに使える
+    autoと組み合わせれば、関数ポインタや複雑なテンプレート型を明示せずに使える
 
-  ```cpp
-  auto func = [](int x) { return x * 2; };
-  std::cout << func(5) << "\n";  // 10
-  ```
+    ```cpp
+    auto func = [](int x) { return x * 2; };
+    std::cout << func(5) << "\n";  // 10
+    ```
 
 - 関数オブジェクトより柔軟
 
-  ローカル変数をキャプチャできる点で、従来のstruct関数オブジェクトより便利。
+    ローカル変数をキャプチャできる点で、従来のstruct関数オブジェクトより便利。
 
-  関数ポインタにはできないこと(キャプチャやジェネリックラムダ)ができる。
+    関数ポインタにはできないこと(キャプチャやジェネリックラムダ)ができる。
 
 - ジェネリックラムダ <span class="label">C++14以降</span>
 
-  引数の型を <span class="code-like">auto</span> にして汎用関数として使える。
+     引数の型を <span class="code-like">auto</span> にして汎用関数として使える。
 
-  ```cpp
-  auto print = [](auto x) { std::cout << x << "\n"; };
-  print(42);      // int
-  print("Hello"); // const char*
-  ```
+    ```cpp
+    auto print = [](auto x) { std::cout << x << "\n"; };
+    print(42);      // int
+    print("Hello"); // const char*
+    ```
 
 ---
 
 ### inline
-inlineは関数や変数の定義をヘッダファイルに直接書けるようにする仕組みで、通常ヘッダファイルに直接定義を書いて複数のファイルから読み込むと多重定義でエラーとなるが、 <span class="code-like">inline 戻り値 関数名([引数])</span> とするとエラーにならない。
+inlineは関数や変数の定義をヘッダファイルに直接書けるようにする仕組みで、通常ヘッダファイルに直接定義を書いて複数のファイルから読み込むと多重定義でエラーとなるが、 <span class="code-like">inline 戻り値 関数名([引数]) {}</span> とするとエラーにならない。
 
 ```cpp
 // math_utils.h
@@ -490,9 +411,8 @@ inline const int MAX_USERS = 100; // 複数のcppでincludeしてもOK
 constexpr int MAX_USERS = 100;  // これも暗黙にinlineになる
 ```
 
-この書き方でinline扱いとなる。
-
-<span class="code-like">#define</span> は型安全ではないのでC++では可能な限り型安全な方法を使うべき。
+<pre><code class="caution"><span class="code-like">#define</span> は型安全ではないので、C++では可能な限り型安全な <span class="code-like">inline</span> を使うべき。
+</code></pre>
 
 ---
 
@@ -511,6 +431,10 @@ namespace
 ---
 
 ## クラス <a id="class" data-name="クラス"></a>
+
+### メンバ関数
+
+
 
 ### コンストラクタ
 コンストラクタはクラスのインスタンス化のときに1度だけ必ず呼ばれる特殊なメンバ関数で、初期化処理を自動化できる。
@@ -533,6 +457,7 @@ public:
 
 ---
 
+
 ### デフォルトコンストラクタ
 デフォルトコンストラクタとは、引数を取らないコンストラクタの事で、そのクラスのオブジェクトを <span class="code-like">T obj;</span> や <span class="code-like">T obj{};</span> (C++11以降では{}が推奨)のように引数なしでインスタンス化する時に呼ばれるコンストラクタ。
 
@@ -544,25 +469,51 @@ public:
 - ユーザー定義のコンストラクタがあれば自動生成されない。
 - 強制的に作らせる場合は <span class="code-like"> = default</span> を使う。
 
-```cpp
-struct Foo {
-    int x;
-    Foo(int n) : x{n} {}
-    Foo() = default;  // 明示的にデフォルトコンストラクタを復活
-};
+    ```cpp
+    struct Foo {
+        int x;
+        Foo(int n) : x{n} {}
+        Foo() = default;  // 明示的にデフォルトコンストラクタを自動生成
+    };
 
-Foo f;  // OK
-```
+    Foo f;  // OK
+    ```
 
 - 逆に作らせたくない場合は <span class="code-like">= delete</span> を使う。
 
+    ```cpp
+    struct Foo {
+        Foo() = delete;  // デフォルトコンストラクタを禁止
+    };
+
+    Foo f; // コンパイルエラー
+    ```
+
+---
+
+### デストラクタ
+デストラクタはクラスのインスタンスが破棄されるときに呼ばれる特殊なメンバ関数で、メモリの解放や後始末を行う。
+
+<pre><code class="caution">デストラクタ内でクラス自身のメモリを解放するのは、インスタンスがスタックに生成された場合に二重解放となり危険。
+デストラクタ内でのメモリの解放は、メンバ変数に動的メモリへのポインタを持っている場合に限る。</code></pre>
+
+<div class="subtitle">基本構文</div>
+
 ```cpp
-struct Foo {
-    Foo() = delete;  // デフォルトコンストラクタを禁止
+class クラス名
+{
+public:
+    ~クラス名(); // デストラクタの宣言
 };
 
-Foo f; // コンパイルエラー
+// デストラクタの定義
+クラス名::~クラス名()
+{
+    // デストラクタの本体
+}
 ```
+
+デストラクタはオーバーロードができず、引数も、戻り値もない。
 
 ---
 
@@ -584,7 +535,41 @@ Foo a = 10;  // Foo{int} が暗黙的に呼ばれる
 explicit Foo(int) : i{i} {}
 ```
 
-特に理由がなければexplicitを指定するようにした方がいい。
+特に理由がなければ <span class="code-like">explicit</span> を指定するようにした方がいい。
+
+---
+
+### フレンド関数
+フレンド関数を使うと非公開(`private`)のメンバ変数に、非メンバ関数からアクセスすることが可能となる。<br>
+非メンバ関数をフレンド関数として宣言するには、その非メンバ関数のプロトタイプ宣言に <span class="code-like">friend</span> を付けたものをクラス内に記述する。
+
+```cpp
+class Vec
+{
+public:
+    float x;
+    float y;
+
+    Vec() : x(0), y(0) {}
+    Vec(float x, float y) : x{x}, y{y} {}
+    friend Vec add(Vec &, Vec &); // フレンド関数
+};
+
+Vec add(Vec &v1, Vec &v2)
+{
+    Vec result{};
+    result.x = v1.x + v2.x;
+    result.y = v1.y + v2.y;
+    return result;
+}
+
+int main()
+{
+    Vec v1{1.5, 2.5}, v2{3.3, 4.2};
+    Vec v3 = add(v1, v2);
+    std::cout << v3.x << " " << v3.y << std::endl;
+}
+```
 
 ---
 
@@ -662,15 +647,18 @@ class Integer
 public:
     Integer(int i) : m_i{i} {}
     void show(void) { std::cout << m_i << std::endl; }
-    friend int operator-(const Integer i) // 単項演算子
-    {
-        return -i.m_i;
-    }
-    friend int operator-(const Integer lhs, Integer rhs) // 二項演算子
-    {
-        return lhs.m_i - rhs.m_i;
-    }
+    friend int operator-(const Integer i);                // 単項演算子
+    friend int operator-(const Integer lhs, Integer rhs); // 二項演算子
 };
+
+int operator-(const Integer i) // 単項演算子
+{
+    return -i.m_i;
+}
+int operator-(const Integer lhs, Integer rhs) // 二項演算子
+{
+    return lhs.m_i - rhs.m_i;
+}
 
 int main()
 {
@@ -776,65 +764,6 @@ struct Bar {
 
 ---
 
-### デストラクタ
-デストラクタはクラスのインスタンスが破棄されるときに呼ばれる特殊なメンバ関数で、メモリの解放や後始末を行う。
-
-<pre><code class="caution">デストラクタ内でクラス自身のメモリを解放するのは、インスタンスがスタックに生成された場合に二重解放となり危険。
-デストラクタ内でのメモリの解放は、メンバ変数に動的メモリへのポインタを持っている場合に限る。</code></pre>
-
-<div class="subtitle">基本構文</div>
-
-```cpp
-class クラス名
-{
-public:
-    ~クラス名(); // デストラクタの宣言
-};
-
-// デストラクタの定義
-クラス名::~クラス名()
-{
-    // デストラクタの本体
-}
-```
-
-デストラクタはオーバーロードができず、引数も、戻り値もない。
-
----
-
-### フレンド関数
-フレンド関数を使うと非公開(`private`)のメンバ変数に、非メンバ関数からアクセスすることが可能となる。<br>
-非メンバ関数をフレンド関数として宣言するには、その非メンバ関数のプロトタイプ宣言に <span class="code-like">friend</span> を付けたものをクラス内に記述する。
-
-```cpp
-class Vector2d
-{
-    float x;
-    float y;
-
-public:
-    Vector2d();
-    Vector2d(float, float);
-    friend Vector2d add(Vector2d &, Vector2d &); // フレンド関数
-};
-Vector2d::Vector2d() : x(0), y(0) {}
-Vector2d::Vector2d(float x, float y)
-{
-    this->x = x;
-    this->y = y;
-}
-
-Vector2d add(Vector2d &v1, Vector2d &v2)
-{
-    Vector2d result{};
-    result.x = v1.x + v2.x;
-    result.y = v1.y + v2.y;
-    return result;
-}
-```
-
----
-
 ### staticメンバ変数
 staticメンバ変数はメンバ変数の一種だが、特定のインスタンスと紐づかずに、クラスと紐づく。つまりインスタンが無くてもアクセスができるということ。<br>
 メンバ変数の宣言時に <span class="code-like">static</span> を付けることで宣言することができ、そのままではメモリの割り当てが行われないので、クラス外(通常関数の定義を行う場所)で定義する必要がある。
@@ -896,6 +825,79 @@ int main()
     a.printCount(); // インスタンスからも呼べる
     A b{};
     a.printCount();
+}
+```
+
+---
+
+### 右辺値参照 <span class="label">C++11以降</span>
+右辺値参照とは、通常はコピーする必要がある一時オブジェクト(右辺値)から中身を奪う(所有権のムーブ)ことで、コピーすることによるコストを削減して、計算結果や一時生成オブジェクトを効率的に再利用するための仕組み。
+
+<div class="subtitle">基本構文</div>
+<span class="code-like">型&& 変数名 = 右辺値;</span>
+
+```cpp
+#include <iostream>
+#include <vector>
+
+struct MyData {
+    std::vector<int> data;
+
+    // コンストラクタ
+    MyData(size_t n) : data(n) { // n個分のintを要素に持つ配列data
+        std::cout << "Constructed\n";
+    }
+
+    // コピーコンストラクタ
+    MyData(const MyData& other) : data(other.data) {
+        std::cout << "Copied\n";
+    }
+
+    // ムーブコンストラクタ
+    MyData(MyData&& other) noexcept : data(std::move(other.data)) {
+        std::cout << "Moved\n";
+    }
+};
+
+// 大きなデータを作る関数
+MyData create_data() {
+    MyData tmp(1000000); // 100万要素
+    return tmp;          // 戻り値は右辺値
+}
+
+int main() {
+    std::cout << "=== コピーの場合 ===\n";
+    MyData a(1000000);
+    MyData b = a; // 左辺値なのでコピー
+
+    std::cout << "\n=== ムーブの場合 ===\n";
+    MyData c = create_data(); // 右辺値なのでムーブ
+}
+```
+
+<div class="subtitle">右辺値参照のオーバーロード</div>
+右辺値参照はオーバーロードすることができる。
+
+```cpp
+#include <iostream>
+using namespace std;
+
+void show(int &v)
+{
+    cout << "参照: " << i << endl;
+}
+
+void show(int &&v)
+{
+    cout << "右辺値参照: " << i << endl;
+}
+
+int main()
+{
+    int i = 10;
+
+    show(i);   // 変数は左辺値
+    show(100); // リテラルは右辺値
 }
 ```
 
@@ -1007,8 +1009,7 @@ void A::set_i(int value) const
 }
 ```
 
-
-
+---
 
 ## 継承 <a id="inheritance" data-name="継承"></a>
 あるクラスの異なる部分を追加、変更してクラスを再利用することを継承という。
@@ -1074,7 +1075,7 @@ public:
 ---
 
 
-## プリプロセッサ <a id="linkage" data-name="プリプロセッサ"></a>
+## プリプロセッサ <a id="preprocessor" data-name="プリプロセッサ"></a>
 プリプロセッサディレクティブは、コンパイルの前段階でソースコードに対して特定の処理を行う仕組み。<br>
 基本的な構文はC言語と同じで、C++では追加の機能がある。
 
@@ -1209,54 +1210,54 @@ p->~int();                 // 明示的にデストラクタ呼び出し
 
 1. ファイルを用意して
 
-```c
-// hello.c
-#include <stdio.h>
+    ```c
+    // hello.c
+    #include <stdio.h>
+    
+    void helloFromC(void)
+    {
+        printf("hello from C!!\n");
+    }
+    ```
 
-void helloFromC(void)
-{
-    printf("hello from C!!\n");
-}
-```
-
-```cpp
-// main.c
-extern "C" void helloFromC(void); // extern "C"を書く
-
-int main()
-{
-    helloFromC(); // 呼び出し
-    return 0;
-}
-```
+     ```cpp
+     // main.c
+     extern "C" void helloFromC(void); // extern "C"を書く
+     
+     int main()
+     {
+         helloFromC(); // 呼び出し
+         return 0;
+     }
+     ```
 
 2. <span class="code-like">gcc</span> でCファイルをコンパイル。
 
-```bash
-gcc -c hello.c -o hello.o
-```
+     ```bash
+     gcc -c hello.c -o hello.o
+     ```
 
 3. <span class="code-like">g++</span> でC++ファイルをコンパイル。
 
-```bash
-g++ -c main.cpp -o main.o
-```
+     ```bash
+     g++ -c main.cpp -o main.o
+     ```
 
 4. <span class="code-like">g++</span> でリンク。
 
-```bash
-g++ main.o hello.o -o program
-```
+     ```bash
+     g++ main.o hello.o -o program
+     ```
 
 5. 実行。
 
-```bash
-./program
-```
+     ```bash
+     ./program
+     ```
 
-```
-hello from C!!
-```
+     ```
+     hello from C!!
+     ```
 
 <pre><code class="caution">CからC++のプログラムを実行することも可能だが、クラス、継承、STL、例外処理などのC++の機能はCから直接扱うことができないため、CとのインターフェースをC++でラップして、C側には単純な戻り値、関数のみを公開する形にする必要がある。</code></pre>
 
