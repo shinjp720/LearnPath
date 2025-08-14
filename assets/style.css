@@ -51,29 +51,10 @@ pre code {
     display: block;
     color: white;
     background-color: black;
-    /* border: 1px solid black; */
     padding: 10px;
 }
 
-.code-like {
-    background-color: black;
-    color: white;
-    font-family: monospace;
-    /* コードっぽく */
-    display: inline-block;
-    /* 文字列にフィットさせる */
-    padding: 0.4em 0.4em;
-    /* ちょっと余白を付けると見やすい */
-}
 
-
-/* 警告 */
-.warning {
-    color: rgb(255, 255, 255);
-    background-color: red;
-    padding: 5px;
-    /* margin: 5px; */
-}
 
 
 /* 例 */
@@ -84,7 +65,6 @@ pre code {
     font-weight: bold;
     border: 1px solid black;
     padding: 10px;
-    margin: 15px;
 }
 
 /* 注意 */
@@ -95,7 +75,6 @@ pre code {
     font-weight: bold;
     border: 1px solid black;
     padding: 10px;
-    margin: 15px;
 }
 
 /* tips */
@@ -106,7 +85,6 @@ pre code {
     font-weight: bold;
     border: 1px solid black;
     padding: 10px;
-    margin: 15px;
 }
 
 /* サブタイトル */
@@ -115,7 +93,7 @@ pre code {
     color: blue;
     font-weight: bold;
     font-size: 1.6rem;
-    margin: 15px;
+    padding: 10px;
 }
 
 /* 戻り値 */
@@ -124,13 +102,29 @@ pre code {
     color: rgb(172, 86, 198);
     font-weight: bold;
     font-size: 1.6rem;
-    margin: 15px;
+    padding: 10px;
 }
 
 /* ラベル */
 .label {
     color: rgb(228, 227, 249);
     background-color: #7e69f4;
+    padding: 5px;
+}
+
+/* コード風 */
+.code-like {
+    display: inline-block;
+    background-color: black;
+    color: white;
+    font-family: monospace;
+    padding: 5px;
+}
+
+/* 警告 */
+.warning {
+    color: rgb(255, 255, 255);
+    background-color: red;
     padding: 5px;
 }
 

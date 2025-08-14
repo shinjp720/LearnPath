@@ -7,15 +7,11 @@
 
 ---
 
-<a id="command" data-name="コマンド"></a>
+## コマンド <a id="command" data-name="コマンド"></a>
 
-## コマンド
+<div class="subtitle">基本構文</div>
 
-- Linuxのコマンドは通常、以下のような形をとる。
-
-<div class="example">
-    <code>コマンド [オプション] [引数]</code>
-</div>
+<span class="code-like">コマンド [オプション] [引数]</span>
 
 - 2つ以上のオプションを指定する場合、`ハイフン(-)`の後ろにまとめて書くこともできる。
 
@@ -43,9 +39,7 @@
 
 ---
 
-<a id="package-management" data-name="パッケージ管理"></a>
-
-## パッケージ管理
+## パッケージ管理 <a id="package-management" data-name="パッケージ管理"></a>
 
 ### apt update<br>apt upgrade
 
@@ -53,19 +47,14 @@ updateでインデックスを更新して、upgradeで実際にインストー�
 
 ---
 
-<a id="utility-tool" data-name="ユーティリティーツール">
-
-## ユーティリティーツール
+## ユーティリティーツール <a id="utility-tool" data-name="ユーティリティーツール"></a>
 
 ### wslpath windowsPath
 
 WSL2側でWindowsのパスをUnixパスに変換する公式コマンド。<br>ファイルが存在するかどうかは判定しない。
-<div class="example">
-    <code>
-        wslpath 'C:\Users\hoge\Documents\test.txt'<br>
-        /mnt/c/Users/hoge/Documents/test.txt # 出力例
-    </code>
-</div>
+
+<pre><code class="example">wslpath 'C:\Users\hoge\Documents\test.txt'
+# /mnt/c/Users/hoge/Documents/test.txt</code></pre>
 
 ### rsync [option] src dst
 rsyncはLinuxやUnix系システムで広く使用されるファイル同期、バックアップ用のコマンドラインツール。
@@ -96,9 +85,7 @@ rsyncはLinuxやUnix系システムで広く使用されるファイル同期、
 
 ---
 
-<a id="file-management" data-name="ファイル管理"></a>
-
-## ファイル管理
+## ファイル管理 <a id="file-management" data-name="ファイル管理"></a>
 
 ### ls
 ### cd
@@ -122,9 +109,8 @@ rsyncはLinuxやUnix系システムで広く使用されるファイル同期、
 
 ---
 
-<a id="text-processing" data-name="テキスト処理"></a>
+## テキスト処理 <a id="text-processing" data-name="テキスト処理"></a>
 
-## テキスト処理
 ### grep
 ### awk
 ### sed
@@ -138,9 +124,7 @@ rsyncはLinuxやUnix系システムで広く使用されるファイル同期、
 
 ---
 
-<a id="viewing-and-editing-filea" data-name="ファイル閲覧・編集"></a>
-
-## ファイル閲覧・編集
+## ファイル閲覧・編集 <a id="viewing-and-editing-filea" data-name="ファイル閲覧・編集"></a>
 
 ### cat
 ### more/less
@@ -150,9 +134,7 @@ rsyncはLinuxやUnix系システムで広く使用されるファイル同期、
 
 ---
 
-<a id="comp-and-decomp" data-name="圧縮・解凍"></a>
-
-## 圧縮・解凍
+## 圧縮・解凍 <a id="comp-and-decomp" data-name="圧縮・解凍"></a>
 
 ### tar
 ### gzip, gunzip
@@ -165,9 +147,7 @@ rsyncはLinuxやUnix系システムで広く使用されるファイル同期、
 
 ---
 
-<a id="network" data-name="ネットワーク"></a>
-
-## ネットワーク
+## ネットワーク <a id="network" data-name="ネットワーク"></a>
 
 ### ping
 ### ifconfig, ip
@@ -184,9 +164,7 @@ rsyncはLinuxやUnix系システムで広く使用されるファイル同期、
 
 ---
 
-<a id="system-management" data-name="システム管理"></a>
-
-## システム管理
+## システム管理 <a id="system-management" data-name="システム管理"></a>
 
 ### ps
 ### top, htop
@@ -202,9 +180,7 @@ rsyncはLinuxやUnix系システムで広く使用されるファイル同期、
 
 ---
 
-<a id="user-management" data-name="権限・ユーザー管理"></a>
-
-## 権限・ユーザー管理
+## 権限・ユーザー管理 <a id="user-management" data-name="権限・ユーザー管理"></a>
 
 ### sudo
 ### su
@@ -218,9 +194,7 @@ rsyncはLinuxやUnix系システムで広く使用されるファイル同期、
 
 ---
 
-<a id="shell-operations" data-name="シェル操作"></a>
-
-## シェル操作
+## シェル操作 <a id="shell-operations" data-name="シェル操作"></a>
 
 ### alias
 ### history
@@ -235,9 +209,7 @@ rsyncはLinuxやUnix系システムで広く使用されるファイル同期、
 
 ---
 
-<a id="information" data-name="システム情報"></a>
-
-## システム情報
+## システム情報 <a id="information" data-name="システム情報"></a>
 
 ### hostname
 ### whoami
@@ -249,9 +221,7 @@ rsyncはLinuxやUnix系システムで広く使用されるファイル同期、
 
 ---
 
-<a id="shell-script" data-name="シェルスクリプト"></a>
-
-## シェルスクリプト
+## シェルスクリプト <a id="shell-script" data-name="シェルスクリプト"></a>
 
 ### 実行
 
@@ -270,7 +240,8 @@ chmod +x script.sh # 実行権限を付与
 bash script.sh
 ```
 
-としてもサブプロセスとして実行でき、この場合は実行権限を付しなくても実行できる。<br>サブシェルとして起動することにより、`cd`や`export`といったシェルの状態を変更するコマンドが、親プロセスに影響を与えない。
+としてもサブプロセスとして実行でき、この場合は実行権限を付しなくても実行できる。<br>
+サブシェルとして起動することにより、`cd`や`export`といったシェルの状態を変更するコマンドが、親プロセスに影響を与えない。
 
 また、逆に
 
@@ -279,3 +250,55 @@ source script.sh # または . script.sh
 ```
 
 とするとサブシェルを起動せずに実行でき、`cd`や`export`のようなシェルの状態を変更するコマンドが、現在のシェルにも影響を与える。
+
+---
+
+## ショートカット <a id="short-cut" data-name="ショートカット"></a>
+
+<table>
+<caption>移動</caption>
+<tr><th>ショートカットキー</th><th>説明</th></tr>
+<tr><td>Ctrl+A</td><td>カーソルを行頭へ</td></tr>
+<tr><td>Ctrl+E</td><td>カーソルを行末へ</td></tr>
+<tr><td>Ctrl+→ または Alt+F</td><td>カーソルを1単語右へ</td></tr>
+<tr><td>Ctrl+← または Alt+B</td><td>カーソルを1単語左へ</td></tr>
+</table>
+
+<table>
+<caption>操作</caption>
+<tr><th>ショートカットキー</th><th>説明</th></tr>
+<tr><td>Ctrl+K</td><td>カーソル位置から行末までを削除</td></tr>
+<tr><td>Ctrl+U</td><td>カーソル位置から行頭までを削除</td></tr>
+<tr><td>Ctrl+W</td><td>後方に1単語分削除</td></tr>
+<tr><td>Ctrl+Y</td><td>最後に削除した内容を挿入</td></tr>
+<tr><td>Ctrl+L</td><td>画面をクリア(内容は残る)</td></tr>
+<tr><td>Tab</td><td>ディレクトリ名やファイル名やコマンドを補完</td></tr>
+</table>
+
+<table>
+<caption>コマンド履歴</caption>
+<tr><th>ショートカットキー</th><th>説明</th></tr>
+<tr><td>↑ と ↓</td><td>実行したコマンドの履歴を順番に表示</td></tr>
+<tr><td>Ctrl+R</td><td>実行したコマンドの履歴から検索を行う。再度キーを入力すると履歴をさかのぼる。</td></tr>
+<tr><td>Ctrl+S</td><td>行き過ぎたときにひとつ前に戻る(ただし多くの場合、スクロールロックが割り当てられている)</td></tr>
+<tr><td>Enter</td><td>検索結果を実行</td></tr>
+<tr><td>Esc</td><td>検索結果を表示したままターミナルに戻る</td></tr>
+<tr><td>Ctrl+G</td><td>検索結果を破棄してターミナルに戻る</td></tr>
+</table>
+
+<table>
+<caption>スクロールロック</caption>
+<tr><th>ショートカットキー</th><th>説明</th></tr>
+<tr><td>Ctrl+S</td><td>ターミナルの画面をロックする。入力は受け付けている(スクロールロック)</td></tr>
+<tr><td>Ctrl+Q</td><td>ロックを解除</td></tr>
+</table>
+
+<table>
+<caption>状態</caption>
+<tr><th>ショートカットキー</th><th>説明</th></tr>
+<tr><td>Ctrl+C</td><td>実行中のプロセスを強制的に終了</td></tr>
+<tr><td>Ctrl+D</td><td>現在のユーザーからログアウト</td></tr>
+<tr><td>Ctrl+Z</td><td>実行中のジョブをバックグラウンドへ</td></tr>
+</table>
+
+---

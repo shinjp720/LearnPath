@@ -1,7 +1,6 @@
 <div data-title="C++"></div>
-<a id="top" data-name="TOP"></a>
 
-# C++
+# C++ <a id="top" data-name="TOP"></a>
 
 - C++は、C言語を基盤にオブジェクト指向プログラミングの概念を取り入れた プログラミング言語。
 
