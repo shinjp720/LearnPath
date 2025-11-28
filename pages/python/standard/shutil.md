@@ -1,7 +1,9 @@
-<div data-title="shutil"></div>
-<a id="top" data-name="TOP">
+---
+title: shutil
+layout: default
+---
 
-# shutil
+# shutil <a id="top" data-name="TOP">
 
 - `shutil(shell utilities)`モジュールは、ファイルのコピーと移動を行う関数と、ディレクトリツリー全体を削除する関数を提供する。
 

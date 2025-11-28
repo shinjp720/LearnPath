@@ -1,91 +1,129 @@
-<div data-title="C言語"></div>
-<a id="top" data-name="TOP"></a>
+---
+title: C言語
+layout: default
+---
 
-# C言語
-
-<a id="comment" data-name="コメント"></a>
-
-## コメント
-- `/* コメント */`<br>複数行も可能
-- `// コメント`<br>行末までコメント
-
-<pre><code class="tips">古いC(C89)では//は文法エラーになるので、移植性を強く意識する場合は/* */を使うのが安全。
-組み込みや古いC規格を使っている場合は/* */のみを使う。
-個人の学習やモダンな環境(GCC, Clang, MSVC)では//をどんどん使ってOK。</code></pre>
+# C言語 <a id="top" data-name="TOP"></a>
 
 ---
 
-<a id="operator" data-name="演算子"></a>
-
-## 演算子
+## 演算子 <a id="operator" data-name="演算子"></a>
 
 ### 演算子の優先順位
 
-| 優先順位 | 演算子 | 意味                                            | 結合規則 |
-| -------- | ------ | ----------------------------------------------- | -------- |
-| 1        | ()     | 関数呼び出し                                    | →        |
-| 1        | []     | 配列                                            | →        |
-| 1        | ->     | 構造体メンバ参照                                | →        |
-| 1        | .      | 構造体メンバ参照                                | →        |
-| 1        | ++     | 後置増分                                        | →        |
-| 1        | --     | 後置減分                                        | →        |
-| 2        | ++     | 前置増分                                        | ←        |
-| 2        | --     | 前置減分                                        | ←        |
-| 2        | sizeof | 記憶量                                          | ←        |
-| 2        | &      | アドレス                                        | ←        |
-| 2        | *      | 間接参照                                        | ←        |
-| 2        | +      | 正符号                                          | ←        |
-| 2        | -      | 負符号                                          | ←        |
-| 2        | ~      | 補数 ビット反転 NOT `(~x)`                      | ←        |
-| 2        | !      | 否定                                            | ←        |
-| 3        | ()     | キャスト                                        | ←        |
-| 4        | *      | 乗算                                            | →        |
-| 4        | /      | 除算                                            | →        |
-| 4        | %      | 剰余                                            | →        |
-| 5        | +      | 加算                                            | →        |
-| 5        | -      | 減算                                            | →        |
-| 6        | <<     | ビット左シフト                                  | →        |
-| 6        | >>     | ビット右シフト                                  | →        |
-| 7        | <      | 左不等号(より大きい)                            | →        |
-| 7        | <=     | 等価左不等号(以上)                              | →        |
-| 7        | >      | 右不等号(より小さい)                            | →        |
-| 7        | >=     | 等価右不等号(以下)                              | →        |
-| 8        | ==     | 等価                                            | →        |
-| 8        | !=     | 非等価                                          | →        |
-| 9        | &      | ビット積 AND `(x&y)`共に1なら1 どちらかが0なら0 | →        |
-| 10       | ^      | ビット差 XOR `(x^y)`異なれば1 同じであれば0     | →        |
-| 11       | `\|`   | ビット和 OR `(x\|y)`どちらかが1なら1            | →        |
-| 12       | &&     | 論理積                                          | →        |
-| 13       | `\|\|` | 論理和                                          | →        |
-| 14       | ?:     | 三項演算子                                      | ←        |
-| 15       | =      | 代入                                            | ←        |
-| 15       | +=     | 加算代入                                        | ←        |
-| 15       | -=     | 減算代入                                        | ←        |
-| 15       | *=     | 乗算代入                                        | ←        |
-| 15       | /=     | 除算代入                                        | ←        |
-| 15       | %=     | 剰余代入                                        | ←        |
-| 15       | <<=    | 左シフト代入                                    | ←        |
-| 15       | >>=    | 右シフト代入                                    | ←        |
-| 15       | &=     | ビット積代入                                    | ←        |
-| 15       | ^=     | ビット差代入                                    | ←        |
-| 15       | `\|=`  | ビット和代入                                    | ←        |
-| 16       | ,      | コンマ演算子                                    | →        |
+# C言語演算子優先順位表
+
+| 優先順位 | 演算子 | 意味 | 結合規則 | 項数 |
+| --- | --- | --- | --- | --- |
+| 1 | () | 関数呼び出し | → | 可変 |
+| 1 | [] | 配列 | → | 2 |
+| 1 | -> | 構造体メンバ参照 | → | 2 |
+| 1 | . | 構造体メンバ参照 | → | 2 |
+| 1 | ++ | 後置増分 | → | 1 |
+| 1 | `--` | 後置減分 | → | 1 |
+| 2 | ++ | 前置増分 | ← | 1 |
+| 2 | `--` | 前置減分 | ← | 1 |
+| 2 | sizeof | 記憶量 | ← | 1 |
+| 2 | & | アドレス | ← | 1 |
+| 2 | * | 間接参照 | ← | 1 |
+| 2 | + | 正符号。charやshortはintに変換 | ← | 1 |
+| 2 | `-` | 負符号。オペランドの符号を反転 | ← | 1 |
+| 2 | ~ | 1の補数。ビット反転 | ← | 1 |
+| 2 | ! | 否定 | ← | 1 |
+| 3 | () | キャスト | ← | 1 |
+| 4 | * | 乗算 | → | 2 |
+| 4 | / | 除算 | → | 2 |
+| 4 | % | 剰余 | → | 2 |
+| 5 | + | 加算 | → | 2 |
+| 5 | `-` | 減算 | → | 2 |
+| 6 | << | ビット左シフト | → | 2 |
+| 6 | >> | ビット右シフト | → | 2 |
+| 7 | < | 左不等号(より小さい) | → | 2 |
+| 7 | <= | 等価左不等号(以下) | → | 2 |
+| 7 | > | 右不等号(より大きい) | → | 2 |
+| 7 | >= | 等価右不等号(以上) | → | 2 |
+| 8 | == | 等価 | → | 2 |
+| 8 | != | 非等価 | → | 2 |
+| 9 | & | ビット積 共に1なら1、どちらかが0なら0 | → | 2 |
+| 10 | ^ | ビット差 異なれば1、同じであれば0 | → | 2 |
+| 11 | \| | ビット和 どちらかが1なら1 | → | 2 |
+| 12 | && | 論理積 | → | 2 |
+| 12 | \|\| | 論理和 | → | 2 |
+| 13 | ?: | 三項演算子 | ← | 3 |
+| 15 | = | 代入 | ← | 2 |
+| 15 | += | 加算代入 | ← | 2 |
+| 15 | -= | 減算代入 | ← | 2 |
+| 15 | *= | 乗算代入 | ← | 2 |
+| 15 | /= | 除算代入 | ← | 2 |
+| 15 | %= | 剰余代入 | ← | 2 |
+| 15 | <<= | 左シフト代入 | ← | 2 |
+| 15 | >>= | 右シフト代入 | ← | 2 |
+| 15 | &= | ビット積代入 | ← | 2 |
+| 15 | ^= | ビット差代入 | ← | 2 |
+| 15 | \|= | ビット和代入 | ← | 2 |
+| 16 | , | カンマ演算子 | → | 2 |
+
+<div class="subtitle">注意事項</div>
+
+- 優先順位の数字が小さいほど、優先度が高い
+- 結合規則：→ = 左結合、← = 右結合
+- 同じ優先順位の演算子は結合規則に従って評価される
 
 ### ビット演算子によるフラグ制御
 - ビットシフトや論理演算の際に符号ビットが影響しないように`unsigned int`を使う。
 - 32ビット変数なら`1U << 31`が最大。それを越えた場合は未定義動作。さらに大きなフラグが必要なら`uint64_t`などを使う。
 
-| 演算子 | 意味                                            |
-| ------ | ----------------------------------------------- |
-| ^      | ビット差 XOR `(x^y)`異なれば1 同じであれば0     |
-| `\|`   | ビット和 OR `(x\|y)`どちらかが1なら1            |
-| &      | ビット積 AND `(x&y)`共に1なら1 どちらかが0なら0 |
-| ~      | 補数 ビット反転 NOT `(~x)`xのビットの0と1を反転 |
-| <<     | ビット左シフト `(x << y)`xをy回左にシフト       |
-| >>     | ビット右シフト `(x >> y)`xをy回右にシフト       |
+<table>
+    <tr><th>演算子</th><th>呼び方</th><th>意味</th><th>使い方</th></tr>
+    <tr><td>|</td><td>ビット和(OR)</td><td>2つのビット列を比較して、どちらかが1なら1、共に0なら0。<br>
+        フラグを立てる。
+        <pre><code class="example">unsigned int flags = 0;
 
+// FLAG_A と FLAG_C を立てる
+flags |= FLAG_A;
+flags |= FLAG_C;
+
+// またはまとめて
+flags |= (FLAG_A | FLAG_C);
+
+// 初期化の場合は↓でもOK
+unsigned int flag = (FLAG_A | FLAG_C); // = か |= の違い</code></pre>
+        </td><td>x | y</td></tr>
+    <tr><td>&</td><td>ビット積(AND)</td><td>2つのビット列を比較して、どちらかが0なら0、共に1なら1。<br>
+        立っているビットの確認や反転したビットを倒す。
+        <pre><code class="example">// FLAG_A が立っているか？
+if (flags & FLAG_A) {
+    // FLAG_A が 1 のとき@真
+}
+
+// 複数ビットをまとめてチェック
+if ((flags & (FLAG_A | FLAG_C)) == (FLAG_A | FLAG_C)) {
+    // FLAG_A と FLAG_C が両方とも立っている
+}</code></pre>
+        <pre><code class="example">// FLAG_C を倒す
+flags &= ~FLAG_C;</code></pre>
+        <pre><code class="example">// あるビットが 0 である
+if ((flag & FLAG_A) == 0) {
+    FLAG_Aが 0 のとき真
+}</code></pre>
+        <pre><code class="example">// 上位3ビットが 0b110xxxxx である
+if ((flag & 0b00100000) == 0 && (flag & 0b11000000) == 0b11000000) {}
+// または
+if ((flag & 0b11100000) == 0b11000000) {}
+// つまり確認したいビットを1にして&する</code></pre>
+        </td><td>x & y</td></tr>
+    <tr><td>~</td><td>ビット反転(NOT)</td><td>xの0と1を反転</td><td>~x</td></tr>
+    <tr><td><<</td><td>左シフト</td><td>xをn左にシフト。</td><td>x << n</td></tr>
+    <tr><td>>></td><td>右シフト</td><td>xをn右にシフト。</td><td>x >> n</td></tr>
+    <tr><td>^</td><td>ビット差(XOR)</td><td>2つのビット列を比較して、異なれば1、同じであれば0。 <br>
+        ビットをトグルする。
+        <pre><code class="example">// flagsのFLAG_Bをトグルする
+flags ^= FLAG_B;</code></pre>
+        </td><td>x & y</td></tr>
+</table>
 
 #### フラグの定義
+
 ```c
 // それぞれのビット位置に対応する定数を定義
 #define FLAG_A  (1U << 0)   // 0b0001
@@ -102,41 +140,7 @@ typedef enum {
 } Flags;
 ```
 
-#### フラグの設定
-```c
-unsigned int flags = 0;
-
-// FLAG_A と FLAG_C を立てる
-flags |= FLAG_A;
-flags |= FLAG_C;
-// またはまとめて
-flags |= (FLAG_A | FLAG_C);
-```
-
-#### フラグの解除
-```c
-// FLAG_C をクリア(0 にする)
-flags &= ~FLAG_C;
-```
-
-#### フラグのトグル
-```c
-// FLAG_B の状態を反転する
-flags ^= FLAG_B;
-```
-
-#### フラグのチェック
-```c
-// FLAG_A が立っているか？
-if (flags & FLAG_A) {
-    // FLAG_A が 1 のときの処理
-}
-
-// 複数ビットをまとめてチェック
-if ((flags & (FLAG_A | FLAG_C)) == (FLAG_A | FLAG_C)) {
-    // FLAG_A と FLAG_C が両方とも立っている
-}
-```
+<pre><code class="caution">フラグをビットシフトによって定義する場合、演算子の優先順位の問題で意図しない結果となる場合があるので必ず()で囲む必要がある(この場合、単項演算子の~など)。</code></pre>
 
 #### マクロによるラッピング
 <pre><code class="example">// ビットを立てる(1にする)
@@ -196,38 +200,108 @@ int main(void) {
     return 0;
 }</code></pre>
 
+---
+
+## 制御構文 <a id="control-syntax" data-name="制御構文"></a>
+
+<pre><code class="tips">// いずれかの文を交互に実行する
+if (flag)
+    // 実行するコード
+    flag = 0;
+else
+    // 実行するコード
+    flag = 1;</code></pre>
+
+
+<pre><code class="tips">// 常に3つのパターンを順番に繰り返す
+while (1) {
+    switch (count %= 3) {
+    case 0:
+        // 実行するコード
+        break;
+    case 1:
+        // 実行するコード
+        break;
+    case 2:
+        // 実行するコード
+        break;
+    }
+    count++;
+}</code></pre>
+
+<pre><code class="tips">// 複雑な判定を関数に委譲して見通しをよくする
+#define TEMP_HIGH   (1 << 0)
+#define TEMP_LOW    (1 << 1)
+#define HUMID_HIGH  (1 << 2)
+#define HUMID_LOW   (1 << 3)
+
+int evaluate_conditions(float temperature, float humidity) {
+    int flags = 0;
+
+    if (temperature > 30.0f)
+        flags |= TEMP_HIGH;
+    else if (temperature < 10.0f)
+        flags |= TEMP_LOW;
+
+    if (humidity > 70.0f)
+        flags |= HUMID_HIGH;
+    else if (humidity < 30.0f)
+        flags |= HUMID_LOW;
+
+    return flags;
+}
+
+void process_environment(float temperature, float humidity) {
+    int flags = evaluate_conditions(temperature, humidity);
+
+    switch (flags) {
+        case TEMP_HIGH | HUMID_HIGH:
+            printf("⚠️ 暑くて湿度が高いです。熱中症に注意！\n");
+            break;
+        case TEMP_LOW | HUMID_LOW:
+            printf("🥶 寒くて乾燥しています。風邪に注意！\n");
+            break;
+        case TEMP_HIGH:
+            printf("🌡 暑いですが湿度は問題ありません。\n");
+            break;
+        case TEMP_LOW:
+            printf("❄ 寒いですが湿度は普通です。\n");
+            break;
+        case HUMID_HIGH:
+            printf("💧 湿度が高いですが温度は快適です。\n");
+            break;
+        case HUMID_LOW:
+            printf("💨 乾燥していますが温度は快適です。\n");
+            break;
+        default:
+            printf("🙂 快適な環境です。\n");
+            break;
+    }
+}
+
+int main(void) {
+    process_environment(35.0f, 75.0f); // 暑くて湿度が高い
+    process_environment(5.0f, 25.0f);  // 寒くて乾燥
+    process_environment(28.0f, 50.0f); // 快適
+    process_environment(33.0f, 40.0f); // 暑い
+}</code></pre>
 
 ---
 
-<a id="control-syntax" data-name="制御構文"></a>
-
-## 制御構文
-
-
+## 型 <a id="type" data-name="型"></a>
 
 ---
 
-<a id="type" data-name="型"></a>
-
-## 型
----
-
-<a id="struct" data-name="構造体"></a>
-
-## 構造体
+## 構造体 <a id="struct" data-name="構造体"></a>
 
 ### ビットフィールド
 ---
 
-<a id="union" data-name="共有体"></a>
-
-## 共有体
+## 共有体 <a id="union" data-name="共有体"></a>
 
 ---
 
-<a id="enumeration" data-name="列挙体"></a>
-
-## 列挙体
+## 列挙体 <a id="enumeration" data-name="列挙体"></a>
 
 ---
 
@@ -252,6 +326,15 @@ C言語では、関数の引数に「配列」を書いても、実際にはポ�
 
 - ポインタを宣言した段階ではポインタがどこを指しているか分らないので必ず初期化する。
 
+### const
+
+|宣言|意味|
+|---|---|
+|int *p|ポインタ自体も参照先の値も変更可能。|
+|const int *p|ポインタ自体は変更可能。参照先の値は変更不可。|
+|int *const p|ポインタ自体は固定。参照先の値は変更可能(ポインタの初期化が必要)。|
+|const int *const p|ポインタも参照先も固定(共に初期化が必要)。|
+
 ---
 
 ## プリプロセッサ <a id="preprocessor" data-name="プリプロセッサ"></a>
@@ -266,7 +349,7 @@ C言語では、関数の引数に「配列」を書いても、実際にはポ�
 ---
 
 ### `#define`
-マクロ定義(定数や簡単な関数のようなもの)
+マクロ定義(定数や簡単な関数のようなもの)。
 
 ```c
 #define PI 3.14159
@@ -274,6 +357,12 @@ C言語では、関数の引数に「配列」を書いても、実際にはポ�
 ```
 
 単なる文字列置換なので、副作用に注意が必要。
+
+```c
+#define DEBUG
+```
+
+このようにフラグのように扱うこともできる。
 
 ---
 
@@ -318,6 +407,15 @@ C言語では、関数の引数に「配列」を書いても、実際にはポ�
 #endif
 ```
 
+<pre><code class="tips">// 実行するコードを真にして有効化する
+#if 0
+    // 実行するコード
+#elif 1
+    // 実行するコード
+#else
+    // 実行するコード
+#endif</code></pre>
+
 ---
 
 ### defined()
@@ -340,6 +438,75 @@ C言語では、関数の引数に「配列」を書いても、実際にはポ�
     printf("Debug mode without NDEBUG\n");
 #endif
 ```
+
+---
+
+### 可変引数マクロ
+
+
+
+---
+
+### 特殊マクロ
+特殊マクロは、プリプロセッサが自動的に展開してくれる定義済みマクロで自分で <span class="code-like">#define</span> しなくても最初から使える。
+
+|マクロ|説明|
+|---|---|
+|`__FILE__`|現在コンパイル中のソースファイル名(文字列リテラル)<br>パス付きになることが多い|
+|`__LINE__`|現在のソースコードの行番号(整数リテラル)|
+|`__DATA__`|コンパイルした日付(文字列 "Mmm dd yyy" の形式)|
+|`__TIME__`|コンパイルした時刻(文字列 "hh:mm:ss" の形式)|
+|`__func__`|関数の名前を表す文字列<br>C99/C++11以降で標準化|
+
+<pre><code class="example">/********** デバッグ出力 **********/
+#define DEBUG_PRINT(fmt, ...) \
+    fprintf(stderr, "[%s:%d in %s] " fmt "\n", \
+            __FILE__, __LINE__, __func__, ##__VA_ARGS__)
+
+void test() {
+    DEBUG_PRINT("value = %d", 42);
+}</code></pre>
+
+---
+
+### #演算子
+マクロの引数を文字列に変換する演算子。
+
+```cpp
+#define tostring(value) "value" // 引数を文字列に変換することを意図したが
+tostring(hoge) // "value"に置き換わる
+```
+
+```cpp
+#define tostring(value) #value
+tostring(hoge) // "hoge"に置き換わる
+```
+
+<pre><code class="caution">printf("%s\n", tostring("hello")) // 文字列を引数として渡すと
+// "\"hello\"" バッククォート込みの文字列に変換される</code></pre>
+
+`#`演算子はマクロ定義の中でのみ有効。
+
+---
+
+### ##演算子
+引数を連結することを意図して
+
+```cpp
+#define concat(left, right) leftright
+concat(foo, bar) // leftrightに置き換わる
+```
+
+このように書くと、引数の`foo, bar`は無視され`leftright`という識別子に置き換わる。
+
+```cpp
+#define concat(left, right) left##right
+concat(foo, bar) // foobarに置き換わる
+```
+
+`##`を使うと`foobar`という識別子に置き換わる。文字列連結ではなく、識別子や数値をといったトークンを作る。
+
+`##`演算子はマクロ定義の中でのみ有効。
 
 ---
 
@@ -370,6 +537,7 @@ C言語では、関数の引数に「配列」を書いても、実際にはポ�
 ---
 
 ## 危険とされるCの標準関数 <a id="dengerous-functions" data-name="危険な関数"></a>
+
 | 関数名     | 問題点                                                       | 代替                                                 |
 | ---------- | ------------------------------------------------------------ | ---------------------------------------------------- |
 | gets()     | 入力サイズを制限できない(バッファーオーバーフロー)。         | 使用禁止                                             |
@@ -383,16 +551,14 @@ C言語では、関数の引数に「配列」を書いても、実際にはポ�
 
 ---
 
-<a id="stdio-h" data-name="標準入出力"></a>
-
-## 標準入出力<br>`<stdio.h>`
+## 標準入出力<br>`<stdio.h>` <a id="stdio-h" data-name="標準入出力"></a>
 
 ### 標準出力への書式付出力<br>`int printf(const char *format, ...);`
 引数の内容を、formatで指定する書式文字列に従った変換をしてから標準出力に書き込む。formatの中身の文字(マルチバイト文字も)はそのまま出力さるが、%で始まる変換指定は、それに対応する引数の書式変換に使用される。formatに指定した変換指定の型と引数の型が一致していなかったり、引数の数が不足している場合の動作は処理系依存。引数の数が変換指定の数より多い場合は、余った引数は評価されるが出力されない。
 
 <div class="subtitle">変換指定の書式</div>
 
-```
+```c
 %[フラグ][フィールド幅][.精度][長さ修飾子]型指定子
 ```
 
@@ -448,19 +614,19 @@ C言語では、関数の引数に「配列」を書いても、実際にはポ�
         <th style="width: 600px">説明</th>
     </tr>
     <tr>
-        <td>d, i, o, u, x, X</dd>
+        <td>d, i, o, u, x, X</td>
         <td>出力する最小桁数。デフォルトで1。指定した最小桁数に満たない数値の前に0が補われる。</td>
     </tr>
     <tr>
-        <td>e, E, f</dd>
+        <td>e, E, f</td>
         <td>小数点部の桁数。精度を指定しなければ小数部は6桁で表示。精度が0か省略すると小数点以下(.も含めて)を表示しない。指定した桁数よりデータの桁数が多いときは指定した桁数の次の桁をまるめて表示。</td>
     </tr>
     <tr>
-        <td>g, G</dd>
+        <td>g, G</td>
         <td>指数表示に切り替える最大有効桁数。デフォルトで6。</td>
     </tr>
     <tr>
-        <td>s</dd>
+        <td>s</td>
         <td>出力する最大文字数。これを超える文字は捨てられる。</td>
     </tr>
 </table>
@@ -581,8 +747,10 @@ C言語では、関数の引数に「配列」を書いても、実際にはポ�
 
 <div class="subtitle">*指定</div>
 フィールド幅または精度に、整数値ではなくアスタリスク(*)を指定した場合は対応する実引数の値をフィールド幅または精度に使用して出力する。
+
 <pre><code class="example">printf("%*d\n", 5, 123); // 123
 printf("%*.*f\n"7, 2, 3.14159); // 3.14</code></pre>
+
 <div class="return-value">戻り値</div>
 成功なら出力した文字数、失敗なら負値。
 
@@ -655,7 +823,7 @@ errnoに設定されているエラー番号の内容を標準エラー出力に
 標準入力から、formatで指定する書式文字列に従った変換を行い、引数にデータを読み取る。引数はポインタでなければならない(一般変数には&を付け、配列は配列名を書く)。書式に対し実引数が不足しているときの動作は処理系依存。余分にある時は余分な実引数の評価は行うがデータ入力は行わない。<br>書式文字列は、変換指定と一般文字で構成される。scanfは書式の先頭から遂次変換指定を解釈し、書式に合わないデータが入力されたり、書式文字が正しくないなどの照合誤りが発生した時点で以後の書式変換は行わずにscanfから戻る。この書式に合わないデータは入力バッファに残る。scanfはfscanfの第1引数にstdinを指定したものと等価である。
 <div class="subtitle">変換指定の書式</div>
 
-```
+```c
 %[*][フィールド幅][長さ修飾子]型指定子
 ```
 
@@ -873,7 +1041,11 @@ streamがテキストストリームの場合は、次の移動のみを規定�
 
 <table>
     <tr>
-        <td><code>fseek(fp, 0L, SEEK_SET)<code></td>
+        <th>a</th>
+        <th>b</th>
+    </tr>
+    <tr>
+        <td><code>fseek(fp, 0L, SEEK_SET)</code></td>
         <td>ファイル先頭へ移動</td>
     </tr>
     <tr>
@@ -906,7 +1078,7 @@ streamのファイル現在位置を所得する。バイナリストリーム�
 ### ファイルの終わりの検知<br>`int feof(FILE *stream);`
 streamがファイルの終わりにあるか調べる。
 <div class="return-value">戻り値</div>
-ファイル終了指示子がセットされていれば非0。規格ではその他の場合は規定されていないが通常0。
+ファイル終了指示子がセットされていれば非0。規格ではその他の場1合は規定されていないが通常0。
 
 ---
 
@@ -982,9 +1154,7 @@ popenにより開かれたパイプを閉じる。
 
 ---
 
-<a id="stdlib-h" data-name="一般ユーティリティー"></a>
-
-## 一般ユーティリティー<br>`<stdlib.h>`
+## 一般ユーティリティー <a id="stdlib" data-name="一般ユーティリティー"></a> <br>`<stdlib.h>` 
 
 ### メモリ領域の取得<br>`void *malloc(size_t size);`
 sizeバイトの要素を動的メモリに割り付ける。callocでは領域を0クリアするが、mallocは領域を0クリアしない。sizeに0を指定した時の動作は処理系依存(失敗としてNULLをかえすのか、0の領域を作ってそのポインタを返すのか)。<br>
@@ -1123,9 +1293,7 @@ endptrが文字列の終わりを示す'\0'であれば文字列を正常に変�
 
 ---
 
-<a id="string-h" data-name="文字列・メモリ操作"></a>
-
-## 文字列・メモリ操作<br>`<string.h>`
+## 文字列・メモリ操作<br>`<string.h>` <a id="string-h" data-name="文字列・メモリ操作"></a>
 
 ### 文字列のコピー<br>`char *strcpy(char *d, const *s);` <span class="warning">非推奨</span>
 文字列dに文字列sをコピーする。配列dにはコピーする文字列の長さ+1('\0'の分)の領域が必要。もしsの方が長いと、dの範囲を超えてコピーしてしまうので、周辺領域を破壊してしまう。このような危険を避けるためにはstrncpyを使用する。２つの領域に重なりがある場合の動作は処理系依存。
@@ -1143,7 +1311,6 @@ dへのポインタ。
 ---
 
 ### 文字列の連結<br>`char *strcat(char *d, const char *s);` <span class="warning">非推奨</span>
-
 文字列dの文字列の終わりに文字列sを連結する。2つの領域に重なりがある場合の動作は処理系依存。dは文字列として初期化されていなければいけない。
 <div class="return-value">戻り値</div>
 dへのポインタ。
@@ -1201,7 +1368,6 @@ sへのポインタ。
 ---
 
 ### メモリブロックのコピー<br>`void *memcpy(void *d, const void *s, size_t n);`
-
 sのnバイトの内容をdにコピーする。2つの領域に重なりがある場合の動作は処理系依存。その場合はmemmoveを使う。nには配列の要素数ではなくバイト数を指定する。
 <div class="return-value">戻り値</div>
 
@@ -1223,9 +1389,7 @@ s1 < s2なら負の値、s1 == s2なら0、s1 > s2なら正の値。
 
 ---
 
-<a id="ctype-h" data-name="文字の分類と変換"></a>
-
-## 文字の分類と変換<br>`<ctype.h>`
+## 文字の分類と変換<br>`<ctype.h>` <a id="ctype-h" data-name="文字の分類と変換"></a>
 
 ### 大文字に変換<br>`int toupper(int c);`
 引数が小文字なら大文字に変換し、小文字でなければ変換しない。
@@ -1260,9 +1424,7 @@ s1 < s2なら負の値、s1 == s2なら0、s1 > s2なら正の値。
 
 ---
 
-<a id="math-h" data-name="数学関数"></a>
-
-## 数学関数<br>`<math.h>`
+## 数学関数<br>`<math.h>` <a id="math-h" data-name="数学関数"></a>
 
 ### 累乗<br>`double pow(double x, double y);`
 <div class="return-value">戻り値</div>
@@ -1292,11 +1454,10 @@ xの小数点部を数直線上で右方向へ切り上げる。floorは左方�
 
 ---
 
-<a id="time-h" data-name="時間操作"></a>
-
-## 時間操作<br>`<time.h>`
+## 時間操作<br>`<time.h>` <a id="time-h" data-name="時間操作"></a>
 
 ### tm構造体
+
 ```c
 struct tm {
     int tm_sec;   // 秒(0-60) 60は閏秒用
@@ -1364,7 +1525,7 @@ clockを呼んだプロセスが開始されてからの経過時間を取得す
 
 ---
 
-### 地方時間としてtm構造体に変換<br>`struct tm *localtime(const time_t *t)`;
+### 地方時間としてtm構造体に変換<br>`struct tm *localtime(const time_t *t);`
 time_t時間tを地方時間としてtm構造体型に変換する。localtimeが返す構造体領域は、次のlocaltimeあるいはgmtimeの呼び出しで変更されるので、後で使用したい場合は別領域に保存しておく。
 <div class="return-value">戻り値</div>
 成功ならtm構造体へのポインタ、失敗ならNULL。
@@ -1426,87 +1587,47 @@ tm構造体tの時間を、formatで示す書式に従って文字列に変換�
 
 ---
 
-<a id="limits-h" data-name="整数型の制限値"></a>
-
-## 整数型の制限値<br>`<limits.h>`
-
-
+## 整数型の制限値<br>`<limits.h>` <a id="limits-h" data-name="整数型の制限値"></a>
 
 ---
 
-<a id="float-h" data-name="浮動小数点型の制限値"></a>
-
-## 浮動小数点型の制限値<br>`<float.h>`
-
-
+## 浮動小数点型の制限値<br>`<float.h>` <a id="float-h" data-name="浮動小数点型の制限値"></a>
 
 ---
 
-<a id="assert-h" data-name="プログラム診断"></a>
-
-## プログラム診断<br>`<assert.h>`
-
-
+## プログラム診断<br>`<assert.h>` <a id="assert-h" data-name="プログラム診断"></a>
 
 ---
 
-<a id="stdbool-h" data-name="論理型マクロ"></a>
-
-## 論理型マクロ<br>`<stdbool.h>`
-
-
+## 論理型マクロ<br>`<stdbool.h>` <a id="stdbool-h" data-name="論理型マクロ"></a>
 
 ---
 
-<a id="stddef-h" data-name="汎用マクロ"></a>
-
-## 汎用マクロ<br>`<stddef.h>`
-
-
+## 汎用マクロ<br>`<stddef.h>` <a id="stddef-h" data-name="汎用マクロ"></a>
 
 ---
 
-<a id="stdint-h" data-name="標準整数型"></a>
-
-## 標準整数型<br>`<stdint.h>`
-
-
+## 標準整数型<br>`<stdint.h>` <a id="stdint-h" data-name="標準整数型"></a>
 
 ---
 
-<a id="errno-h" data-name="エラーの識別"></a>
-
-## エラーの識別<br>`<errno.h>`
-
+## エラーの識別<br>`<errno.h>` <a id="errno-h" data-name="エラーの識別"></a>
 
 ---
 
-<a id="signal-h" data-name="シグナル操作"></a>
-
-## シグナル操作<br>`<signal.h>`
-
-
+## シグナル操作<br>`<signal.h>` <a id="signal-h" data-name="シグナル操作"></a>
 
 ---
 
-<a id="setjmp-h" data-name="ジャンプ処理"></a>
-
-## ジャンプ処理<br>`<setjmp.h>`
-
-
+## ジャンプ処理<br>`<setjmp.h>` <a id="setjmp-h" data-name="ジャンプ処理"></a>
 
 ---
 
-<a id="locale-h" data-name="ロケール"></a>
-
-## ロケール<br>`<locale.h>`
-
+## ロケール<br>`<locale.h>` <a id="locale-h" data-name="ロケール"></a>
 
 ---
 
-<a id="command-line-arguments" data-name="コマンドライン引数"></a>
-
-## コマンドライン引数
+## コマンドライン引数 <a id="command-line-arguments" data-name="コマンドライン引数"></a>
 
 <pre><code class="example">#include &lt;stdio.h&gt;
 
@@ -1536,9 +1657,16 @@ argvはargument vector(1次元配列)の意味</code></pre>
 
 ---
 
-<a id="gcc" data-name="gcc"></a>
+## コメント <a id="comment" data-name="コメント"></a>
+- `/* コメント */`<br>複数行も可能
+- `// コメント`<br>行末までコメント
 
-## gcc
+<pre><code class="tips">古いC(C89)では//は文法エラーになるので、移植性を強く意識する場合は/* */を使うのが安全。
+組み込みや古いC規格を使っている場合は/* */のみを使う。
+個人の学習やモダンな環境(GCC, Clang, MSVC)では//をどんどん使ってOK。</code></pre>
+
+## gcc <a id="gcc" data-name="gcc"></a>
+
 - `-o`で実行ファイル名を指定しなければデフォルトで`a.out`というファイル名になる。
 
 <div class="subtitle">オプション</div>
@@ -1592,9 +1720,7 @@ gcc -Wall -Wextra -Wpedantic -Werror -O2 main.c -o main
 
 ---
 
-<a id="bug" data-name="メモリ関連のバグ"></a>
-
-## メモリ関連のバグ
+## メモリ関連のバグ <a id="bug" data-name="メモリ関連のバグ"></a>
 
 - メモリリーク(Memory Leak)
 動的に確保したメモリを解放し忘れることで、使用していないメモリが無駄に残り続ける現象。これは長時間動作するプログラムや、リソース制約のある環境で特に問題となる。
@@ -1622,9 +1748,7 @@ gcc -Wall -Wextra -Wpedantic -Werror -O2 main.c -o main
 
 ---
 
-<a id="memory-leaks" data-name="メモリリークのチェック"></a>
-
-## メモリリークのチェック
+## メモリリークのチェック <a id="memory-leaks" data-name="メモリリークのチェック"></a>
 
 このように実行ファイルを実行することでメモリリークをチェックできる。
 <pre><code class="example">valgrind --leak-check=full ./program</code></pre>

@@ -1,7 +1,9 @@
-<div data-title="SQLite3"></div>
-<a id="top" data-name="TOP">
+---
+title: SQLite3
+layout: default
+---
 
-# SQLite3
+# SQLite3 <a id="top" data-name="TOP">
 
 - sqlite3モジュールは組み込みのSQLiteデータベースを簡単に操作できる。
 - インストールは不要で、標準ライブラリとして入っている。

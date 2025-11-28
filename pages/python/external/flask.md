@@ -1,7 +1,9 @@
-<div data-title="Flask"></div>
-<a id="top" data-name="TOP"></a>
+---
+title: Flask
+layout: default
+---
 
-# Flask
+# Flask <a id="top" data-name="TOP"></a>
 
 - Flaskは、Python製の軽量・柔軟なWebアプリケーション・マイクロフレームワーク。
 

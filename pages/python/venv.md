@@ -1,7 +1,9 @@
-<div data-title="venv"></div>
-<a id="top" data-name="TOP"></a>
+---
+title: venv
+layout: default
+---
 
-# venv
+# venv <a id="top" data-name="TOP"></a>
 
 - venvは仮想環境を作成するための標準ライブラリで、プロジェクトごとにPythonパッケージを分離するのに役立つ。
 - Python3.3以降は基本的にデフォルトでインストールされているが、Linux系の場合Python本体は入っていても別パッケージとして分離されている場合がある。

@@ -1,8 +1,9 @@
-<div data-title="Python"></div>
+---
+title: Python
+layout: default
+---
 
-<a id="top" data-name="TOP"></a>
-
-# Python
+# Python <a id="top" data-name="TOP"></a>
 
 ---
 

@@ -12,12 +12,26 @@ h1 {
 
 h2 {
     font-size: 3rem;
-    background-color: rgb(236, 235, 235);
+    background-color: rgb(199, 199, 199);
 }
 
 h3 {
     font-size: 2.6rem;
 }
+
+/* naviのリスト */
+#navi ul {
+    list-style: none;
+    padding-left: 1.6rem;
+}
+
+/* tocのリスト */
+#toc ul {
+    list-style: none;
+}
+
+
+
 
 /* テーブル */
 table {
@@ -42,6 +56,8 @@ td {
     padding-right: 5px;
 }
 
+
+/* コード */
 pre {
     white-space: pre-wrap;
     word-wrap: break-word;
@@ -53,8 +69,6 @@ pre code {
     background-color: black;
     padding: 10px;
 }
-
-
 
 
 /* 例 */
@@ -137,11 +151,9 @@ pre code {
 
 /* ナビゲーション */
 #navi {
-    width: 250px;
+    width: 200px;
     overflow-y: auto;
     height: 100vh;
-    /* background-color: #f8f8f8; */
-    flex-shrink: 0;
 }
 
 /* メインコンテンツ */
@@ -155,20 +167,15 @@ pre code {
 
 /* 目次 */
 #toc {
-    width: 250px;
+    width: 200px;
     overflow-y: auto;
     height: 100vh;
-    flex-shrink: 0;
 }
 
 #navi,
 #toc {
     color: black;
-    background-color: #f3f1f1;
-}
-
-#toc li:hover {
-    color: rgb(255, 255, 255);
+    background-color: #dbd9d9;
 }
 
 /* ボタンはデフォルト非表示（PC用） */
@@ -182,7 +189,7 @@ pre code {
     display: none;
 }
 
-/* ----------- スマホ・縦長用 スライドイン設定 ----------- */
+/* ----------- スマホ用 ----------- */
 @media screen and (max-width: 768px) {
     #container {
         display: block;
@@ -194,7 +201,7 @@ pre code {
         position: fixed;
         top: 0;
         bottom: 0;
-        width: 250px;
+        width: 200px;
         background-color: #f3f1f1;
         box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
         transition: transform 0.3s ease;

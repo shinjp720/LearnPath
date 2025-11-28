@@ -1,7 +1,9 @@
-<div data-title="Markdown(python)"></div>
-<a id="top" data-name="TOP"></a>
+---
+title: Markdown(Python)
+layout: default
+---
 
-# Markdown(Python)
+# Markdown(Python) <a id="top" data-name="TOP"></a>
 
 - pythonのMarkdownモジュールは、Markdown形式のテキストをHTMLに変換するためのライブラリ。
 

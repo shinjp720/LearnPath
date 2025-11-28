@@ -1,7 +1,9 @@
-<div data-title="requests"></div>
-<a id="top" data-name="TOP"></a>
+---
+title: requests
+layout: default
+---
 
-# requests
+# requests <a id="top" data-name="TOP"></a>
 
 - requestsは、HTTPリクエストを簡単に送信できるライブラリ。
 

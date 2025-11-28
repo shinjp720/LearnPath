@@ -1,7 +1,9 @@
-<div data-title="pip"></div>
-<a id="top" data-name="TOP"></a>
+---
+title: pip
+layout: default
+---
 
-# pip
+# pip <a id="top" data-name="TOP"></a>
 
 - pipはpythonパッケージのインストール、アップグレード、および管理を行うためのコマンドラインツール。
 

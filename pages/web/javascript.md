@@ -1,7 +1,9 @@
-<div data-title="JavaScript"></div>
-<a id="top" data-name="TOP"></a>
+---
+title: JavaScript
+layout: default
+---
 
-# JavaScript
+# JavaScript <a id="top" data-name="TOP"></a>
 
 - 拡張子は**.js**
 - **命名規則**
@@ -126,9 +128,7 @@
 
 ---
 
-<a id="escape-sequences" data-name="エスケープシーケンス"></a>
-
-## エスケープシーケンス
+## エスケープシーケンス <a id="escape-sequences" data-name="エスケープシーケンス"></a>
 
 | エスケープシーケンス | 意味                                    |
 | -------------------- | --------------------------------------- |
@@ -148,21 +148,21 @@
 
 ---
 
-<a id="data-types" data-name="データ型"></a>
 
-## データ型
 
-| データ型    | 値           | 説明                                                                                  |
-| ----------- | ------------ | ------------------------------------------------------------------------------------- |
-| `String`    | 文字列       | **シングルクォート(')**、**ダブルクォート(")**、**バッククォート(`)**で囲んだ文字列。 |
-| `Number`    | 数値         | 整数または浮動小数点数。                                                              |
-| `BigInt`    | 巨大な整数   | 任意の大きさの整数値。数値の末尾に**n**を付けることでBigIntとして定義できる。         |
-| `Boolean`   | 真偽値       | true/false                                                                            |
-| `null`      | ヌル         | 値が空(存在しない)ことを表す。                                                        |
-| `undefined` | 未定義       | 値が未定義であることを表す。                                                          |
-| `Symbol`    | シンボル     | 一意で不変な値。                                                                      |
-| `object`    | オブジェクト | キーと値を対で格納する入れ物。                                                        |
-| `class`     | クラス       | インスタンス化して使用するための設計図。                                              |
+## データ型 <a id="data-types" data-name="データ型"></a>
+
+| データ型  | 値           | 説明                                                                    |
+| --------- | ------------ | ----------------------------------------------------------------------- |
+| String    | 文字列       | シングルクォート(')、ダブルクォート(")、バッククォート(`)で囲んだ文字列 |
+| Number    | 数値         | 整数または浮動小数点数                                                  |
+| BigInt    | 巨大な整数   | 任意の大きさの整数値。数値の末尾にnを付けることでBigIntとして定義できる |
+| Boolean   | 真偽値       | true/false                                                              |
+| null      | ヌル         | 値が空(存在しない)ことを表す                                            |
+| undefined | 未定義       | 値が未定義であることを表す                                              |
+| Symbol    | シンボル     | 一意で不変な値                                                          |
+| object    | オブジェクト | キーと値を対で格納する入れ物                                            |
+| class     | クラス       | インスタンス化して使用するための設計図                                  |
 
 ### 明示的型変換
 
@@ -441,20 +441,11 @@ try {
 }
 ```
 
-
-
-
-
-
-
-
 ---
 
-<a id="dom" data-name="DOM"></a>
+## DOM <a id="dom" data-name="DOM"></a>
 
-## DOM
-
-<div class="subtitle">window</div>
+### window
 
 <pre><code class="tips">windowに限り省略可能</code></pre>
 
@@ -468,7 +459,7 @@ locationインターフェイスは、関連付けられたオブジェクトの
 
 #### プロパティ
 
-(例)`https://example.org:8080/foo/bar?q=baz#bang`
+<span class="code-like">(例)https://example.org:8080/foo/bar?q=baz#bang</span>
 
 | プロパティ | 説明                                                                    | 例の値                     |
 | ---------- | ----------------------------------------------------------------------- | -------------------------- |
@@ -558,9 +549,15 @@ historyオブジェクトはブラウザのセッション履歴を操作する�
 | `document.createElement("element")`     | 新たに要素を作成する。                                                                     | `newDiv = document.createElement("div");` |
 
 #### addEventListener
-| メソッド                                     | 説明                                     |
-| -------------------------------------------- | ---------------------------------------- |
-| `element.addEventListener("イベント", 関数)` | イベントの発生を検知して処理を呼び出す。 |
+
+<table>
+    <tr>
+        <th>メソッド</th><th>説明</th>
+    </tr>
+    <tr>
+        <td>element.addEventListener("イベント", 関数)</td><td>イベントの発生を検知して処理を呼び出す。</td>
+    </tr>
+</table>
 
 - よく使用されるイベントは以下の通り。
 
@@ -639,11 +636,7 @@ testButton.addEventListener("contextmenu", (event) => {
 
 ---
 
-
-
-<a id="how-to-do-it" data-name="実行方法"></a>
-
-## 実行方法
+## 実行方法 <a id="how-to-do-it" data-name="実行方法"></a>
 
 - 外部ファイル: 拡張子を.jsとして別のファイルにコードを記述して、html側でscriptタグのsrc属性にパスを記述する。
 
@@ -658,6 +651,7 @@ testButton.addEventListener("contextmenu", (event) => {
     window.alert("hello!");
 </script>
 ```
+
 <pre><code class="caution">スクリプトファイルを読み込む位置によってはhtml文書が全て読み込まれる前にコードが実行されてしまい、<br>要素の取得ができないなどの理由でエラーとなる可能性があるため、以下のいずれかの対策をする必要がある。
 <ul><li>&lt;script&gt;タグの属性にdeferを指定する。</li>
     <li>&lt;body&gt;タグの一番最後にスクリプトファイルを読み込む指定をする。</li>

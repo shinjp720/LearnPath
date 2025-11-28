@@ -1,7 +1,9 @@
-<div data-title="subprocess"></div>
-<a id="top" data-name="TOP">
+---
+title: subprocess
+layout: default
+---
 
-# subprocess
+# subprocess <a id="top" data-name="TOP">
 
 - subprocessモジュールは、外部のコマンドやプログラムをPythonから実行するためのモジュールで、たとえば、シェルコマンドをPythonから実行したり、他のプログラムと連携したりする際に使われる。
 

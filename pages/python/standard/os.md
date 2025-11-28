@@ -1,7 +1,9 @@
-<div data-title="OS"></div>
-<a id="top" data-name="TOP">
+---
+title: OS
+layout: default
+---
 
-# OS
+# OS <a id="top" data-name="TOP">
 
 - OSモジュールはファイルやディレクトリを作成して操作するための低レベルの方法と、プロセスを作成、管理、削除するための低レベルの方法を提供する。
 

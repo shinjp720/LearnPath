@@ -1,7 +1,9 @@
-<div data-title="BeautifulSoup"></div>
-<a id="top" data-name="TOP"></a>
+---
+title: BeautifulSoup
+layout: default
+---
 
-# BeautifulSoup
+# BeautifulSoup <a id="top" data-name="TOP"></a>
 
 - BeautifulSoup(ビューティフルスープ)は、PythonでHTMLやXMLを解析・スクレイピングするためのライブラリで、HTML/XMLをパースして、タグや属性、テキストを簡単に抽出・操作できる。
 
