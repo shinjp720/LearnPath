@@ -3,4 +3,4 @@ title: home
 layout: default
 ---
 
-# ShelfTrailへようこそ
+# LearnPathへようこそ
