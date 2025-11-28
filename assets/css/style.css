@@ -4,19 +4,37 @@ html {
 
 body {
     font-size: 1.6rem;
+    background-color: #0d1117;
+    color: #c9d1d9;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+    line-height: 1.6;
 }
 
 h1 {
     font-size: 4.8rem;
+    font-weight: 600;
+    color: #f0f6fc;
+    border-bottom: 1px solid #21262d;
+    padding-bottom: 0.3em;
+    margin-bottom: 1em;
 }
 
 h2 {
     font-size: 3rem;
-    background-color: rgb(199, 199, 199);
+    font-weight: 600;
+    color: #f0f6fc;
+    background-color: #161b22;
+    border-left: 4px solid #58a6ff;
+    padding: 0.8rem 1.2rem;
+    margin: 1.5rem 0;
+    border-radius: 6px;
 }
 
 h3 {
     font-size: 2.6rem;
+    font-weight: 600;
+    color: #f0f6fc;
+    margin: 1.2rem 0;
 }
 
 /* naviのリスト */
@@ -25,37 +43,86 @@ h3 {
     padding-left: 1.6rem;
 }
 
+#navi ul li {
+    padding: 0.6rem 0;
+    transition: all 0.2s ease;
+}
+
+#navi ul li:hover {
+    background-color: #21262d;
+    border-radius: 6px;
+    padding-left: 0.8rem;
+}
+
+#navi ul li a {
+    color: #8b949e;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+#navi ul li a:hover {
+    color: #58a6ff;
+}
+
 /* tocのリスト */
 #toc ul {
     list-style: none;
 }
 
+#toc ul li {
+    padding: 0.6rem 0;
+    transition: all 0.2s ease;
+}
 
+#toc ul li:hover {
+    background-color: #21262d;
+    border-radius: 6px;
+    padding-left: 0.8rem;
+}
 
+#toc ul li a {
+    color: #8b949e;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+#toc ul li a:hover {
+    color: #58a6ff;
+}
 
 /* テーブル */
 table {
     border-collapse: collapse;
     margin: 15px;
+    background-color: #0d1117;
+    border-radius: 6px;
+    overflow: hidden;
 }
 
 table caption {
     text-align: left;
-    font-weight: bold;
+    font-weight: 600;
+    color: #f0f6fc;
+    padding: 0.8rem;
 }
 
 th {
-    background-color: #dfdfdf;
+    background-color: #161b22;
+    color: #f0f6fc;
+    font-weight: 600;
 }
 
 th,
 tr,
 td {
-    border: 1px solid black;
-    padding-left: 5px;
-    padding-right: 5px;
+    border: 1px solid #21262d;
+    padding: 0.8rem 1.2rem;
 }
 
+tr:hover {
+    background-color: #161b22;
+    transition: background-color 0.2s ease;
+}
 
 /* コード */
 pre {
@@ -65,81 +132,126 @@ pre {
 
 pre code {
     display: block;
-    color: white;
-    background-color: black;
-    padding: 10px;
+    color: #c9d1d9;
+    background-color: #161b22;
+    padding: 1.6rem;
+    border-radius: 6px;
+    border: 1px solid #21262d;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 1.4rem;
+    line-height: 1.6;
 }
-
 
 /* 例 */
 .example {
     display: block;
-    color: black;
-    background-color: rgb(191, 255, 180);
-    font-weight: bold;
-    border: 1px solid black;
-    padding: 10px;
+    color: #f0f6fc;
+    background-color: #1a4421;
+    font-weight: 500;
+    border: 1px solid #2ea043;
+    border-left: 4px solid #2ea043;
+    border-radius: 6px;
+    padding: 1.2rem 1.6rem;
+    margin: 1rem 0;
+}
+
+.example::before {
+    content: "💡 例:";
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #2ea043;
 }
 
 /* 注意 */
 .caution {
     display: block;
-    color: black;
-    background-color: rgb(255, 204, 198);
-    font-weight: bold;
-    border: 1px solid black;
-    padding: 10px;
+    color: #f0f6fc;
+    background-color: #4c1f1a;
+    font-weight: 500;
+    border: 1px solid #f85149;
+    border-left: 4px solid #f85149;
+    border-radius: 6px;
+    padding: 1.2rem 1.6rem;
+    margin: 1rem 0;
+}
+
+.caution::before {
+    content: "⚠️ 注意:";
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #f85149;
 }
 
 /* tips */
 .tips {
     display: block;
-    color: black;
-    background-color: #fdff95;
-    font-weight: bold;
-    border: 1px solid black;
-    padding: 10px;
+    color: #0d1117;
+    background-color: #bb8009;
+    font-weight: 500;
+    border: 1px solid #d29922;
+    border-left: 4px solid #d29922;
+    border-radius: 6px;
+    padding: 1.2rem 1.6rem;
+    margin: 1rem 0;
+}
+
+.tips::before {
+    content: "💡 Tips:";
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #0d1117;
+    font-weight: 600;
 }
 
 /* サブタイトル */
 .subtitle {
     display: block;
-    color: blue;
-    font-weight: bold;
+    color: #58a6ff;
+    font-weight: 600;
     font-size: 1.6rem;
-    padding: 10px;
+    padding: 1rem 0;
 }
 
 /* 戻り値 */
 .return-value {
     display: block;
-    color: rgb(172, 86, 198);
-    font-weight: bold;
+    color: #bc8cff;
+    font-weight: 600;
     font-size: 1.6rem;
-    padding: 10px;
+    padding: 1rem 0;
 }
 
 /* ラベル */
 .label {
-    color: rgb(228, 227, 249);
-    background-color: #7e69f4;
-    padding: 5px;
+    color: #f0f6fc;
+    background-color: #6e7681;
+    padding: 0.4rem 0.8rem;
+    border-radius: 2rem;
+    font-size: 1.2rem;
+    font-weight: 500;
+    display: inline-block;
 }
 
 /* コード風 */
 .code-like {
     display: inline-block;
-    background-color: black;
-    color: white;
-    font-family: monospace;
-    padding: 5px;
+    background-color: #161b22;
+    color: #f0f6fc;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    font-size: 1.4rem;
+    border: 1px solid #21262d;
 }
 
 /* 警告 */
 .warning {
-    color: rgb(255, 255, 255);
-    background-color: red;
-    padding: 5px;
+    color: #ffffff;
+    background-color: #da3633;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-weight: 600;
+    display: inline-block;
 }
 
 /* -----------------レイアウト----------------- */
@@ -151,31 +263,65 @@ pre code {
 
 /* ナビゲーション */
 #navi {
-    width: 200px;
+    width: 250px;
     overflow-y: auto;
     height: 100vh;
+    padding: 2rem 1rem;
 }
 
 /* メインコンテンツ */
 #main {
-    background-color: #ffffff18;
+    background-color: #0d1117;
     flex: 1;
     overflow-y: auto;
     height: 100vh;
-    padding: 1rem;
+    padding: 2rem 3rem;
 }
 
 /* 目次 */
 #toc {
-    width: 200px;
+    width: 250px;
     overflow-y: auto;
     height: 100vh;
+    padding: 2rem 1rem;
 }
 
 #navi,
 #toc {
-    color: black;
-    background-color: #dbd9d9;
+    color: #c9d1d9;
+    background-color: #010409;
+    border-right: 1px solid #21262d;
+}
+
+#toc {
+    border-right: none;
+    border-left: 1px solid #21262d;
+}
+
+/* スクロールバーのスタイル */
+#navi::-webkit-scrollbar,
+#toc::-webkit-scrollbar,
+#main::-webkit-scrollbar {
+    width: 8px;
+}
+
+#navi::-webkit-scrollbar-track,
+#toc::-webkit-scrollbar-track,
+#main::-webkit-scrollbar-track {
+    background: #0d1117;
+}
+
+#navi::-webkit-scrollbar-thumb,
+#toc::-webkit-scrollbar-thumb,
+#main::-webkit-scrollbar-thumb {
+    background: #21262d;
+    border-radius: 4px;
+}
+
+#navi::-webkit-scrollbar-thumb:hover,
+#toc::-webkit-scrollbar-thumb:hover,
+#main::-webkit-scrollbar-thumb:hover {
+    background: #30363d;
 }
 
 /* ボタンはデフォルト非表示（PC用） */
@@ -193,7 +339,6 @@ pre code {
 @media screen and (max-width: 768px) {
     #container {
         display: block;
-        /* 横並び解除 */
     }
 
     #navi,
@@ -202,25 +347,22 @@ pre code {
         top: 0;
         bottom: 0;
         width: 200px;
-        background-color: #f3f1f1;
-        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+        background-color: #010409;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
         transition: transform 0.3s ease;
         z-index: 1000;
     }
 
-    /* 左メニューは左から隠す */
     #navi {
         left: 0;
         transform: translateX(-100%);
     }
 
-    /* 右目次は右から隠す */
     #toc {
         right: 0;
         transform: translateX(100%);
     }
 
-    /* 開いたときの状態 */
     #navi.open {
         transform: translateX(0);
     }
@@ -229,24 +371,32 @@ pre code {
         transform: translateX(0);
     }
 
-    /* メインは全幅に */
     #main {
         width: 100%;
         height: auto;
+        padding: 6rem 1.5rem 2rem;
     }
 
-    /* 開閉ボタンの見た目と位置 */
     #menuBtn,
     #tocBtn {
         display: block;
         position: fixed;
         top: 10px;
-        padding: 0.5rem 1rem;
-        background: #333;
-        color: white;
-        border: none;
+        padding: 0.8rem 1.2rem;
+        background: #21262d;
+        color: #f0f6fc;
+        border: 1px solid #30363d;
+        border-radius: 6px;
         cursor: pointer;
         z-index: 1100;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    #menuBtn:hover,
+    #tocBtn:hover {
+        background: #30363d;
+        border-color: #58a6ff;
     }
 
     #menuBtn {
@@ -257,7 +407,6 @@ pre code {
         right: 10px;
     }
 
-    /* オーバーレイ（メニュー開いた時に背景を覆う） */
     #overlay {
         display: none;
         position: fixed;
@@ -265,9 +414,9 @@ pre code {
         left: 0;
         right: 0;
         bottom: 0;
-        background-color: rgba(0, 0, 0, 0.4);
+        background-color: rgba(1, 4, 9, 0.8);
         z-index: 900;
-        /* メニューより下 */
+        backdrop-filter: blur(2px);
     }
 
     #overlay.show {
