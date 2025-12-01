@@ -23,7 +23,7 @@ h2 {
     font-size: 3rem;
     font-weight: 600;
     color: #f0f6fc;
-    background-color: #161b22;
+    background-color: #131b29;
     border-left: 4px solid #58a6ff;
     padding: 0.8rem 1.2rem;
     margin: 1.5rem 0;
@@ -107,7 +107,8 @@ table caption {
 }
 
 th {
-    background-color: #161b22;
+    background-color: #131b29;
+    ;
     color: #f0f6fc;
     font-weight: 600;
 }
@@ -115,12 +116,13 @@ th {
 th,
 tr,
 td {
-    border: 1px solid #21262d;
+    border: 1px solid #353d47;
     padding: 0.8rem 1.2rem;
 }
 
 tr:hover {
-    background-color: #161b22;
+    background-color: #131b29;
+    ;
     transition: background-color 0.2s ease;
 }
 
@@ -133,10 +135,11 @@ pre {
 pre code {
     display: block;
     color: #c9d1d9;
-    background-color: #161b22;
+    background-color: #131b29;
+    ;
     padding: 1.6rem;
     border-radius: 6px;
-    border: 1px solid #21262d;
+    border: 1px solid #353d47;
     font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
     font-size: 1.4rem;
     line-height: 1.6;
@@ -235,13 +238,14 @@ pre code {
 /* コード風 */
 .code-like {
     display: inline-block;
-    background-color: #161b22;
+    background-color: #131b29;
+    ;
     color: #f0f6fc;
     font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
     padding: 0.2rem 0.6rem;
     border-radius: 6px;
     font-size: 1.4rem;
-    border: 1px solid #21262d;
+    border: 1px solid #353d47;
 }
 
 /* 警告 */
