@@ -35,7 +35,7 @@ add_executable(myapp main.cpp)        # 実行ファイルの生成 (ソース�
 | cmake_minimum_required() | 最低限必要なCMakeのバージョン指定 | cmake_minimum_required(VERSION 3.16) |
 | project() | プロジェクト名と使用言語を指定 | project(MyApp LANGUAGES CXX) |
 | set() | 変数を設定 | set(SRC main.cpp util.cpp) |
-| message() | コンソール出力 | message(STATUS "Building project...") |
+| message() | コンソール出力<br>変数も出力できる | message(STATUS "Building project...") |
 
 #### ビルド対象の定義
 
@@ -162,11 +162,15 @@ add_executable(MyApp main.cpp utils.cpp)
 <pre><code class="example">set(SRC main.cpp utils.cpp math/add.cpp math/sub.cpp)
 add_executable(MyApp ${SRC})</code></pre>
 
+---
+
+#### target_include_directories(myapp PRIVATE ${CMAKE_SOURCE_DIR}/include/)
+読み込むヘッダファイルの場所を定義する。ヘッダファイルしか読み込まない。
 
 ---
 
 #### set()
-CMakeにおける変数の基本は、set()で変数を定義して${変数名}で参照する。
+CMakeにおける変数は、set()で変数を定義して${変数名}で参照する。
 
 ```cmake
 set(UTILITY_DIR $ENV{HOME}/utility)
@@ -180,6 +184,25 @@ link_directories(${UTILITY_DIR}/lib)
 ```cmake
 message("UTILITY_DIR=${UTILITY_DIR}")
 ```
+
+---
+
+### 変数 <a id="variable" data-name="変数"></a>
+CMakeが標準で用意する主要な自動変数
+
+| 変数 | 説明 |
+| --- | --- |
+| CMAKE_SOURCE_DIR | プロジェクトの最上位の CMakeLists.txt があるディレクトリ<br>どの階層の CMakeLists でも「プロジェクトルート」を指す |
+| CMAKE_CURRENT_SOURCE_DIR | 現在処理中の CMakeLists.txt があるディレクトリ<br>相対パスはここを基準に解釈される |
+| CMAKE_BINARY_DIR | ビルド（build）ディレクトリの最上位<br>通常は `build/` のこと |
+| CMAKE_CURRENT_BINARY_DIR | 現在の CMakeLists に対応する build 内ディレクトリ |
+| CMAKE_PROJECT_NAME | project() に指定したプロジェクト名 |
+| CMAKE_SYSTEM_NAME | 例：Linux, Windows, Darwin |
+| CMAKE_CXX_COMPILER_ID | 例：GNU, Clang, MSVC |
+| CMAKE_VERSION | 使用している CMake のバージョン |
+| CMAKE_CXX_FLAGS | 共通の C++ フラグ |
+| CMAKE_CXX_FLAGS_DEBUG | Debug 時のフラグ |
+| CMAKE_CXX_FLAGS_RELEASE | Release 時のフラグ |
 
 ---
 
