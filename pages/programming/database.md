@@ -661,8 +661,54 @@ with engine.connect() as connection:
 
 # MySQL <a id="mysql" data-name="MySQL"></a>
 
+- 
 
+## <a id="introduction1" data-name="導入"></a>
 
+### MySQL Serverのインストール
+
+```bash
+sudo apt update
+sudo apt install mysql-server
+```
+
+MySQLを起動
+
+```bash
+sudo systemctl start mysql
+sudo systemctl enable mysql
+```
+
+動作確認
+
+```bash
+mysql --version
+sudo mysql -e "SELECT VERSION()"
+```
+
+### 開発用パッケージのインストール
+
+```bash
+sudo apt install libmysqlclient-dev
+```
+これらが使えるようになる
+| ファイル | 用途 |
+| --- | --- |
+| /usr/include/mysql/mysql.h | MySQL C APIのヘッダ |
+| /usr/lib/X86_64-linux-gnu/libmysqlcliend.so | MySQLクライアントライブラリ |
+
+#### コンパイル
+
+```bash
+gcc main.c -o 'mysql_config --cflags --libs'
+```
+`mysqlclient`をリンクする。
+
+#### CMakeLists.txt
+
+---
+
+### Cサンプルコード
 
 ---
 
@@ -675,16 +721,16 @@ with engine.connect() as connection:
 
 ---
 
-## 導入 <a id="introduction" data-name="導入"></a>
+## 導入 <a id="introduction2" data-name="導入"></a>
 
 ```bash
 sudo apt update
 sudo apt install sqlite3 libsqlite3-dev build-essential
 ```
 
-#### gcc
+#### コンパイル
 
-```c
+```bash
 gcc test_sqlite.c -o test_sqlite -lsqlite3
 ```
 
@@ -701,10 +747,9 @@ add_executable(my_sqlite_app main.c)
 target_link_libraries(my_sqlite_app PRIVATE sqlite3)
 ```
 
-
 ---
 
-## Cサンプルコード <a id="c-sample" data-name="Cサンプルコード"></a>
+### Cサンプルコード
 
 <pre><code class="example">#include &lt;stdio.h&gt;
 #include &lt;sqlite3.h&gt;
