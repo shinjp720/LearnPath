@@ -422,7 +422,7 @@ C言語では、関数の引数に「配列」を書いても、実際にはポ�
 ---
 
 ### defined()
-以下の2つは
+以下の2つは意味的に同じだが、`defined()`は式として評価されるので、`&&`や`||`が使える。
 
 ```c
 #ifdef DEBUG
@@ -433,8 +433,6 @@ C言語では、関数の引数に「配列」を書いても、実際にはポ�
     printf("debug mode.\n");
 #endif
 ```
-
-意味的に同じだが、`defined()`は式として評価されるので、`&&`や`||`が使える。
 
 ```c
 #if defined(DEBUG) && !defined(NDEBUG)
@@ -477,12 +475,12 @@ void test() {
 
 ```cpp
 #define tostring(value) "value" // 引数を文字列に変換することを意図したが
-tostring(hoge) // "value"に置き換わる
+tostring(hoge); // "value"に置き換わる
 ```
 
 ```cpp
 #define tostring(value) #value
-tostring(hoge) // "hoge"に置き換わる
+tostring(hoge); // "hoge"に置き換わる
 ```
 
 <pre><code class="caution">printf("%s\n", tostring("hello")) // 文字列を引数として渡すと
@@ -497,14 +495,14 @@ tostring(hoge) // "hoge"に置き換わる
 
 ```cpp
 #define concat(left, right) leftright
-concat(foo, bar) // leftrightに置き換わる
+concat(foo, bar); // leftrightに置き換わる
 ```
 
 このように書くと、引数の`foo, bar`は無視され`leftright`という識別子に置き換わる。
 
 ```cpp
 #define concat(left, right) left##right
-concat(foo, bar) // foobarに置き換わる
+concat(foo, bar); // foobarに置き換わる
 ```
 
 `##`を使うと`foobar`という識別子に置き換わる。文字列連結ではなく、識別子や数値をといったトークンを作る。
@@ -1044,8 +1042,8 @@ streamがテキストストリームの場合は、次の移動のみを規定�
 
 <table>
     <tr>
-        <th>a</th>
-        <th>b</th>
+        <th>書き方</th>
+        <th>意味</th>
     </tr>
     <tr>
         <td><code>fseek(fp, 0L, SEEK_SET)</code></td>
