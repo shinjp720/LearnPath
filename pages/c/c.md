@@ -93,7 +93,7 @@ unsigned int flag = (FLAG_A | FLAG_C); // = か |= の違い</code></pre>
         立っているビットの確認や反転したビットを倒す。
         <pre><code class="example">// FLAG_A が立っているか？
 if (flags & FLAG_A) {
-    // FLAG_A が 1 のとき@真
+    // FLAG_A が 1 のとき真
 }
 
 // 複数ビットをまとめてチェック
