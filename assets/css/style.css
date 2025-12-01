@@ -196,7 +196,7 @@ pre code {
 }
 
 .tips::before {
-    content: "💡 Tips:";
+    content: "💡 ヒント:";
     display: block;
     margin-bottom: 0.5rem;
     color: #0d1117;
