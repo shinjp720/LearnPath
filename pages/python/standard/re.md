@@ -1,5 +1,5 @@
 ---
-title: FastAPI
+title: re
 layout: default
 ---
 
@@ -76,6 +76,7 @@ print(result)  # ['abc', 'def', 'ghi', '']</code></pre>
 | string | finditer, fullmatch, match, search, sub, subnに渡された文字列s。 |
 
 ### マッチオブジェクトのメソッド
+
 | メソッド | 説明 |
 | --- | --- |
 | m.end(groupid=0), m.span(groupid=0), m.start(groupid=0) | m.stringにおいてgroupid(グループ番号またはグループ名。デフォルト値0は正規表現全体を意味する)によって識別されるグループとマッチする部分文字列のインデックスを返す。 マッチしている部分文字列がm.string[i:j]である場合、m.startはiを返し、m.endはjを返し、m.spanは(i,j)を返す。 |
