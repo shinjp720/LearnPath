@@ -661,7 +661,9 @@ with engine.connect() as connection:
 
 # MySQL <a id="mysql" data-name="MySQL"></a>
 
-- 
+- データをテーブル形式で保存・管理するオープンソースのリレーショナルデータベース管理システム(RDBMS)。
+- Windows、macOS、Linuxなど、さまざまなOS環境で動作する。
+- 小規模なデータからテラバイト級の大規模なデータまで対応でき、必要に応じてカスタマイズが可能。
 
 ## <a id="introduction1" data-name="導入"></a>
 
