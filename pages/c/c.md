@@ -105,10 +105,8 @@ if ((flag & FLAG_A) == 0) {
     FLAG_Aが 0 のとき真
 }</code></pre>
         <pre><code class="example">// 上位3ビットが 0b110xxxxx である
-if ((flag & 0b00100000) == 0 && (flag & 0b11000000) == 0b11000000) {}
-// または
+// 確認したいビットを1にして&する</code></pre>
 if ((flag & 0b11100000) == 0b11000000) {}
-// つまり確認したいビットを1にして&する</code></pre>
         </td><td>x & y</td></tr>
     <tr><td>~</td><td>ビット反転(NOT)</td><td>xの0と1を反転</td><td>~x</td></tr>
     <tr><td><<</td><td>左シフト</td><td>xをn左にシフト。</td><td>x << n</td></tr>
@@ -159,44 +157,6 @@ typedef enum {
 
 // マスクのセット(マスクで指定したビットをまとめて1にする)
 #define SET_MASK(var, mask)   ((var) |=  (mask))</code></pre>
-
-#### 応用
-<pre><code class="example">#include &lt;stdio.h&gt;
-
-int main(void) {
-    unsigned int flags = 0;
-
-    // ビット0, ビット3 を立てる
-    SET_BIT(flags, 0);
-    SET_BIT(flags, 3);
-    // flags == 0b0000_1001 == 9
-
-    // ビット1 をトグル
-    TOGGLE_BIT(flags, 1);
-    // flags == 0b0000_1011 == 11
-
-    // ビット3 をクリア
-    CLEAR_BIT(flags, 3);
-    // flags == 0b0000_0011 == 3
-
-    // ビット2 が立っているかチェック
-    if (TEST_BIT(flags, 2)) {
-        puts("bit 2 is ON");
-    } else {
-        puts("bit 2 is OFF");  // こちらが出力される
-    }
-
-    // 任意のマスクでまとめて操作
-    unsigned int mask = (1U << 0) | (1U << 2); // 0,2 ビットのマスク
-    SET_MASK(flags, mask);   // 0,2 ビットをまとめて立てる
-    // flags == 0b0000_0111 == 7
-
-    CLEAR_MASK(flags, mask); // 0,2 ビットをまとめてクリア
-    // flags == 0b0000_0010 == 2
-
-    printf("flags = 0x%X\n", flags);
-    return 0;
-}</code></pre>
 
 ---
 
@@ -1180,9 +1140,11 @@ ptrにNULLを指定するとmallocと同じ働きをする。ptrが動的メモ�
 
 ---
 
-### メモリブロックの開放<br>`void free(void *ptr);`
+### メモリブロックの解放<br>`void free(void *ptr);`
 ptrで示す動的メモリ(malloc, calloc, reallocで取得した)を解放する。ptrが動的メモリ割り付け関数で取得されたポインタでなかったり、ptrで示す領域がすでに解放されている場合の動作は処理系依存。<br>
 ptrがNULLの場合は何もしない。
+
+<pre><code class="tips">メモリを解放したらポインタにNULLを代入すると二重解放を防止できる。</code></pre>
 
 ---
 
