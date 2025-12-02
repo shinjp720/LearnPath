@@ -103,7 +103,7 @@ table caption {
     text-align: left;
     font-weight: 600;
     color: #f0f6fc;
-    padding: 0.8rem;
+    padding: 1.2rem;
 }
 
 th {
@@ -226,13 +226,24 @@ pre code {
 
 /* ラベル */
 .label {
+    display: inline-block;
     color: #f0f6fc;
     background-color: #6e7681;
     padding: 0.4rem 0.8rem;
     border-radius: 6px;
     font-weight: 600;
     font-size: 1.8rem;
+}
+
+/* 警告 */
+.warning {
     display: inline-block;
+    color: #ffffff;
+    background-color: #da3633;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 1.8rem;
 }
 
 /* コード風 */
@@ -245,17 +256,6 @@ pre code {
     border-radius: 6px;
     font-size: 1.4rem;
     border: 1px solid #353d47;
-}
-
-/* 警告 */
-.warning {
-    color: #ffffff;
-    background-color: #da3633;
-    padding: 0.4rem 0.8rem;
-    border-radius: 6px;
-    font-weight: 600;
-    font-size: 1.8rem;
-    display: inline-block;
 }
 
 /* -----------------レイアウト----------------- */
