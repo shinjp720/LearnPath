@@ -694,6 +694,7 @@ sudo mysql -e "SELECT VERSION()"
 sudo apt install libmysqlclient-dev
 ```
 これらが使えるようになる
+
 | ファイル | 用途 |
 | --- | --- |
 | /usr/include/mysql/mysql.h | MySQL C APIのヘッダ |
