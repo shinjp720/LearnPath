@@ -159,7 +159,7 @@ pre code {
 }
 
 .example::before {
-    content: "💡 例:";
+    content: "✂️ 例:";
     display: block;
     margin-bottom: 0.5rem;
     color: #2ea043;
@@ -231,6 +231,7 @@ pre code {
     padding: 0.4rem 0.8rem;
     border-radius: 6px;
     font-weight: 600;
+    font-size: 2.0rem;
     display: inline-block;
 }
 
@@ -238,7 +239,6 @@ pre code {
 .code-like {
     display: inline-block;
     background-color: #131b29;
-    ;
     color: #f0f6fc;
     font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
     padding: 0.2rem 0.6rem;
