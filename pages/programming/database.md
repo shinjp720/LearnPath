@@ -667,7 +667,7 @@ with engine.connect() as connection:
 
 ## <a id="introduction1" data-name="導入"></a>
 
-### MySQL Serverのインストール
+### MySQLの導入
 
 ```bash
 sudo apt update
@@ -723,7 +723,7 @@ gcc main.c -o 'mysql_config --cflags --libs'
 
 ---
 
-## 導入 <a id="introduction2" data-name="導入"></a>
+## SQLiteの導入 <a id="introduction2" data-name="導入"></a>
 
 ```bash
 sudo apt update
