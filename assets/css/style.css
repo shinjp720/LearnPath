@@ -318,14 +318,14 @@ pre code {
 #navi::-webkit-scrollbar-thumb,
 #toc::-webkit-scrollbar-thumb,
 #main::-webkit-scrollbar-thumb {
-    background: #21262d;
+    background: #30363d;
     border-radius: 4px;
 }
 
 #navi::-webkit-scrollbar-thumb:hover,
 #toc::-webkit-scrollbar-thumb:hover,
 #main::-webkit-scrollbar-thumb:hover {
-    background: #30363d;
+    background: #40464d;
 }
 
 /* ボタンはデフォルト非表示（PC用） */
