@@ -13,33 +13,6 @@ anchors.forEach(anchor => {
 });
 toc.appendChild(ulTag);
 
-// const toc = document.getElementById("toc");
-
-// const ulTag = document.createElement("ul");
-// const anchors = document.querySelectorAll("[data-name]");
-// anchors.forEach(anchor => {
-//     let newLi = document.createElement("li");
-//     let newA = document.createElement("a");
-//     newA.textContent = anchor.dataset.name;
-//     newA.href = "#" + anchor.id;
-//     newLi.appendChild(newA);
-//     ulTag.appendChild(newLi);
-// });
-// const tocContents = ulTag;
-// toc.appendChild(tocContents);
-
-// //////////////////////
-// document.querySelectorAll('#toc a').forEach(a => {
-//     a.addEventListener("click", (e) => {
-//         e.preventDefault();
-//         const id = a.getAttribute("href").substring(1);
-//         const target = document.getElementById(id);
-//         target.scrollIntoView({ behavior: "smooth", block: "start" });
-//         location.hash = id; // 履歴に確実に積む
-//     });
-// });
-// //////////////////////
-
 // ハンバーガーメニュー
 const navi = document.getElementById('navi');
 const overlay = document.getElementById('overlay');
