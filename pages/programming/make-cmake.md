@@ -45,8 +45,7 @@ add_executable(myapp main.cpp)        # 実行ファイルの生成 (ソース�
 | add_library() | ライブラリを作成(STATIC, SHARED, INTERFACE も指定可) | add_library(utils STATIC util.cpp) |
 | target_link_libraries() | 依存ライブラリをリンク | target_link_libraries(myapp PRIVATE utils) |
 | target_include_directories() | ヘッダファイルのパスを追加 | target_include_directories(myapp PRIVATE include) |
-| target_compile_definitions() | マクロ定義を追加 | target_compile_definitions(myapp PRIVATE DEBUG_MODE)<br>
-target_compile_definitions(qt_app PRIVATE PROJECT_ROOT_PATH="${CMAKE_SOURCE_DIR}") |
+| target_compile_definitions() | マクロ定義を追加 | target_compile_definitions(myapp PRIVATE DEBUG_MODE)<br>target_compile_definitions(qt_app PRIVATE PROJECT_ROOT_PATH="${CMAKE_SOURCE_DIR}") |
 | target_compile_options() | コンパイルオプションを追加 | target_compile_options(myapp PRIVATE -Wall -Wextra) |
 
 - target_xxのアクセス指定子は設定の伝播範囲を表す。
