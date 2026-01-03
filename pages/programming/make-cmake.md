@@ -187,6 +187,24 @@ message("UTILITY_DIR=${UTILITY_DIR}")
 
 ---
 
+#### target_compile_definitions()
+マクロを定義して環境のプロジェクトルートを埋め込む
+
+```cmake
+# CMakeLists.txt
+target_compile_definitions(qt_app PRIVATE PROJECT_ROOT_PATH=”${CMAKE_SOURCE_DIR}”)
+```
+
+```cpp
+// .cpp
+#ifndef PROJECT_ROOT_PATH
+#error PROJECT_ROOT_PATH is not defined.
+
+#endif
+```
+
+---
+
 ### 変数 <a id="variable" data-name="変数"></a>
 CMakeが標準で用意する主要な自動変数
 
