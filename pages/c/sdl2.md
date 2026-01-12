@@ -5,9 +5,7 @@ layout: default
 
 # SDL2 <a id="top" data-name="TOP"></a>
 
-## メソッド <a id="methods" data-name="メソッド">
-
-### 初期化・終了(必須)
+## 初期化・終了(必須) <a id="start-end" data-name="初期化・終了">
 
 ```cpp
 SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
@@ -28,7 +26,7 @@ SDL_Quit();
 
 ---
 
-### ウィンドウ管理
+## ウィンドウ管理 <a id="window" data-name="ウィンドウ管理">
 
 ```cpp
 SDL_Window* window = SDL_CreateWindow(
@@ -51,7 +49,7 @@ SDL_DestroyWindow(window);
 
 ---
 
-### レンダラー(2D描画の中核)
+## レンダラー(2D描画の中核) <a id="renderer" data-name="レンダラー">
 
 ```cpp
 SDL_Renderer* renderer =
@@ -69,7 +67,7 @@ SDL_DestroyRenderer(renderer);
 
 ---
 
-### 描画ループの基本セット
+## 描画ループの基本セット <a id="draw-loop" data-name="描画ループ">
 
 ```cpp
 SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -99,7 +97,7 @@ SDL_RenderPresent(renderer);
 
 ---
 
-### 画像処理
+## 画像処理 <a id="image" data-name="画像処理">
 
 #### サーフェイスの取得
 
@@ -166,7 +164,7 @@ SDL_DestroyTexture(texture);
 
 ---
 
-### ループ構造
+## ループ構造 <a id="loop" data-name="ループ">
 
 #### 単純なゲームループ(ポーリング型)
 
@@ -242,16 +240,60 @@ while (running)
 
 ---
 
-### イベント処理(入力・ウィンドウ)
+## イベント処理(入力・ウィンドウ) <a id="event" data-name="イベント">
+
+SDL2ではイベントの種類を`SDL_Event.type`で判別する。
+
+```cpp
+// 基本形
+SDL_Event e;
+while (SDL_PollEvent(&e)) {
+    if (e.type == SDL_QUIT) {
+        // ウィンドウが閉じられた
+    }
+}
+```
+
+<table>
+    <caption>よく使うイベント識別子</caption>
+    <tr><th>識別子</th><th>意味</th></tr>
+    <tr><td>SDL_QUIT</td><td>アプリ終了(×ボタンなど)</td></tr>
+    <tr><td>SDL_WINDOWEVENT</td><td>ウィンドウイベント(e.window.event)</td></tr>
+    <tr><td>SDL_KEYDOWN</td><td>キーが押された<br>(e.key.keysym.sym)<br>
+        <table>
+            <tr><td>SDLK_a~SDLK_z</td><td>文字キー</td></tr>
+            <tr><td>SDLK_0~SDLK_9</td><td>数字キー</td></tr>
+            <tr><td>SDLK_RETURN</td><td>Enter</td></tr>
+            <tr><td>SDLK_ESCAPE</td><td>Esc</td></tr>
+            <tr><td>SDLK_BACKSPACE</td><td>BackSpace</td></tr>
+            <tr><td>SDLK_SPACE</td><td>Space</td></tr>
+            <tr><td>SDLK_UP</td><td>上</td></tr>
+            <tr><td>SDLK_DOWN</td><td>下</td></tr>
+            <tr><td>SDLK_LEFT</td><td>左</td></tr>
+            <tr><td>SDLK_RIGHT</td><td>右</td></tr>
+            <tr><td>SDLK_F1~SDLK_F12</td><td>ファンクションキー</td></tr>
+        </table>    
+    </td></tr>
+    <tr><td>SDL_KEYUP</td><td>キーが離された</td></tr>
+    <tr><td>SDL_MOUSEMOTION</td><td>マウス移動</td></tr>
+    <tr><td>SDL_MOUSEBUTTONDOWN</td><td>ボタン押下</td></tr>
+    <tr><td>SDL_MOUSEBUTTONUP</td><td>ボタン解放</td></tr>
+    <tr><td>SDL_MOUSEWHEEL</td><td>ホイール</td></tr>
+</table>
+
+
+
+
+
+
+
+
+
 
 
 ---
 
-### キーボード入力
-
----
-
-### 時間・フレーム制御
+## 時間・フレーム制御 <a id="time" data-name="時間・フレーム">
 
 ```cpp
 // 軌道からの経過ミリ秒(約49日でオーバーフロー)
