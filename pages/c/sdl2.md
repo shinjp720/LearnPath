@@ -5,7 +5,15 @@ layout: default
 
 # SDL2 <a id="top" data-name="TOP"></a>
 
-## 初期化・終了(必須) <a id="start-end" data-name="初期化・終了">
+### インクルード
+
+```cpp
+#include <SDL.h>
+```
+
+- 最低限必要。
+
+## 初期化・終了(必須) <a id="start-end" data-name="初期化・終了"></a>
 
 ```cpp
 SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
@@ -26,7 +34,7 @@ SDL_Quit();
 
 ---
 
-## ウィンドウ管理 <a id="window" data-name="ウィンドウ管理">
+## ウィンドウ管理 <a id="window" data-name="ウィンドウ管理"></a>
 
 ```cpp
 SDL_Window* window = SDL_CreateWindow(
@@ -49,7 +57,7 @@ SDL_DestroyWindow(window);
 
 ---
 
-## レンダラー(2D描画の中核) <a id="renderer" data-name="レンダラー">
+## レンダラー <a id="renderer" data-name="レンダラー"></a>
 
 ```cpp
 SDL_Renderer* renderer =
@@ -67,67 +75,95 @@ SDL_DestroyRenderer(renderer);
 
 ---
 
-## 描画ループの基本セット <a id="draw-loop" data-name="描画ループ">
+## 描画ループの基本構造 <a id="draw-loop" data-name="描画の基本構造"></a>
+
+#### 以降の描画色を設定(線などを描画する場合)。
 
 ```cpp
 SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 ```
 
-- 以降の描画色を設定。
+#### 画面のクリア
 
 ```cpp
 SDL_RenderClear(renderer);
 ```
 
-- 画面を塗りつぶす(実質のフレーム開始)。
+#### テクスチャをキャンバス(バックバッファ)に張り付ける(まだ見えない)
 
 ```cpp
 SDL_RenderCopy(renderer, texture, nullptr, &dstRect);
 ```
 
-- テクスチャを画面の描画。
-- 2Dゲームで最も使う関数。
+- これを繰り返して奥から手前に貼り付けていく
+
+#### 実際の画面に表示する
 
 ```cpp
 SDL_RenderPresent(renderer);
 ```
 
-- バックバッファ->画面への反映。
-- 1フレームの終わり。
+- バックバッファ -> 画面への表示。
+- 1フレームの終わりに1度だけ呼ぶ。
 
 ---
 
-## 画像処理 <a id="image" data-name="画像処理">
+## 画像 <a id="image" data-name="画像"></a>
 
-#### サーフェイスの取得
+#### 基本的な流れ
 
-```cpp
-// 画像の読み込み
-SDL_Surface* surface = SDL_LoadBMP("image.bmp");
-```
+<pre><code class="tips">SDL_Init(SDL_INIT_VIDEO);でbmpとgifは読み込める。
+bmpとgif以外のファイル形式を使用する場合はSDL_imageが必要。</code></pre>
 
-- デフォルトで使えるが.bmpのみ。
+1. 画像のパスからサーフェイスを取得 -> `SDL_LoadBMP()` または `IMG_Load()`
+2. サーフェイスをテクスチャに変換 -> `SDL_CreateTextureFromSurface()`
+3. サーフェイスの解放 -> `SDL_FreeSurface()`
+4. 画面のクリア -> `SDL_RenderClear()`
+5. バックバッファにコピー -> `SDL_RenderCopy()`
+6. 画面に表示 -> `SDL_RenderPresent()`
 
-#### または
+<pre><code class="example"># include &lt;SDL_image.h&gt;;
 
-```cpp
-#include <SDL2/SDL_image.h>
-
-// SDL_imageの初期化
-int flags = IMG_INIT_PNG | IMG_INIT_JPG;  // 使いたい形式だけ
+// 使用する形式の<a href="#flag">フラグ</a>を指定して初期化
+int flags = IMG_INIT_PNG | IMG_INIT_JPG;
 if ((IMG_Init(flags) & flags) != flags) {
     SDL_Log("IMG_Init error: %s", IMG_GetError());
     return -1;
 }
 
-// 画像の読み込み
-SDL_Surface* surface = IMG_Load("image.png");
-if (!surface) {
+SDL_Surface* iggSurface = IMG_Load("image.png");
+if (!imgSurface) {
     SDL_Log("IMG_Load error: %s", IMG_GetError());
+    return -1;
+}
+SDL_Texture* imgTexture = SDL_CreateTextureFromSurface(renderer, imgSurface);
+if (!texture) {
+    std::cerr << "texture get error." << std::endl;
+    return -1;
+}
+SDL_FreeSurface(imgSurface);
+
+SDL_RenderClear(renderer);
+SDL_RenderCopy(renderer, imgTexture, NULL, &textDst);
+SDL_RenderPresent(renderer);  // 実際に画面に反映
+
+// 最後に解放
+IMG_Quit();</code></pre>
+
+#### または
+
+```cpp
+texture = IMG_LoadTexture(renderer, path.c_str());
+if (!texture) {
+    std::cerr << "texture get error." << std::endl;
     return -1;
 }
 ```
 
+- SDL_imageを使っている、かつsurfaceを触る必要がない場合は<br>
+  `IMG_LoadTexture()` を使用するとサーフェイスの取得を省略できる。
+
+<a id="flag"></a>
 <table>
     <caption>使用可能な拡張子</caption>
     <tr><th>拡張子</th><th>フラグ</th><th>備考</th></tr>
@@ -144,19 +180,17 @@ if (!surface) {
 #### 対応する解放処理
 
 ```cpp
+// IMG_Initを使用した場合
+IMG_Quit();
+```
+
+```cpp
+// surfaceの解放
 SDL_FreeSurface(surface);
 ```
 
-#### テクスチャの生成
-
 ```cpp
-SDL_Texture* texture =
-    SDL_CreateTextureFromSurface(renderer, surface);
-```
-
-#### 対応する解放処理
-
-```cpp
+// textureの解放
 SDL_DestroyTexture(texture);
 ```
 
@@ -164,59 +198,109 @@ SDL_DestroyTexture(texture);
 
 ---
 
-## ループ構造 <a id="loop" data-name="ループ">
+## フォント <a id="font" data-name="フォント"></a>
 
-#### 単純なゲームループ(ポーリング型)
+#### 基本的な流れ
+
+1. TTFの初期化 -> `TTF_Init()`
+2. フォントの読み込み -> `TTF_OpenFont()`
+3. 色の指定 -> `SDL_Color color = {}`
+4. サーフェイスに変換 -> `TTF_RenderUTF8_Blended()`
+5. テクスチャに変換 -> `SDL_CreateTextureFromSurface()`
+6. サーフェイスの解放 -> `SDL_FreeSurface()`
+6. 画面のクリア -> `SDL_RenderClear()`
+7. バックバッファにコピー -> `SDL_RenderCopy()`
+8. 画面に表示 -> `SDL_RenderPresent()`
+
+<pre><code class="example">#include &lt;SDL_ttf.h&gt;
+
+if (TTF_Init()) {
+    std::cerr << "ttf init error." << std::endl;
+    return -1;
+}
+
+TTF_Font* font = TTF_OpenFont("フォントファイル.ttf", フォントのポイントサイズ);
+if (font == NULL) {
+    std::cerr << "ttf open error." << std::endl;
+    return -1;
+}
+SDL_Color color = {255, 255, 255, 255};  // 白
+SDL_Surface* textSurface = TTF_RenderUTF8_Blended(font, "表示する文字列", color);
+SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+if (!textTexture) {
+    std::cerr << "texture get error." << std::endl;
+    return -1;
+}
+SDL_FreeSurface(textSurface);
+
+SDL_RenderClear(renderer);
+SDL_RenderCopy(renderer, textTexture, NULL, &textDst);
+SDL_RenderPresent(renderer);  // 実際に画面に反映
+
+TTF_Quit();</code></pre>
+
+#### 幅を計算して自動的に改行する
+
+<pre><code class="example">std::string line;
+int w, h;
+
+for (char c : text) {
+    line += c;
+    TTF_SizeUTF8(font, line.c_str(), &w, &h); // サイズを取得
+
+    if (w > 400) {
+        // ここまでが1行
+        drawText(line);
+        line.clear();
+        line += c;  // 次の行の最初の文字
+    }
+}</code></pre>
+
+#### 対応する解放処理
 
 ```cpp
-bool running = true;
-
-while (running) {
-    SDL_Event e;
-    while (SDL_PollEvent(&e)) {
-        if (e.type == SDL_QUIT) {
-            running = false;
-        }
-    }
-
-    update();   // 状態更新
-    render();   // 描画
-}
+TTF_Quit();
 ```
 
-- 毎フレーム必ずupdate()/render()を呼ぶ
-- ゲーム・リアルタイムアプリ・アニメーション主体のアプリ向き
+---
 
-#### イベント駆動に近いループ(WaitEvent型)
+## 図形 <a id="shape" data-name="図形"></a>
+
+#### 基本的な流れ
+
+1. 色の指定 -> `SDL_Color color = {}`
+2. 画面のクリア -> `SDL_RenderClear()`
+3. バックバッファに描画 -> `SDL_RenderDrawLine()`
+4. 画面に表示 -> `SDL_RenderPresent()`
+
+#### 代表的な描画関数
 
 ```cpp
-bool running = true;
-
-while (running) {
-    SDL_Event e;
-    SDL_WaitEvent(&e);
-
-    switch (e.type) {
-        case SDL_QUIT:
-            running = false;
-            break;
-        case SDL_KEYDOWN:
-            handle_key(e.key);
-            break;
-    }
-
-    render();
-}
+int SDL_RenderDrawPoint(SDL_Renderer* renderer, int x, int y);
+int SDL_RenderDrawLine(SDL_Renderer* renderer, int x1, int y1, int x2, int y2);
+int SDL_RenderDrawRect(SDL_Renderer* renderer, const SDL_Rect* rect);
+int SDL_RenderFillRect(SDL_Renderer* renderer, const SDL_Rect* rect);
 ```
 
-- イベントが来るまでブロック
-- 入力が無い間はCPUをほぼ使わない
-- ツール系アプリ向き
+#### 円を描く
 
-#### フレームレート制限
+<pre><code class="example">void DrawCircle(SDL_Renderer* r, int cx, int cy, int radius)
+{
+    for (int x = -radius; x <= radius; x++)
+    {
+        int y = (int)std::sqrt(radius * radius - x * x);
+        SDL_RenderDrawPoint(r, cx + x, cy + y);
+        SDL_RenderDrawPoint(r, cx + x, cy - y);
+    }
+}</code></pre>
 
-```cpp
-const int FPS = 60;
+---
+
+## ループ構造 <a id="loop" data-name="ループ構造"></a>
+
+### フレームレート制限
+
+<pre><code class="example">const int FPS = 60;
 const int frameDelay = 1000 / FPS;
 
 while (running)
@@ -235,12 +319,61 @@ while (running)
     if (frameDelay > frameTime) {
         SDL_Delay(frameDelay - frameTime);  // 無理のない速度で描画
     }
-}
-```
+}</code></pre>
+
+### イベント駆動に近いWaitEvent型
+
+<pre><code class="example">while (running) {
+    SDL_Event e;
+    SDL_WaitEvent(&e);
+
+    switch (e.type) {
+        case SDL_QUIT:
+            running = false;
+            break;
+        case SDL_KEYDOWN:
+            handle_key(e.key);
+            break;
+    }
+
+    render();
+}</code></pre>
+
+- イベントが来るまでブロック
+- 入力が無い間はCPUをほぼ使わない
+- ツール系アプリ向き
+
+### さらに負荷を減らすWaitEvent型
+
+<pre><code class="example">SDL_Event e;
+
+while (running) {
+    SDL_WaitEvent(&e);
+
+    do { // ここで連続的なイベントは描画前に処理する
+        running = handleEvent(&e);
+    } while (SDL_PollEvent(&e));
+
+    drawImageWithAspectFit();
+}</code></pre>
+
+### WaitEvent + FPS制限の省電力型
+
+<pre><code class="example">while (running) {
+    SDL_Event e;
+    if (SDL_WaitEventTimeout(&e, frameDelay)) {
+        do {
+            handleEvent(e);
+        } while (SDL_PollEvent(&e));
+    }
+
+    update();
+    render();
+}</code></pre>
 
 ---
 
-## イベント処理(入力・ウィンドウ) <a id="event" data-name="イベント">
+## イベント処理(入力・ウィンドウ) <a id="event" data-name="イベント処理"></a>
 
 SDL2ではイベントの種類を`SDL_Event.type`で判別する。
 
@@ -281,28 +414,6 @@ while (SDL_PollEvent(&e)) {
     <tr><td>SDL_MOUSEWHEEL</td><td>ホイール</td></tr>
 </table>
 
-
-
-
-
-
-
-
-
-
-
----
-
-## 時間・フレーム制御 <a id="time" data-name="時間・フレーム">
-
-```cpp
-// 軌道からの経過ミリ秒(約49日でオーバーフロー)
-Uint32 now = SDL_GetTicks();
-
-// 簡易的なフレーム制御
-SDL_Delay(16);
-```
-
 ---
 
 ### エラー処理
@@ -315,27 +426,203 @@ std::cerr << SDL_GetError() << std::endl;
 
 ---
 
-### 最小限の構成
+## 関数 <a id="function" data-name="関数"></a>
 
-```
-SDL_CreateWindow
-SDL_CreateRenderer
+### 初期化・終了
 
-while (running)
- ├ SDL_PollEvent
- ├ SDL_SetRenderDrawColor
- ├ SDL_RenderClear
- ├ SDL_RenderCopy
- └ SDL_RenderPresent
+#### SDL_Init
 
-SDL_DestroyTexture
-SDL_DestroyRenderer
-SDL_DestroyWindow
-SDL_Quit</code></pre>
-```
+<div class="subtitle">構文</div>
+`int SDL_Init(Uint32 flags)`
 
----
+<div class="subtitle">引数</div>
+flags: サブシステム初期化フラグ
 
+<div class="subtitle">戻り値</div>
+成功のとき0, エラーのとき負の数のエラーコードを戻す. SDL_GetError()を呼んで詳細を知ることができる.
+
+<div class="subtitle">詳細</div>
+
+flagsは以下の項目の論理和で複数設定できる。
+
+| flag | 意味 |
+| --- | --- |
+| SDL_INIT_TIMER | タイマ サブシステム |
+| SDL_INIT_AUDIO | オーディオ サブシステム |
+| SDL_INIT_VIDEO | ビデオ サブシステム. イベントサブシステムも自動的に初期化される |
+| SDL_INIT_JOYSTICK | ジョイスティック サブシステム. イベントサブシステムも自動的に初期化される |
+| SDL_INIT_HAPTIC | ハプティクス(感覚フィードバック) サブシステム|
+| SDL_INIT_GAMECONTROLLER | コントローラー サブシステム. ジョイスティックサブシステムも自動的に初期化される |
+| SDL_INIT_EVENTS | イベント サブシステム |
+| SDL_INIT_SENSOR | センサー |
+| SDL_INIT_EVERYTHING | 上記のサブシステムの全て |
+| SDL_INIT_NOPARACHUTE | 互換性のために存在する. このフラグは機能しない |
+
+<div class="subtitle">サンプルコード</div>
+
+<pre><code class="example">#include "SDL.h"
+
+int main(int argc, char* argv[]) {
+    if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO) != 0) {
+        SDL_Log("SDLを初期化できなかった: %s", SDL_GetError());
+        return 1;
+    }
+
+    /* ... */
+
+    SDL_Quit();
+    return 0;
+}</code></pre>
+
+#### SDL_Quit
+
+<div class="subtitle">構文</div>
+`void SDL_Quit(void)`
+
+<div class="subtitle">詳細</div>
+SDL_QuitSubSystem()で既に個別にサブシステムを終了した場合でもこの関数を呼ばなければならない. 初期化中にエラーが発生した場合でもこの関数は呼んでも安全である.
+
+#### SDL_GetError
+
+<div class="subtitle">構文</div>
+`const char* SDL_GetError(void)`
+
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
 
 
 
