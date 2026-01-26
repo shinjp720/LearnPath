@@ -523,7 +523,7 @@ SDL_Window* SDL_CreateWindow(const char* title, int x, int y, int w, int h, Uint
 
 SDL_WindowFlags
 
-|  |  |
+| フラグ | 意味 |
 | --- | --- |
 | SDL_WINDOW_FULLSCREEN | フルスクリーン |
 | SDL_WINDOW_FULLSCREEN_DESKTOP | 現在のデスクトップの解像度でフルスクリーン |
@@ -556,20 +556,10 @@ SDL_WindowFlags
 <div class="subtitle">詳細</div>
 
 SDL_CreateWindow()ではSDL_WINDOW_SHOWNは無視される. SDL_WindowはSDL_WINDOW_HIDDENが設定されない限り表示される. SDL_WINDOW_SHOWNはSDL_GetWindowFlags()で問い合わせたとき使われる.
-
 AppleのmacOSでは, Info.plistのNSHighResolutionCapableプロパティは必ずYESでなければならない. そうしなければ高DPI OpenGL キャンバスを受信できない.
-
-高DPIに対応した環境(iOSやOS X)でSDL_WINDOW_ALLOW_HIGHDPIを指定してウィンドウを生成した場合, スクリーン座標系のウィンドウサイズは, ピクセル数のウィンドウサイズと異なる場合がある. SDL_GL_GetDrawableSize()またはSDL_GetRendererOutputSize()でピクセル数のクライアントサイズを得ることができる. このフラグを設定した場合, ウィンドウが生成された後に描画可能なサイズが変化しうるため, ウィンドウのサイズが変わった, またはディスプレイ間で移動したようなイベントが発生した後はサイズを調べなおさなければならないので注意すること.
-
-フルスクリーンの設定をした場合, 幅と高さの引数であるwとhは使われない. しかし, 不正なサイズの引数(例えば大きすぎる)の場合は失敗する. 全ての環境でのウィンドウサイズの事実上の限界は16384×16384である.
-
+フルスクリーンの設定をした場合, 幅と高さの引数であるwとhは使われない. しかし, 不正なサイズの引数(例えば大きすぎる)の場合は失敗する.
 SDL_WINDOW_OPENGLまたはSDL_WINDOW_VULKANフラグを指定してウィンドウを生成すると, 一致するLoadLibrary関数(SDL_GL_LoadLibrary()またはSDL_Vulkan_LoadLibrary())が呼び出され, SDL_DestroyWindow()で一致するUnloadLibrary関数が呼ばれる.
-
 SDL_WINDOW_VULKANを指定してVulkanドライバが動作しなかった場合, SDL_Vulkan_LoadLibrary()が失敗するためSDL_CreateWindow()も失敗する.
-
-Metalに対応していないOSでSDL_WINDOW_METALを指定した場合, SDL_CreateWindow()は失敗する.
-
-Appleデバイス以外の場合, SDLはVulkanローダをリンクしないか, 動的リンクライブラリ版のリンクを要求する. 後のバージョンのSDLではこの制約はなくなる予定である.
 
 <div class="subtitle">サンプルコード</div>
 
@@ -578,10 +568,9 @@ Appleデバイス以外の場合, SDLはVulkanローダをリンクしないか,
 
 int main(int argc, char* argv[]) {
 
-    SDL_Window *window;                    // ポインタを宣言する
-
     SDL_Init(SDL_INIT_VIDEO);              // SDL2を初期化する
 
+    SDL_Window *window;                    // ポインタを宣言する
     // 次の設定でアプリケーションウィンドウを生成する:
     window = SDL_CreateWindow(
         "An SDL2 window",                  // ウィンドウのタイトル
@@ -614,13 +603,25 @@ int main(int argc, char* argv[]) {
 #### SDL_DestroyWindow
 
 <div class="subtitle">構文</div>
+void SDL_DestroyWindow(SDL_Window* window)
+
+<div class="subtitle">引数</div>
+window: 破棄するウィンドウ
+
+<div class="subtitle">詳細</div>
+windowがNULLの場合, この関数はSDLエラーメッセージに "Invalid window" を設定してすぐに戻る. SDL_GetError()を参照すること.
+
+#### SDL_CreateRenderer
+
+<div class="subtitle">構文</div>
+
+
 <div class="subtitle">引数</div>
 <div class="subtitle">戻り値</div>
 <div class="subtitle">詳細</div>
 <div class="subtitle">サンプルコード</div>
 
 
-SDL_CreateRenderer  
 SDL_DestroyRenderer  
 
 SDL_SetWindowSize  
@@ -631,12 +632,6 @@ SDL_RenderPresent
 SDL_RenderClear  
     
 
-
-<div class="subtitle">構文</div>
-<div class="subtitle">引数</div>
-<div class="subtitle">戻り値</div>
-<div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
 
 <div class="subtitle">構文</div>
 <div class="subtitle">引数</div>
