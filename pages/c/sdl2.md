@@ -357,7 +357,7 @@ while (running) {
     drawImageWithAspectFit();
 }</code></pre>
 
-### WaitEvent + FPS制限の省電力型
+### 高反応 + 省電力型
 
 <pre><code class="example">while (running) {
     SDL_Event e;
@@ -428,12 +428,14 @@ std::cerr << SDL_GetError() << std::endl;
 
 ## 関数 <a id="function" data-name="関数"></a>
 
+---
+
 ### 初期化・終了
 
 #### SDL_Init
 
 <div class="subtitle">構文</div>
-`int SDL_Init(Uint32 flags)`
+int SDL_Init(Uint32 flags)
 
 <div class="subtitle">引数</div>
 flags: サブシステム初期化フラグ
@@ -477,7 +479,7 @@ int main(int argc, char* argv[]) {
 #### SDL_Quit
 
 <div class="subtitle">構文</div>
-`void SDL_Quit(void)`
+void SDL_Quit(void)
 
 <div class="subtitle">詳細</div>
 SDL_QuitSubSystem()で既に個別にサブシステムを終了した場合でもこの関数を呼ばなければならない. 初期化中にエラーが発生した場合でもこの関数は呼んでも安全である.
@@ -485,12 +487,150 @@ SDL_QuitSubSystem()で既に個別にサブシステムを終了した場合で�
 #### SDL_GetError
 
 <div class="subtitle">構文</div>
-`const char* SDL_GetError(void)`
+const char* SDL_GetError(void)
 
+<div class="subtitle">戻り値</div>
+発生したエラーの情報のメッセージを返す。または, `SDL_ClearError()`を呼んでからエラーがなければ, 空の文字列を戻す.
+
+<div class="subtitle">詳細</div>
+複数のエラーが発生している場合は最後のエラーメッセージのみを返す。
+SDL_GetError()を呼べるか否かは, SDL関数の戻り値をチェックする必要がある. エラーが発生したかを確認するためにSDL_GetError()の結果を利用すべきではない。
+
+<div class="subtitle">サンプルコード</div>
+
+<pre><code class="example">if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+    // 回復できないエラー. ここで終了処理を行う
+    printf("SDL_Init 失敗: %s¥n", SDL_GetError());
+}</code></pre>
+
+### ウィンドウ・レンダラー
+
+#### SDL_CreateWindow
+
+<div class="subtitle">構文</div>
+SDL_Window* SDL_CreateWindow(const char* title, int x, int y, int w, int h, Uint32 flags)
+
+<div class="subtitle">引数</div>
+
+| 引数名 | 意味 |
+| --- | --- |
+| title	| UTF-8文字列のウィンドウのタイトル |
+| x	| ウィンドウのスクリーン座標系のX座標, SDL_WINDOWPOS_CENTERED, または SDL_WINDOWPOS_UNDEFINED |
+| y	| ウィンドウのスクリーン座標系のY座標, SDL_WINDOWPOS_CENTERED, または SDL_WINDOWPOS_UNDEFINED |
+| w	| ウィンドウのスクリーン座標系の幅 |
+| h	| ウィンドウのスクリーン座標系の高さ |
+| flags	| 0 または 1つ以上のSDL_WindowFlags列挙体の論理和 |
+
+SDL_WindowFlags
+
+|  |  |
+| --- | --- |
+| SDL_WINDOW_FULLSCREEN | フルスクリーン |
+| SDL_WINDOW_FULLSCREEN_DESKTOP | 現在のデスクトップの解像度でフルスクリーン |
+| SDL_WINDOW_OPENGL | OpenGLコンテキストを使用 |
+| SDL_WINDOW_VULKAN| Vulkanインスタンスを使用 |
+| SDL_WINDOW_METAL | ウィンドウはMetalビューを使用 |
+| SDL_WINDOW_SHOWN | 見えている |
+| SDL_WINDOW_HIDDEN | 見えていない |
+| SDL_WINDOW_BORDERLESS | 枠がない |
+| SDL_WINDOW_RESIZABLE | 大きさを変えられる |
+| SDL_WINDOW_MINIMIZED | 最小化されている |
+| SDL_WINDOW_MAXIMIZED | 最大化されている |
+| SDL_WINDOW_MOUSE_GRABBED | ウィンドウはマウス入力をグラブしている |
+| SDL_WINDOW_INPUT_GRABBED | SDL_WINDOW_MOUSE_GRABBEDと同等(互換性のため) |
+| SDL_WINDOW_KEYBOARD_GRABBED | ウィンドウはキーボード入力をグラブしている |
+| SDL_WINDOW_INPUT_FOCUS | 入力のフォーカスがある |
+| SDL_WINDOW_MOUSE_FOCUS | マウスのフォーカスがある |
+| SDL_WINDOW_FOREIGN | SDL以外によって生成された |
+| SDL_WINDOW_ALLOW_HIGHDPI | 高DPIモードで生成された (SDL2.0.1以上) |
+| SDL_WINDOW_MOUSE_CAPTURE | ウィンドウはマウスを捕捉している(INPUT_GRABBEDとは無関係である. SDL2.0.4以上) |
+| SDL_WINDOW_ALWAYS_ON_TOP | ウィンドウは常に他の上にある (SDL2.0.5以上) |
+| SDL_WINDOW_SKIP_TASKBAR | ウィンドウはタスクバーに加えられない (X11専用 SDL2.0.5以上) |
+| SDL_WINDOW_UTILITY | ウィンドウはユーティリティウィンドウとして扱われる (X11専用 SDL2.0.5以上) |
+| SDL_WINDOW_TOOLTIP | ウィンドウはツールチップとして扱われる (X11専用 SDL2.0.5以上) |
+| SDL_WINDOW_POPUP_MENU | ウィンドウはポップアップメニューとして扱われる (X11専用 SDL2.0.5以上) |
+
+<div class="subtitle">戻り値</div>
+生成されたSDL_Windowのポインタを返す。 失敗のときNULLを戻す. SDL_GetError()を呼んで詳細を知ることができる.
+
+<div class="subtitle">詳細</div>
+
+SDL_CreateWindow()ではSDL_WINDOW_SHOWNは無視される. SDL_WindowはSDL_WINDOW_HIDDENが設定されない限り表示される. SDL_WINDOW_SHOWNはSDL_GetWindowFlags()で問い合わせたとき使われる.
+
+AppleのmacOSでは, Info.plistのNSHighResolutionCapableプロパティは必ずYESでなければならない. そうしなければ高DPI OpenGL キャンバスを受信できない.
+
+高DPIに対応した環境(iOSやOS X)でSDL_WINDOW_ALLOW_HIGHDPIを指定してウィンドウを生成した場合, スクリーン座標系のウィンドウサイズは, ピクセル数のウィンドウサイズと異なる場合がある. SDL_GL_GetDrawableSize()またはSDL_GetRendererOutputSize()でピクセル数のクライアントサイズを得ることができる. このフラグを設定した場合, ウィンドウが生成された後に描画可能なサイズが変化しうるため, ウィンドウのサイズが変わった, またはディスプレイ間で移動したようなイベントが発生した後はサイズを調べなおさなければならないので注意すること.
+
+フルスクリーンの設定をした場合, 幅と高さの引数であるwとhは使われない. しかし, 不正なサイズの引数(例えば大きすぎる)の場合は失敗する. 全ての環境でのウィンドウサイズの事実上の限界は16384×16384である.
+
+SDL_WINDOW_OPENGLまたはSDL_WINDOW_VULKANフラグを指定してウィンドウを生成すると, 一致するLoadLibrary関数(SDL_GL_LoadLibrary()またはSDL_Vulkan_LoadLibrary())が呼び出され, SDL_DestroyWindow()で一致するUnloadLibrary関数が呼ばれる.
+
+SDL_WINDOW_VULKANを指定してVulkanドライバが動作しなかった場合, SDL_Vulkan_LoadLibrary()が失敗するためSDL_CreateWindow()も失敗する.
+
+Metalに対応していないOSでSDL_WINDOW_METALを指定した場合, SDL_CreateWindow()は失敗する.
+
+Appleデバイス以外の場合, SDLはVulkanローダをリンクしないか, 動的リンクライブラリ版のリンクを要求する. 後のバージョンのSDLではこの制約はなくなる予定である.
+
+<div class="subtitle">サンプルコード</div>
+
+<pre><code class="example">#include "SDL.h"
+#include &lt;stdio.h&gt;
+
+int main(int argc, char* argv[]) {
+
+    SDL_Window *window;                    // ポインタを宣言する
+
+    SDL_Init(SDL_INIT_VIDEO);              // SDL2を初期化する
+
+    // 次の設定でアプリケーションウィンドウを生成する:
+    window = SDL_CreateWindow(
+        "An SDL2 window",                  // ウィンドウのタイトル
+        SDL_WINDOWPOS_UNDEFINED,           // X座標の初期値
+        SDL_WINDOWPOS_UNDEFINED,           // Y座標の初期値
+        640,                               // 幅のピクセル数
+        480,                               // 高さのピクセル数
+        SDL_WINDOW_OPENGL                  // フラグ
+    );
+
+    // ウィンドウの生成に成功したかチェックする
+    if (window == NULL) {
+        // ここを通ったならばウィンドウを生成できなかった...
+        printf("ウィンドウを生成できなかった: %s¥n", SDL_GetError());
+        return 1;
+    }
+
+    // ウィンドウが開いた: ここでプログラムループに入る (SDL_PollEvent()を参照すること)
+
+    SDL_Delay(3000);  // 例として3000ミリ秒間停止する
+
+    // ウィンドウを閉じて破棄する
+    SDL_DestroyWindow(window);
+
+    // 終了処理
+    SDL_Quit();
+    return 0;
+}</code></pre>
+  
+#### SDL_DestroyWindow
+
+<div class="subtitle">構文</div>
 <div class="subtitle">引数</div>
 <div class="subtitle">戻り値</div>
 <div class="subtitle">詳細</div>
 <div class="subtitle">サンプルコード</div>
+
+
+SDL_CreateRenderer  
+SDL_DestroyRenderer  
+
+SDL_SetWindowSize  
+SDL_SetWindowFullscreen  
+SDL_GetWindowSize  
+
+SDL_RenderPresent  
+SDL_RenderClear  
+    
+
 
 <div class="subtitle">構文</div>
 <div class="subtitle">引数</div>
@@ -516,11 +656,18 @@ SDL_QuitSubSystem()で既に個別にサブシステムを終了した場合で�
 <div class="subtitle">詳細</div>
 <div class="subtitle">サンプルコード</div>
 
-<div class="subtitle">構文</div>
-<div class="subtitle">引数</div>
-<div class="subtitle">戻り値</div>
-<div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+---
+
+### イベント処理
+
+SDL_PollEvent  
+SDL_WaitEvent  
+
+SDL_PumpEvents  
+
+SDL_GetKeyboardState  
+SDL_GetMouseState  
+SDL_GetGlobalMouseState  
 
 <div class="subtitle">構文</div>
 <div class="subtitle">引数</div>
@@ -528,11 +675,22 @@ SDL_QuitSubSystem()で既に個別にサブシステムを終了した場合で�
 <div class="subtitle">詳細</div>
 <div class="subtitle">サンプルコード</div>
 
-<div class="subtitle">構文</div>
-<div class="subtitle">引数</div>
-<div class="subtitle">戻り値</div>
-<div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+---
+
+### 描画系
+
+SDL_SetRenderDrawColor  
+SDL_RenderDrawPoint  
+SDL_RenderDrawLine  
+SDL_RenderDrawRect  
+SDL_RenderFillRect  
+
+SDL_RenderCopy  
+SDL_RenderCopyEx  
+
+
+
+
 
 <div class="subtitle">構文</div>
 <div class="subtitle">引数</div>
@@ -540,11 +698,18 @@ SDL_QuitSubSystem()で既に個別にサブシステムを終了した場合で�
 <div class="subtitle">詳細</div>
 <div class="subtitle">サンプルコード</div>
 
-<div class="subtitle">構文</div>
-<div class="subtitle">引数</div>
-<div class="subtitle">戻り値</div>
-<div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+---
+
+### テクスチャ・サーフェス
+
+SDL_CreateTexture  
+SDL_DestroyTexture  
+
+SDL_CreateTextureFromSurface  
+SDL_QueryTexture  
+
+SDL_LoadBMP  
+SDL_FreeSurface  
 
 <div class="subtitle">構文</div>
 <div class="subtitle">引数</div>
@@ -552,11 +717,134 @@ SDL_QuitSubSystem()で既に個別にサブシステムを終了した場合で�
 <div class="subtitle">詳細</div>
 <div class="subtitle">サンプルコード</div>
 
+---
+
+### 画像
+
+IMG_Init  
+IMG_Quit  
+IMG_Load  
+IMG_LoadTexture  
+
+
 <div class="subtitle">構文</div>
 <div class="subtitle">引数</div>
 <div class="subtitle">戻り値</div>
 <div class="subtitle">詳細</div>
 <div class="subtitle">サンプルコード</div>
+
+---
+
+### フォント
+
+TTF_Init  
+TTF_Quit  
+
+TTF_OpenFont  
+TTF_CloseFont  
+
+TTF_RenderUTF8_Blended  
+TTF_RenderText_Blended  
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+---
+
+### 入力（キーボード・マウス・ゲームパッド）
+
+SDL_GetKeyboardState  
+SDL_GetScancodeFromKey  
+
+SDL_MouseButtonEvent  
+SDL_MouseMotionEvent  
+
+SDL_NumJoysticks  
+SDL_GameControllerOpen  
+SDL_GameControllerGetButton  
+SDL_GameControllerGetAxis 
+
+
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+---
+
+###  時間・FPS制御
+
+SDL_GetTicks  
+SDL_GetPerformanceCounter  
+SDL_GetPerformanceFrequency  
+
+SDL_Delay  
+
+
+
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+---
+
+### ウィンドウとレンダラーの実用系
+
+SDL_SetRenderTarget  
+SDL_GetRendererOutputSize  
+SDL_SetRenderScale  
+
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+---
+
+### クリップ・表示範囲
+
+SDL_RenderSetClipRect  
+SDL_RenderGetClipRect  
+
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+---
+
+### カーソル・表示
+
+SDL_ShowCursor  
+SDL_SetCursor  
+SDL_CreateSystemCursor  
+
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+---
+
+### その他よく使う補助
+
+SDL_memset  
+SDL_memcpy  
+SDL_Log  
 
 <div class="subtitle">構文</div>
 <div class="subtitle">引数</div>
