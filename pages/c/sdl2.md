@@ -447,7 +447,6 @@ flags: サブシステム初期化フラグ
 成功のとき0, エラーのとき負の数のエラーコードを戻す. SDL_GetError()を呼んで詳細を知ることができる.
 
 <div class="subtitle">詳細</div>
-
 flagsは以下の項目の論理和で複数設定できる。
 
 | flag | 意味 |
@@ -464,7 +463,6 @@ flagsは以下の項目の論理和で複数設定できる。
 | SDL_INIT_NOPARACHUTE | 互換性のために存在する. このフラグは機能しない |
 
 <div class="subtitle">サンプルコード</div>
-
 <pre><code class="example">#include "SDL.h"
 
 int main(int argc, char* argv[]) {
@@ -504,7 +502,6 @@ const char* SDL_GetError(void)
 SDL_GetError()を呼べるか否かは, SDL関数の戻り値をチェックする必要がある. エラーが発生したかを確認するためにSDL_GetError()の結果を利用すべきではない。
 
 <div class="subtitle">サンプルコード</div>
-
 <pre><code class="example">if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
     // 回復できないエラー. ここで終了処理を行う
     printf("SDL_Init 失敗: %s¥n", SDL_GetError());
@@ -517,6 +514,7 @@ SDL_GetError()を呼べるか否かは, SDL関数の戻り値をチェックす�
 ---
 
 #### SDL_CreateWindow
+位置, 大きさ, フラグを指定してウィンドウを生成する。
 
 <div class="subtitle">構文</div>
 SDL_Window* SDL_CreateWindow(const char* title, int x, int y, int w, int h, Uint32 flags)
@@ -565,7 +563,6 @@ SDL_WindowFlags
 生成されたSDL_Windowのポインタを返す。 失敗のときNULLを戻す. SDL_GetError()を呼んで詳細を知ることができる.
 
 <div class="subtitle">詳細</div>
-
 SDL_CreateWindow()ではSDL_WINDOW_SHOWNは無視される. SDL_WindowはSDL_WINDOW_HIDDENが設定されない限り表示される. SDL_WINDOW_SHOWNはSDL_GetWindowFlags()で問い合わせたとき使われる.
 AppleのmacOSでは, Info.plistのNSHighResolutionCapableプロパティは必ずYESでなければならない. そうしなければ高DPI OpenGL キャンバスを受信できない.
 フルスクリーンの設定をした場合, 幅と高さの引数であるwとhは使われない. しかし, 不正なサイズの引数(例えば大きすぎる)の場合は失敗する.
@@ -573,7 +570,6 @@ SDL_WINDOW_OPENGLまたはSDL_WINDOW_VULKANフラグを指定してウィンド�
 SDL_WINDOW_VULKANを指定してVulkanドライバが動作しなかった場合, SDL_Vulkan_LoadLibrary()が失敗するためSDL_CreateWindow()も失敗する.
 
 <div class="subtitle">サンプルコード</div>
-
 <pre><code class="example">#include "SDL.h"
 #include &lt;stdio.h&gt;
 
@@ -612,6 +608,7 @@ int main(int argc, char* argv[]) {
 }</code></pre>
   
 #### SDL_DestroyWindow
+ウィンドウを破棄する。
 
 <div class="subtitle">構文</div>
 void SDL_DestroyWindow(SDL_Window* window)
@@ -625,22 +622,20 @@ windowがNULLの場合, この関数はSDLエラーメッセージに "Invalid w
 ---
 
 #### SDL_CreateRenderer
+ウィンドウの2Dレンダリングコンテキストを生成する.
 
 <div class="subtitle">構文</div>
 SDL_Renderer* SDL_CreateRenderer(SDL_Window* window, int index, Uint32 flags)
 
 <div class="subtitle">引数</div>
-
 window: レンダリングを表示するウィンドウ<br>
 index: 初期化するレンダリングドライバの番号. -1のとき要求のflagsに対応した最初のドライバを初期化する<br>
 flags: 0または1つ以上のSDL_RendererFlagsの倫理和
 
 <div class="subtitle">戻り値</div>
-
 成功のときレンダリングコンテキスト, 失敗のときNULLを戻す. SDL_GetError()で詳細を知ることができる.
 
 <div class="subtitle">詳細</div>
-
 SDL_RendererFlags
 
 | フラグ | 意味 |
@@ -703,95 +698,84 @@ int main(int argc, char *argv[])
 ---
 
 #### SDL_DestroyRenderer  
+ウィンドウのレンダリングコンテキストと関連のテクスチャを破棄する.
 
 <div class="subtitle">構文</div>
-
 void SDL_DestroyRenderer(SDL_Renderer* renderer)
 
 <div class="subtitle">引数</div>
-
 renderer: レンダリングコンテキスト
 
 <div class="subtitle">詳細</div>
-
 rendererがNULLの場合, この関数はSDLエラーメッセージ"Invalid renderer"を設定してすぐに戻る. SDL_GetError()を参照すること.
 
 ---
 
 #### SDL_SetWindowSize
+ウィンドウのクライアント領域のサイズを設定する.
 
 <div class="subtitle">構文</div>
-
 void SDL_SetWindowSize(SDL_Window* window, int w, int h)
 
 <div class="subtitle">引数</div>
-
 window: 設定するウィンドウ
 w: スクリーン座標系でのウィンドウの幅のピクセル数. 0より大きい必要がある
 h: スクリーン座標系でのウィンドウの高さのピクセル数. 0より大きい必要がある
 
 <div class="subtitle">詳細</div>
-
 フルスクリーンウィンドウの場合は自動的にディスプレイモードのサイズになる. そして, サイズを変える場合はSDL_SetWindowDisplayMode()を使う必要がある.
 
 ---
 
 #### SDL_SetWindowFullscreen  
+ウィンドウのフルスクリーン状態を設定する.
 
 <div class="subtitle">構文</div>
-
 int SDL_SetWindowFullscreen(SDL_Window* window, Uint32 flags)
 
 <div class="subtitle">引数</div>
-
 window: 設定するウィンドウ
 flags: SDL_WINDOW_FULLSCREEN, SDL_WINDOW_FULLSCREEN_DESKTOP または 0 (詳細を参照すること)
 
 <div class="subtitle">戻り値</div>
-
 成功のとき0を, 失敗のとき負の数のエラーコードを戻す. SDL_GetError()を呼んで詳細を知ることができる.
 
 <div class="subtitle">詳細</div>
-
 flagsをSDL_WINDOW_FULLSCREENにするとビデオモードを変え「本当の」フルスクリーンになる. SDL_WINDOW_FULLSCREEN_DESKTOPにするとデスクトップと同じサイズにした「ニセの」フルスクリーンになる. 0のときウィンドウモードになる.
 
 ---
 
 #### SDL_GetWindowSize  
+ウィンドウのクライアント領域のサイズを得る.
 
 <div class="subtitle">構文</div>
 void SDL_GetWindowSize(SDL_Window* window, int* w, int* h)
 
 <div class="subtitle">引数</div>
-
 window: 幅と高さを得るウィンドウ
 x: スクリーン座標系のウィンドウの幅を代入するポインタ. NULLでもよい
 y: スクリーン座標系のウィンドウの高さを代入するポインタ. NULLでもよい
 
 <div class="subtitle">詳細</div>
-
 幅または高さが必要なければ, 引数のwまたはhをNULLにしてもよい.
 
 ---
 
 #### SDL_RenderPresent  
+レンダリングの結果を画面に反映する.
 
 <div class="subtitle">構文</div>
-
 void SDL_RenderPresent(SDL_Renderer* renderer)
 
 <div class="subtitle">引数</div>
-
 renderer: レンダリングコンテキスト
 
 <div class="subtitle">詳細</div>
-
-レンダリングの結果を画面に反映する.SDLのレンダリング関数は背面バッファを操作する. つまり, SDL_RenderDrawLine()のようなレンダリング関数を呼んでも, 背景バッファに線が描かれるだけで, 直接画面には描かれない. グラフィックを描いた後, 背景バッファを画面に反映させる必要がある.
-よって, SDLレンダリングAPIを使う場合は, そのフレームを全て描き, そしてこの関数をフレームごとに呼んでユーザに見せる必要がある.
+SDLのレンダリング関数は背面バッファを操作する. つまり, SDL_RenderDrawLine()のようなレンダリング関数を呼んでも, 背景バッファに線が描かれるだけで, 直接画面には描かれない. グラフィックを描いた後, 背景バッファを画面に反映させる必要がある.
+よって, SDLレンダリングAPIを使う場合は, そのフレームを全て描き, そしてこの関数をフレームごとに呼んでユーザに見せる必要がある.<br>
 背景バッファは反映した後は無効になると考える必要がある. つまり, 前のフレームのグラフィックが残っているとみなしてはならない. 全てのピクセルを上書きする場合でも, 各フレームを描く前にSDL_RenderClear()を呼んで背景バッファを初期化することを推奨する.
 
 <div class="subtitle">サンプルコード</div>
-
 <pre><code class="example">#include "SDL.h"
 
 int main(int argc, char* argv[])
@@ -833,22 +817,19 @@ int main(int argc, char* argv[])
 ---
 
 #### SDL_RenderClear  
-    
-<div class="subtitle">構文</div>
+現在のレンダーターゲットを色で塗りつぶして消去する.
 
+<div class="subtitle">構文</div>
 int SDL_RenderClear(SDL_Renderer* renderer)
 
 <div class="subtitle">引数</div>
-
 renderer: レンダリングコンテキスト
 
 <div class="subtitle">戻り値</div>
-
 成功のとき0, 失敗のとき負の数のエラーコードを戻す. SDL_GetError()で詳細を知ることができる.
 
 <div class="subtitle">詳細</div>
-
-現在のレンダーターゲットを色で塗りつぶして消去する.この関数は描画領域とクリップ領域を無視して全体を消去する.
+この関数は描画領域とクリップ領域を無視して全体を消去する.
 
 ---
 
@@ -857,33 +838,25 @@ renderer: レンダリングコンテキスト
 ---
 
 #### SDL_PollEvent
+未処理のイベントをキューから得る.
 
 <div class="subtitle">構文</div>
-
 int SDL_PollEvent(SDL_Event* event)
 
 <div class="subtitle">引数</div>
-
 event: キューから得たイベントを代入するSDL_EventまたはNULL
 
 <div class="subtitle">戻り値</div>
-
 未処理のイベントがある場合は1, ない場合は0を戻す.
 
 <div class="subtitle">詳細</div>
-
-未処理のイベントをキューから得る.eventがNULLでない場合, イベントはキューから削除され, SDL_Event構造体のeventに代入される. 戻った1は, 削除されSDLイベント構造体に収められたこのイベントのことを指している――続くイベントのことではない.
-
-eventがNULLの場合, イベントがキューにある場合1を戻すが, イベントは削除されない.
-
-この関数は暗黙のうちにSDL_PumpEvents()を呼んでいる. この関数はビデオモードを設定したスレッドのみで呼べる.
-
-SDL_PollEvent()はシステムイベントを受信する望ましい方法である. この関数を使えば, メインループでイベントが発生するのを待つことなく処理できる.
-
+eventがNULLでない場合, イベントはキューから削除され, SDL_Event構造体のeventに代入される. 戻った1は, 削除されSDLイベント構造体に収められたこのイベントのことを指している――続くイベントのことではない.<br>
+eventがNULLの場合, イベントがキューにある場合1を戻すが, イベントは削除されない.<br>
+この関数は暗黙のうちにSDL_PumpEvents()を呼んでいる. この関数はビデオモードを設定したスレッドのみで呼べる.<br>
+SDL_PollEvent()はシステムイベントを受信する望ましい方法である. この関数を使えば, メインループでイベントが発生するのを待つことなく処理できる.<br>
 一般的には1フレームごとに, 通常はゲームの状態を更新する前の最初の処理として全イベントを処理する.
 
 <div class="subtitle">サンプルコード</div>
-
 <pre><code class="example">while (1) {
     SDL_Event event;
     while (SDL_PollEvent(&event)) { // 全てのイベントがハンドルされるまで獲得する!
@@ -895,67 +868,78 @@ SDL_PollEvent()はシステムイベントを受信する望ましい方法で�
 ---
 
 #### SDL_WaitEvent  
+次のイベントが発生するまで無制限に待つ.
 
 <div class="subtitle">構文</div>
-
 int SDL_WaitEvent(SDL_Event* event)
 
 <div class="subtitle">引数</div>
-
 event: キューから得たイベントを代入するSDL_EventまたはNULL
 
 <div class="subtitle">戻り値</div>
-
 成功のとき1, イベントを待っているときエラーが発生すれば0を戻す. SDL_GetError()で詳細を知ることができる.
 
 <div class="subtitle">詳細</div>
-
-次のイベントが発生するまで無制限に待つ.eventがNULLでない場合, イベントはキューから削除され, SDL_Event構造体のeventに代入される.この関数は暗黙のうちにSDL_PumpEvents()を呼んでいる. この関数はビデオモードを設定したスレッドのみで呼べる.
-
-<div class="subtitle">サンプルコード</div>
+eventがNULLでない場合, イベントはキューから削除され, SDL_Event構造体のeventに代入される.この関数は暗黙のうちにSDL_PumpEvents()を呼んでいる. この関数はビデオモードを設定したスレッドのみで呼べる.
 
 ---
 
 #### SDL_PumpEvents  
+入力デバイスから吸い出したイベントをイベントループに加える.
 
 <div class="subtitle">構文</div>
-<div class="subtitle">引数</div>
-<div class="subtitle">戻り値</div>
-<div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
-
----
-
-### SDL_GetKeyboardState  
-
-<div class="subtitle">構文</div>
-
 void SDL_PumpEvents(void)
 
 <div class="subtitle">詳細</div>
-
 この関数は内部の入力デバイスの状態とイベントキューを更新する.<br>
 注意: この関数はビデオサブシステムを初期化したスレッドで呼ぶ必要がある. さらに安全性を考えると, いかなる場合でもメインスレッドで呼ぶべきである.<br>
 SDL_PumpEvents()は装置から全ての未処理の入力情報を吸い出し, イベントキューに加える. イベントがないときSDL_PumpEvents()を呼ぶと, キューには何も加えられない. SDL_PollEvent()とSDL_WaitEvent()は暗黙のうちにSDL_PumpEvents()を呼んでいるため, ユーザからはSDL_PumpEvents()の呼び出しは隠されている. しかし, イベントを(例えばフィルタで処理しているので)獲得しないまたは待たないならば, SDL_PumpEvents()を呼んでイベントキューを強制的に更新する必要がある.
 
-#### SDL_GetMouseState  
+---
+
+### SDL_GetKeyboardState
+キーボードの状態を得る.
 
 <div class="subtitle">構文</div>
+const Uint8* SDL_GetKeyboardState(int* numkeys)
 
+<div class="subtitle">引数</div>
+numkeys: NULLでないとき, 戻した配列の長さが代入される
+
+<div class="subtitle">戻り値</div>
+キー状態の配列へのポインタを戻す.
+
+<div class="subtitle">詳細</div>
+戻されたポインタはSDL内部の配列へのポインタである. アプリケーションの実行中は常に有効で, 呼び出し側は解放してはならない.<br>
+値が1のとき押されていて, 0のとき押されていない. 配列の添え字はSDL_Scancodeである.<br>
+メモ: SDL_PumpEvents()でこの状態は更新される.<br>
+メモ: この関数は全てのイベントを処理した後に状態を獲得する. よって, もしイベントを処理する前にキーやボタンを押したり離したりすると, SDL_GetKeyboardState()では押されたキーを知ることができない.<br>
+メモ: この関数はシフトキーの状態を考慮しない.
+
+<div class="subtitle">サンプルコード</div>
+<pre><code class="example">const Uint8 *state = SDL_GetKeyboardState(NULL);
+if (state[SDL_SCANCODE_RETURN]) {
+    printf("<RETURN> が押された¥n");
+}
+if (state[SDL_SCANCODE_RIGHT] && state[SDL_SCANCODE_UP]) {
+    printf("右と上が押された¥n");
+}</code></pre>
+
+#### SDL_GetMouseState  
+現在のマウスの状態を得る.
+
+<div class="subtitle">構文</div>
 Uint32 SDL_GetMouseState(int* x, int* y)
 
 <div class="subtitle">引数</div>
-
 x: フォーカスのあるウィンドウからの相対X座標を代入するポインタ
 y: フォーカスのあるウィンドウからの相対Y座標を代入するポインタ
 
 <div class="subtitle">戻り値</div>
-
 現在のボタンのビットマスクを戻す.
 
 <div class="subtitle">詳細</div>
-
-現在のマウスの状態を得る.現在のボタンの状態は, 戻り値のビットマスクで, SDL_BUTTON(X)マクロでチェックできる (通常はX=1が左, 2が中央, 3が右). そして, 選択したフォーカスのあるウィンドウからの相対座標はxとyに代入される. xとyにはNULLを渡すことができる.
+現在のボタンの状態は, 戻り値のビットマスクで, SDL_BUTTON(X)マクロでチェックできる (通常はX=1が左, 2が中央, 3が右). そして, 選択したフォーカスのあるウィンドウからの相対座標はxとyに代入される. xとyにはNULLを渡すことができる.
 
 <div class="subtitle">サンプルコード</div>
 <pre><code class="example">int x, y;
@@ -972,23 +956,21 @@ if ((buttons & SDL_BUTTON_LMASK) != 0) {
 
 ---
 
-### SDL_GetGlobalMouseState  
+### SDL_GetGlobalMouseState
+マウスのデスクトップからの座標を得る.
 
 <div class="subtitle">構文</div>
-
 Uint32 SDL_GetGlobalMouseState(int* x, int* y)
 
 <div class="subtitle">引数</div>
-
 x: 現在のデスクトップからのX座標を代入するポインタ. NULLも可能
 y: 現在のデスクトップからのY座標を代入するポインタ. NULLも可能
     
 <div class="subtitle">戻り値</div>
-
 ボタンの状態をSDL_BUTTON(X)マクロでテストできるビットマスクで戻す.
 
 <div class="subtitle">詳細</div>
-マウスのデスクトップからの座標を得る.これはSDL_GetMouseState()と同じような働きをする. しかし, デスクトップの左上からの相対座標が報告される. これは, ウィンドウの外のマウスを追跡する必要があるが, SDL_CaptureMouse()が適さないときに有用である. 例えば, ウィンドウをドラッグしている最中にマウスを追跡する必要がある場合, そのウィンドウからの相対座標は常に同期しているとは限らないため, この関数が有用であろう.<br>
+これはSDL_GetMouseState()と同じような働きをする. しかし, デスクトップの左上からの相対座標が報告される. これは, ウィンドウの外のマウスを追跡する必要があるが, SDL_CaptureMouse()が適さないときに有用である. 例えば, ウィンドウをドラッグしている最中にマウスを追跡する必要がある場合, そのウィンドウからの相対座標は常に同期しているとは限らないため, この関数が有用であろう.<br>
 注意: SDL_GetMouseState()はSDLのイベントキューから最後に得たマウスの座標を戻す.しかし, この関数はOSに現在のマウスの位置を問い合わせる. それゆえにこの関数はあまり効率的でない. 自分が何をしているのかわかっていて, この関数を使わなければならない理由がない限り, 代わりにSDL_GetMouseState()を使うほうがよいだろう.
 
 ---
@@ -997,14 +979,13 @@ y: 現在のデスクトップからのY座標を代入するポインタ. NULL�
 
 ---
 
-#### SDL_SetRenderDrawColor  
+#### SDL_SetRenderDrawColor
+描画操作(長方形, 直線, 消去)で使う色を設定する.
 
 <div class="subtitle">構文</div>
-
 int SDL_GetRenderDrawColor(SDL_Renderer* renderer, Uint8* r, Uint8* g, Uint8* b, Uint8* a)
 
 <div class="subtitle">引数</div>
-
 renderer: レンダリングコンテキスト
 r: 描画で使われる赤成分の値を代入するポインタ
 g: 描画で使われる緑成分の値を代入するポインタ
@@ -1012,12 +993,10 @@ b: 描画で使われる青成分の値を代入するポインタ
 a: 描画で使われるα成分の値を代入するポインタ. 通常はSDL_ALPHA_OPAQUE(255)
 
 <div class="subtitle">戻り値</div>
-
 成功のとき0, 失敗のとき負の数のエラーコードを戻す. SDL_GetError()で詳細を知ることができる.
 
 <div class="subtitle">詳細</div>
-    
-描画操作(長方形, 直線, 消去)で使う色を得る.
+この関数で設定された色は, 描画, 長方形の塗りつぶし, 直線, 点, 消去とSDL_RenderClear()で使われる.
 
 ---
 
@@ -1042,9 +1021,20 @@ y: 点のY座標
 現在のレンダーターゲットに点を描く.<br>
 SDL_RenderDrawPoint()は1つの点を描く. 複数の点を描く場合は, 代わりにSDL_RenderDrawPoints()が使える.
 
+<div class="subtitle">サンプルコード</div>
+<pre><code class="example">SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+SDL_Rect rectangle;
+
+rectangle.x = 0;
+rectangle.y = 0;
+rectangle.w = 50;
+rectangle.h = 50;
+SDL_RenderFillRect(renderer, &rectangle);</code></pre>
+
 ---
 
-#### SDL_RenderDrawLine  
+#### SDL_RenderDrawLine
+現在のレンダーターゲットに直線を描く.
 
 <div class="subtitle">構文</div>
 <div class="subtitle">引数</div>
