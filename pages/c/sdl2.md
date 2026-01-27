@@ -563,10 +563,10 @@ SDL_WindowFlags
 生成されたSDL_Windowのポインタを返す。 失敗のときNULLを戻す. SDL_GetError()を呼んで詳細を知ることができる.
 
 <div class="subtitle">詳細</div>
-SDL_CreateWindow()ではSDL_WINDOW_SHOWNは無視される. SDL_WindowはSDL_WINDOW_HIDDENが設定されない限り表示される. SDL_WINDOW_SHOWNはSDL_GetWindowFlags()で問い合わせたとき使われる.
-AppleのmacOSでは, Info.plistのNSHighResolutionCapableプロパティは必ずYESでなければならない. そうしなければ高DPI OpenGL キャンバスを受信できない.
-フルスクリーンの設定をした場合, 幅と高さの引数であるwとhは使われない. しかし, 不正なサイズの引数(例えば大きすぎる)の場合は失敗する.
-SDL_WINDOW_OPENGLまたはSDL_WINDOW_VULKANフラグを指定してウィンドウを生成すると, 一致するLoadLibrary関数(SDL_GL_LoadLibrary()またはSDL_Vulkan_LoadLibrary())が呼び出され, SDL_DestroyWindow()で一致するUnloadLibrary関数が呼ばれる.
+SDL_CreateWindow()ではSDL_WINDOW_SHOWNは無視される. SDL_WindowはSDL_WINDOW_HIDDENが設定されない限り表示される. <br>SDL_WINDOW_SHOWNはSDL_GetWindowFlags()で問い合わせたとき使われる.<br>
+AppleのmacOSでは, Info.plistのNSHighResolutionCapableプロパティは必ずYESでなければならない. そうしなければ高DPI OpenGL キャンバスを受信できない.<br>
+フルスクリーンの設定をした場合, 幅と高さの引数であるwとhは使われない. しかし, 不正なサイズの引数(例えば大きすぎる)の場合は失敗する.<br>
+SDL_WINDOW_OPENGLまたはSDL_WINDOW_VULKANフラグを指定してウィンドウを生成すると, 一致するLoadLibrary関数(SDL_GL_LoadLibrary()またはSDL_Vulkan_LoadLibrary())が呼び出され, SDL_DestroyWindow()で一致するUnloadLibrary関数が呼ばれる.<br>
 SDL_WINDOW_VULKANを指定してVulkanドライバが動作しなかった場合, SDL_Vulkan_LoadLibrary()が失敗するためSDL_CreateWindow()も失敗する.
 
 <div class="subtitle">サンプルコード</div>
@@ -606,7 +606,9 @@ int main(int argc, char* argv[]) {
     SDL_Quit();
     return 0;
 }</code></pre>
-  
+
+---
+
 #### SDL_DestroyWindow
 ウィンドウを破棄する。
 
@@ -919,7 +921,7 @@ numkeys: NULLでないとき, 戻した配列の長さが代入される
 <div class="subtitle">サンプルコード</div>
 <pre><code class="example">const Uint8 *state = SDL_GetKeyboardState(NULL);
 if (state[SDL_SCANCODE_RETURN]) {
-    printf("<RETURN> が押された¥n");
+    printf("&gt;RETURN&lt; が押された¥n");
 }
 if (state[SDL_SCANCODE_RIGHT] && state[SDL_SCANCODE_UP]) {
     printf("右と上が押された¥n");
