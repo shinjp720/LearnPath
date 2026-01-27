@@ -95,7 +95,7 @@ SDL_RenderClear(renderer);
 SDL_RenderCopy(renderer, texture, nullptr, &dstRect);
 ```
 
-- これを繰り返して奥から手前に貼り付けていく
+- RenderCopyを繰り返して奥から手前に貼り付けていく
 
 #### 実際の画面に表示する
 
