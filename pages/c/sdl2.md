@@ -886,6 +886,25 @@ eventがNULLでない場合, イベントはキューから削除され, SDL_Eve
 
 ---
 
+#### SDL_WaitEventTimeout
+次のイベントが発生するまで指定の時間(ミリ秒)待つ.
+
+<div class="subtitle">構文</div>
+int SDL_WaitEventTimeout(SDL_Event* event, int timeout)
+
+<div class="subtitle">引数</div>
+event: キューから得たイベントを代入するSDL_EventまたはNULL
+timeout: 次のイベントを待つミリ秒単位の最大時間
+
+<div class="subtitle">戻り値</div>
+成功のとき1, イベントを待っているときエラーが発生すれば0を戻す. SDL_GetError()で詳細を知ることができる. イベントが届かずタイムアウトした場合も0を戻す.
+
+<div class="subtitle">詳細</div>
+eventがNULLでない場合, イベントはキューから削除され, SDL_Event構造体のeventに代入される.<br>
+この関数は暗黙のうちにSDL_PumpEvents()を呼んでいる. この関数はビデオモードを設定したスレッドのみで呼べる.
+
+---
+
 #### SDL_PumpEvents  
 入力デバイスから吸い出したイベントをイベントループに加える.
 
@@ -1515,32 +1534,70 @@ SDL_imageを初期化した後, アプリケーションはSDL_SurfaceやSDL_Tex
 ---
 
 #### IMG_Quit  
+SDL_imageを終了する.
 
 <div class="subtitle">構文</div>
-<div class="subtitle">引数</div>
-<div class="subtitle">戻り値</div>
+void IMG_Quit()
+
 <div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+この関数が資源を解放した後はSDL_imageの関数を呼んではならない. この関数は様々なコードで使われる共有ライブラリをアンロードする.<br>
+この呼び出しの後, IMG_Init(0)を呼ぶと0(読み込まれたコーデックがない)が戻る.<br>
+この呼び出しの後, IMG_Init()を呼んでコーデックを再ロードするのは安全である.<br>
+他の周辺ライブラリとは違い, IMG_Initは重ならない. 一度IMG_Quit()を呼べば全て終了するため, IMG_Initの回数呼ぶ必要はない. そのため, プログラム中ではIMG_InitとIMG_Quitを1度だけ呼ぶのが最良と考えられる. これは必須ではないが, そうでない場合は発生する危険性に注意する必要がある.
 
 ---
 
 #### IMG_Load  
+画像をファイルシステムのパスからサーフェイスに読み込む.
 
 <div class="subtitle">構文</div>
+SDL_Surface *IMG_Load(const char *file)
+
 <div class="subtitle">引数</div>
+file: 画像ファイルのパス名
+
 <div class="subtitle">戻り値</div>
+新しいSDLサーフェイスを戻す. エラーのときNULLを戻す.
+
 <div class="subtitle">詳細</div>
+SDL_SurfaceはCPUからアクセスできるメモリ上のピクセルバッファである. 後でデータを他に渡したり, 操作する場合はこれを使うことになる.<br>
+生成されたSDL_Surfaceの形式には保証がない. 多くの場合, SDL_imageは画像と完全に一致するサーフェイスを生成しようとするが, 変換される場合もある. (SDLが直接対応していない形式の画像や, 様々な形式で圧縮されていてSDL_imageがそのうちの1つを選択した場合など.) SDL_Surfaceの形式を精査し, その後SDL_ConvertSurface()で必要な形式に変換することもできる.<br>
+画像ファイルが透過ピクセルに対応している場合, SDLはサーフェイスにカラーキーを設定する. 以下のようにすると呼び出し後にRLEアクセラレーションを有効にできる:<br>
+SDL_SetColorKey(image, SDL_RLEACCEL, image->format->colorkey);<br>
+ファイルシステムではなく抽象I/Oからのデータが必要な場合は, SDL_RWopsから読み込む別の関数IMG_Load_RW()も存在する.<br>
+SDLの2DレンダリングAPIを使用する場合, GPUが使用するSDL_Textureに画像を直接読み込むIMG_LoadTexture()をこの関数の代わりに使うこと.<br>
+戻されたサーフェイスを使い終えたならば, アプリケーションはSDL_FreeSurface()で破棄する必要がある.<br>
+
 <div class="subtitle">サンプルコード</div>
+<pre><code class="example">// sample.pngをimageに読み込む
+SDL_Surface *image;
+image=IMG_Load("sample.png");
+if(!image) {
+    printf("IMG_Load: %s¥n", IMG_GetError());
+    // ここでエラー処理を行う
+}</code></pre>
 
 ---
 
 #### IMG_LoadTexture  
+画像をファイルからGPUテクスチャに読み込む.
 
 <div class="subtitle">構文</div>
+SDL_Texture *IMG_LoadTexture(SDL_Renderer *renderer, const char *file)
+
 <div class="subtitle">引数</div>
+renderer: GPUテクスチャを生成するために使用するSDL_Renderer
+file: 画像ファイルのパス名
+
 <div class="subtitle">戻り値</div>
+生成されたテクスチャ, エラーのときNULLを戻す.
+
 <div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+SDL_TextureはGPUメモリ内の画像で, SDLの2DレンダリングAPIで使用できる. これは読み込んだ後に画像を直接編集するのでなければ, CPUを使用するSDL_Surfaceよりもはるかに効率的である.<br>
+読み込んだ画像に透明色またはカラーキーがある場合ば, テクスチャにはαチャネルが生成される. そうでない場合は, 画像データを表すのに最も合理的な形式でSDL_Textureを生成しようとする(しかしほとんどの場合は32ビットRGBまたは32ビットRGBAとなる).<br>
+ファイルではなく抽象I/Oを使用する必要があるならば, SDL_RWopsからファイルを読み込む別の関数IMG_LoadTexture_RW()も存在する.<br>
+SDL_Surface(CPUメモリ内のピクセルバッファ)に読み込みたいならば, 代わりにIMG_Load()を使用すること.<br>
+テクスチャを使用し終えたならば, アプリケーションはSDL_DestroyTexture()を呼んで破棄しなければならない.
 
 ---
 
@@ -1548,63 +1605,112 @@ SDL_imageを初期化した後, アプリケーションはSDL_SurfaceやSDL_Tex
 
 ---
 
-#### TTF_Init  
+#### TTF_Init
+SDL_ttfを初期化する.
 
 <div class="subtitle">構文</div>
-<div class="subtitle">引数</div>
+int TTF_Init(void)
+
 <div class="subtitle">戻り値</div>
+成功のとき0, エラーのとき-1を戻す.
+
 <div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+このライブラリの別の関数を安全に呼ぶためにはこの関数を正常に呼ぶ必要がある. 例外はTTF_GetError()で, この関数が失敗したとき人が読めるエラーメッセージを戻す.<br>
+このライブラリはSDLライブラリを使用しているため, SDLはこのライブラリの関数を呼ぶ前に初期化されている必要がある<br>
+この関数は複数回呼んでも安全である. ライブラリは初期化の回数を数えていて, TTF_Quit()を呼ぶたびにカウントを減らしている. そのため, 初期化と終了は対になっている必要がある.<br>
 
 ---
 
-#### TTF_Quit  
+#### TTF_Quit
+SDL_ttfを解放する.
 
 <div class="subtitle">構文</div>
-<div class="subtitle">引数</div>
-<div class="subtitle">戻り値</div>
+void TTF_Quit(void)
+
 <div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+ライブラリを使い終えたならば, 内部リソースの解放のためこの関数を呼ぶ必要がある. ライブラリを初期化せずにこの関数を呼んでも何もせずに戻るだけで安全である.<br>
+TTF_Init()を呼んで成功した回数だけこの関数を呼ぶと, ライブラリが実際に解放される.<br>
+この関数を呼んでも開かれたフォントは自動的には閉じず, その後にフォントを閉じようとしてもライブラリは解放されているため正常に閉じることができないので注意すること. 開いた全てのフォントに対してTTF_CloseFont()を呼び, その後でこの関数を呼ぶのがよいだろう.
 
 ---
 
-#### TTF_OpenFont  
+#### TTF_OpenFont
+ポイントサイズを指定してフォントをファイルから生成する.
 
 <div class="subtitle">構文</div>
+TTF_Font *TTF_OpenFont(const char *file, int ptsize)
+
 <div class="subtitle">引数</div>
+file: フォントファイルのパス名
+ptsize: 新たに開くフォントのポイントサイズ
+
 <div class="subtitle">戻り値</div>
+利用可能なTTF_Font, エラーのときNULLを戻す.
+
 <div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+一部の.fonフォントはファイル内に複数のフォントが埋め込まれている. その場合, ポイントサイズはサイズを選択する番号となる. 値が大きすぎる場合, 最も大きな番号のサイズになる.<br>
+TTF_Fontを使い終えたらTTF_CloseFont()で破棄すること.
 
 ---
 
-#### TTF_CloseFont  
+#### TTF_CloseFont
+フォントを破棄する.
 
 <div class="subtitle">構文</div>
+void TTF_CloseFont(TTF_Font *font)
+
 <div class="subtitle">引数</div>
-<div class="subtitle">戻り値</div>
+font: 破棄するフォント
+
 <div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+フォントを使い終えたとき, この関数を呼ぶこと. この関数はフォントに関連する資源を解放する. この関数はNULL, 例えばTTF_OpenFont()の失敗の結果に対して呼んでも安全である.<br>
+この関数に渡した後, fontは無効になる. このfontに対していくつかの関数, 例えばTTF_FontFaceFamilyName()やTTF_FontFaceStyleName()が戻した文字列へのポインタも同様に無効である.
 
 ---
 
 #### TTF_RenderUTF8_Blended  
+UTF-8テキストを, 生成したARGBサーフェイスに混合(Blend)モードでレンダリングする.
 
 <div class="subtitle">構文</div>
+SDL_Surface * TTF_RenderUTF8_Blended(TTF_Font *font, const char *text, SDL_Color fg)
+
 <div class="subtitle">引数</div>
+font: レンダリングで使用するフォント
+text: レンダリングするUTF-8テキスト
+fg: テキストの前景色
+
 <div class="subtitle">戻り値</div>
+成功のとき生成された32ビットARGBサーフェイス, エラーのときNULLを戻す.
+
 <div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+この関数は新たに32ビットARGBサーフェイスを生成し, 指定の前景色とαブレンドを用いてディザリングを行いレンダリングする. この関数の戻り値は生成されたサーフェイス, またはエラーが発生した場合はNULLである.<br>
+この関数は改行しないため, どれだけ文字列が長くてもサーフェイスのテキストは1行である. 改行して複数行にする必要がある場合は, 代わりにTTF_RenderUTF8_Blended_Wrapped()を使うことができる.<br>
+この関数は改行コードで改行しない.<br>
+TTF_RenderUTF8_Solid, TTF_RenderUTF8_Shaded, TTF_RenderUTF8_LCDを使うと別の画質でレンダリングできる.<br>
 
 ---
 
 #### TTF_RenderText_Blended  
+Latin1のテキストを, 生成したARGBサーフェイスに混合(Blend)モードでレンダリングする.    
 
 <div class="subtitle">構文</div>
+SDL_Surface *TTF_RenderText_Blended(TTF_Font *font, const char *text, SDL_Color fg)
+
 <div class="subtitle">引数</div>
+font: レンダリングで使用するフォント
+text: レンダリングするLatin1テキスト
+fg: テキストの前景色
+bg: テキストの背景色
+
 <div class="subtitle">戻り値</div>
+成功のとき生成された32ビットARGBサーフェイス, エラーのときNULLを戻す.
+
 <div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+この関数は新たに32ビットARGBサーフェイスを生成し, 指定の前景色とαブレンドを用いてディザリングを行いレンダリングする. この関数の戻り値は生成されたサーフェイス, またはエラーが発生した場合はNULLである.<br>
+この関数は改行しないため, どれだけ文字列が長くてもサーフェイスのテキストは1行である. 改行して複数行にする必要がある場合は, 代わりにTTF_RenderText_Blended_Wrapped()を使うことができる.<br>
+この関数は改行コードで改行しない.<br>
+1バイトLatin1でエンコードされているのが確実でない限り, 本当に必要なのはTTF_RenderUTF8_Blendedだろう. US ASCII文字はどちらの関数でも正常に動作するが, 他の多くの文字はUTF-8としての処理が必要である.<br>
+TTF_RenderText_Solid, TTF_RenderText_Blended, TTF_RenderText_LCDを使うと別の画質でレンダリングできる.<br>
 
 ---
 
@@ -1613,21 +1719,314 @@ SDL_imageを初期化した後, アプリケーションはSDL_SurfaceやSDL_Tex
 ---
 
 #### SDL_GetKeyboardState
+キーボードの状態を得る.
 
 <div class="subtitle">構文</div>
-<div class="subtitle">引数</div>
-<div class="subtitle">戻り値</div>
-<div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+const Uint8* SDL_GetKeyboardState(int* numkeys)
 
+<div class="subtitle">引数</div>
+numkeys: NULLでないとき, 戻した配列の長さが代入される
+
+<div class="subtitle">戻り値</div>
+キー状態の配列へのポインタを戻す.
+
+<div class="subtitle">詳細</div>
+戻されたポインタはSDL内部の配列へのポインタである. アプリケーションの実行中は常に有効で, 呼び出し側は解放してはならない.<br>
+値が1のとき押されていて, 0のとき押されていない. 配列の添え字はSDL_Scancodeである.<br>
+メモ: SDL_PumpEvents()でこの状態は更新される.<br>
+メモ: この関数は全てのイベントを処理した後に状態を獲得する. よって, もしイベントを処理する前にキーやボタンを押したり離したりすると, SDL_GetKeyboardState()では押されたキーを知ることができない.<br>
+メモ: この関数はシフトキーの状態を考慮しない.<br>
+
+<div class="subtitle">サンプルコード</div>
+<pre><code class="example">const Uint8 *state = SDL_GetKeyboardState(NULL);
+if (state[SDL_SCANCODE_RETURN]) {
+    printf("<RETURN> が押された¥n");
+}
+if (state[SDL_SCANCODE_RIGHT] && state[SDL_SCANCODE_UP]) {
+    printf("右と上が押された¥n");
+}</code></pre>
+        
 ---
 
 #### SDL_GetScancodeFromKey  
+指定のキーコードから現在のキーボードレイアウトに割り当てられたスキャンコードを得る.
 
 <div class="subtitle">構文</div>
+SDL_Scancode SDL_GetScancodeFromKey(SDL_Keycode key)
+
 <div class="subtitle">引数</div>
+key: スキャンコードを得たいSDL_Keycode
+
 <div class="subtitle">戻り値</div>
+SDL_Keycodeに割り当てられたSDL_Scancodeを戻す.
+
 <div class="subtitle">詳細</div>
+SDL_Scancode
+| キー名 | SDL_Scancodeの値 | SDL_Keycodeの値 |
+| --- | --- |--- |
+| "0" | SDL_SCANCODE_0 | SDLK_0 |
+"1"	SDL_SCANCODE_1	SDLK_1
+"2"	SDL_SCANCODE_2	SDLK_2
+"3"	SDL_SCANCODE_3	SDLK_3
+"4"	SDL_SCANCODE_4	SDLK_4
+"5"	SDL_SCANCODE_5	SDLK_5
+"6"	SDL_SCANCODE_6	SDLK_6
+"7"	SDL_SCANCODE_7	SDLK_7
+"8"	SDL_SCANCODE_8	SDLK_8
+"9"	SDL_SCANCODE_9	SDLK_9
+"A"	SDL_SCANCODE_A	SDLK_a
+"AC Back" (アプリケーションキーの戻るキー)	SDL_SCANCODE_AC_BACK	SDLK_AC_BACK
+"AC Bookmarks" (アプリケーションキーのブックマークキー)	SDL_SCANCODE_AC_BOOKMARKS	SDLK_AC_BOOKMARKS
+"AC Forward" (アプリケーションキーの進むキー)	SDL_SCANCODE_AC_FORWARD	SDLK_AC_FORWARD
+"AC Home" (アプリケーションキーのホームキー)	SDL_SCANCODE_AC_HOME	SDLK_AC_HOME
+"AC Refresh" (アプリケーションキーの更新キー)	SDL_SCANCODE_AC_REFRESH	SDLK_AC_REFRESH
+"AC Search" (アプリケーションの検索キー)	SDL_SCANCODE_AC_SEARCH	SDLK_AC_SEARCH
+"AC Stop" (アプリケーションの中断キー)	SDL_SCANCODE_AC_STOP	SDLK_AC_STOP
+"AC Again" (アプリケーションの再開キー)	SDL_SCANCODE_AGAIN	SDLK_AGAIN
+"AltErase" (Erase-Eaze)	SDL_SCANCODE_ALTERASE	SDLK_ALTERASE
+"'"	SDL_SCANCODE_APOSTROPHE	SDLK_QUOTE
+"Application" (アプリケーションキー/コンポーズキー/コンテキストメニューキー(Windows))	SDL_SCANCODE_APPLICATION	SDLK_APPLICATION
+"AudioMute" (無音キー)	SDL_SCANCODE_AUDIOMUTE	SDLK_AUDIOMUTE
+"AudioNext" (次トラックキー)	SDL_SCANCODE_AUDIONEXT	SDLK_AUDIONEXT
+"AudioPlay" (再生キー)	SDL_SCANCODE_AUDIOPLAY	SDLK_AUDIOPLAY
+"AudioPrev" (前トラックキー)	SDL_SCANCODE_AUDIOPREV	SDLK_AUDIOPREV
+"AudioStop" (停止キー)	SDL_SCANCODE_AUDIOSTOP	SDLK_AUDIOSTOP
+"B"	SDL_SCANCODE_B	SDLK_b
+"¥" (ISOキーボードならばリターンキーの左下, QWERTY配列のANSIキーボードならばキーボードの右下に位置するキー. アメリカレイアウトならば逆斜線(バックススラッシュ)と縦線, イギリスのMacのレイアウトならば逆斜線(バックススラッシュ)と縦線, イギリスのWindowsのレイアウトならチルダとナンバー記号(#), スイス(ドイツ語)のレイアウトならドル記号とポンド記号, ドイツのレイアウトならナンバー記号とアポストロフィー, フランスのMacのレイアウトなら抑音アクセント, フランス語のWindowsのレイアウトならマイクロ記号)	SDL_SCANCODE_BACKSLASH	SDLK_BACKSLASH
+"Backspace"	SDL_SCANCODE_BACKSPACE	SDLK_BACKSPACE
+"Brightness Down" (暗くするキー)	SDL_SCANCODE_BRIGHTNESSDOWN	SDLK_BRIGHTNESSDOWN
+"Brightness Up" (明るくするキー)	SDL_SCANCODE_BRIGHTNESSUP	SDLK_BRIGHTNESSUP
+"C	SDL_SCANCODE_C	SDLK_c
+"Calculator" (電卓キー)	SDL_SCANCODE_CALCULATOR	SDLK_CALCULATOR
+"Cancel"	SDL_SCANCODE_CANCEL	SDLK_CANCEL
+"CapsLock"	SDL_SCANCODE_CAPSLOCK	SDLK_CAPSLOCK
+"Clear"	SDL_SCANCODE_CLEAR	SDLK_CLEAR
+"Clear/Again"	SDL_SCANCODE_CLEARARAIN	SDLK_CLEARARAIN
+","	SDL_SCANCODE_COMMA	SDLK_COMMA
+"Computer" (マイコンピュータキー)	SDL_SCANCODE_COMPUTER	SDLK_COMPUTER
+"Copy"	SDL_SCANCODE_COPY	SDLK_COPY
+"CrSel"	SDL_SCANCODE_CRSEL	SDLK_CRSEL
+"CurrencySubUnit" (通貨補助単位キー)	SDL_SCANCODE_CURRENCYSUBUNIT	SDLK_CURRENCYSUBUNIT
+"CurrencyUnit" (通貨単位キー)	SDL_SCANCODE_CURRENCYUNIT	SDLK_CURRENCYUNIT
+"Cut"	SDL_SCANCODE_CUT	SDLK_CUT
+"D"	SDL_SCANCODE_D	SDLK_d
+"DecimalSeparator" (小数点キー)	SDL_SCANCODE_DECIMALSEPARATOR	SDLK_DECIMALSEPARATOR
+"Delete"	SDL_SCANCODE_DELETE	SDLK_DELETE
+"DisplaySwitch" (ミラーリング/デュアルディスプレイスイッチ, ビデオモードスイッチ)	SDL_SCANCODE_DISPLAYSWITCH	SDLK_DISPLAYSWITCH
+"Down" (下カーソルキー)	SDL_SCANCODE_DOWN	SDLK_DOWN
+"E"	SDL_SCANCODE_E	SDLK_e
+"Eject"	SDL_SCANCODE_EJECT	SDLK_EJECT
+"End"	SDL_SCANCODE_END	SDLK_END
+"="	SDL_SCANCODE_EQUALS	SDLK_EQUALS
+"Escape" (ESCキー)	SDL_SCANCODE_ESCAPE	SDLK_ESCAPE
+"Execute"	SDL_SCANCODE_EXECUTE	SDLK_EXECUTE
+"ExSel"	SDL_SCANCODE_EXSEL	SDLK_EXSEL
+"F"	SDL_SCANCODE_F	SDLK_f
+"F1"	SDL_SCANCODE_F1	SDLK_F1
+"F10"	SDL_SCANCODE_F10	SDLK_F10
+"F11"	SDL_SCANCODE_F11	SDLK_F11
+"F12"	SDL_SCANCODE_F12	SDLK_F12
+"F13"	SDL_SCANCODE_F13	SDLK_F13
+"F14"	SDL_SCANCODE_F14	SDLK_F14
+"F15"	SDL_SCANCODE_F15	SDLK_F15
+"F16"	SDL_SCANCODE_F16	SDLK_F16
+"F17"	SDL_SCANCODE_F17	SDLK_F17
+"F18"	SDL_SCANCODE_F18	SDLK_F18
+"F19"	SDL_SCANCODE_F19	SDLK_F19
+"F2"	SDL_SCANCODE_F2	SDLK_F2
+"F20"	SDL_SCANCODE_F20	SDLK_F20
+"F21"	SDL_SCANCODE_F21	SDLK_F21
+"F22"	SDL_SCANCODE_F22	SDLK_F22
+"F23"	SDL_SCANCODE_F23	SDLK_F23
+"F24"	SDL_SCANCODE_F24	SDLK_F24
+"F3"	SDL_SCANCODE_F3	SDLK_F3
+"F4"	SDL_SCANCODE_F4	SDLK_F4
+"F5"	SDL_SCANCODE_F5	SDLK_F5
+"F6"	SDL_SCANCODE_F6	SDLK_F6
+"F7"	SDL_SCANCODE_F7	SDLK_F7
+"F8"	SDL_SCANCODE_F8	SDLK_F8
+"F9"	SDL_SCANCODE_F9	SDLK_F9
+"Find"	SDL_SCANCODE_FIND	SDLK_FIND
+"G"	SDL_SCANCODE_G	SDLK_g
+"`" (ANSI, ISOキーボードならばキーボードの左上に位置するキー. アメリカのWindowsレイアウトとイギリスのMacレイアウトならば抑音アクセントとチルダ, イギリスのWindowsレイアウトなら抑音アクセントと否定記号, アメリカとイギリスのISOキーボードのMacレイアウトなら節記号とプラスマイナス記号, スイス(ドイツ語)レイアウト(MacはISOキーボードの場合のみ)ならば節記号と度記号, ドイツのレイアウト(MacはISOキーボードの場合のみ)ならば曲折アクセント, フランスのWindowsレイアウトならば上付き2とチルダ, フランスのISOキーボードのMacレイアウトならば単価記号とナンバー記号, スイス(ドイツ語)・ドイツ・フランスのANSIキーボードのMacレイアウトならば小なり記号と大なり記号)	SDL_SCANCODE_GRAVE	SDLK_BACKQUOTE
+"H"	SDL_SCANCODE_H	SDLK_h
+"Help"	SDL_SCANCODE_HELP	SDLK_HELP
+"Home"	SDL_SCANCODE_HOME	SDLK_HOME
+"I"	SDL_SCANCODE_I	SDLK_i
+"Insert" (PCのInsertキー, 一部のMacのHelpキー(コード117ではなく73))	SDL_SCANCODE_INSERT	SDLK_INSERT
+"J"	SDL_SCANCODE_J	SDLK_j
+"K"	SDL_SCANCODE_K	SDLK_k
+"KBDIllumDown"	SDL_SCANCODE_KBDILLUMDOWN	SDLK_KBDILLUMDOWN
+"KBDIllumToggle"	SDL_SCANCODE_KBDILLUMTOGGLE	SDLK_KBDILLUMTOGGLE
+"KBDIllumUp"	SDL_SCANCODE_SDL_SCANCODE_KBDILLUMUP	SDLK_SDL_SCANCODE_KBDILLUMUP
+"Keypad 0" (テンキーの0)	SDL_SCANCODE_KP_0	SDLK_KP_0
+"Keypad 00" (テンキーの00)	SDL_SCANCODE_KP_00	SDLK_KP_00
+"Keypad 000" (テンキーの000)	SDL_SCANCODE_KP_000	SDLK_KP_000
+"Keypad 1" (テンキーの1)	SDL_SCANCODE_KP_1	SDLK_KP_1
+"Keypad 2" (テンキーの2)	SDL_SCANCODE_KP_2	SDLK_KP_2
+"Keypad 3" (テンキーの3)	SDL_SCANCODE_KP_3	SDLK_KP_3
+"Keypad 4" (テンキーの4)	SDL_SCANCODE_KP_4	SDLK_KP_4
+"Keypad 5" (テンキーの5)	SDL_SCANCODE_KP_5	SDLK_KP_5
+"Keypad 6" (テンキーの6)	SDL_SCANCODE_KP_6	SDLK_KP_6
+"Keypad 7" (テンキーの7)	SDL_SCANCODE_KP_7	SDLK_KP_7
+"Keypad 8" (テンキーの8)	SDL_SCANCODE_KP_8	SDLK_KP_8
+"Keypad 9" (テンキーの9)	SDL_SCANCODE_KP_9	SDLK_KP_9
+"Keypad A" (テンキーのA)	SDL_SCANCODE_KP_A	SDLK_KP_A
+"Keypad &" (テンキーの&)	SDL_SCANCODE_KP_AMPERSAND	SDLK_KP_AMPERSAND
+"Keypad @" (テンキーの@)	SDL_SCANCODE_KP_AT	SDLK_KP_AT
+"Keypad B" (テンキーのB)	SDL_SCANCODE_KP_B	SDLK_KP_B
+"Keypad Backspace" (テンキーのバックスペースキー)	SDL_SCANCODE_KP_BACKSPACE	SDLK_KP_BACKSPACE
+"Binary" (テンキーのバイナリキー)	SDL_SCANCODE_BINARY	SDLK_BINARY
+"Keypad C" (テンキーのC)	SDL_SCANCODE_KP_C	SDLK_KP_C
+"Keypad :" (テンキーの:)	SDL_SCANCODE_KP_COLON	SDLK_KP_COLON
+"Keypad ," (テンキーの,)	SDL_SCANCODE_KP_COMMA	SDLK_KP_COMMA
+"Keypad D" (テンキーのD)	SDL_SCANCODE_KP_D	SDLK_KP_D
+"Keypad &&" (テンキーの&&)	SDL_SCANCODE_KP_DBLAMPERSAND	SDLK_KP_DBLAMPERSAND
+"Keypad ||" (テンキーの||)	SDL_SCANCODE_KP_DBLVERTICALBAR	SDLK_KP_DBLVERTICALBAR
+"Keypad Decimal" (テンキーの小数点)	SDL_SCANCODE_KP_DECIMAL	SDLK_KP_DECIMAL
+"Keypad /" (テンキーの/)	SDL_SCANCODE_KP_DIVIDE	SDLK_KP_DIVIDE
+"Keypad E" (テンキーのE)	SDL_SCANCODE_KP_E	SDLK_KP_E
+"Keypad Enter" (テンキーのEnter)	SDL_SCANCODE_KP_ENTER	SDLK_KP_ENTER
+"Keypad =" (テンキーの=)	SDL_SCANCODE_KP_EQUALS	SDLK_KP_EQUALS
+"Keypad = (AS400)" (テンキーの=AS400)	SDL_SCANCODE_KP_EQUALSAS400	SDLK_KP_EQUALSAS400
+"Keypad !" (テンキーの!)	SDL_SCANCODE_KP_EXCLAM	SDLK_KP_EXCLAM
+"Keypad F" (テンキーのF)	SDL_SCANCODE_KP_F	SDLK_KP_F
+"Keypad >" (テンキーの大なり)	SDL_SCANCODE_KP_GREATER	SDLK_KP_GREATER
+"Keypad #" (テンキーの#)	SDL_SCANCODE_KP_HASH	SDLK_KP_HASH
+"Keypad Keypad Hexadecimal" (テンキーの16進数)	SDL_SCANCODE_KP_HEXADECIMAL	SDLK_KP_HEXADECIMAL
+"Keypad {" (テンキーの{)	SDL_SCANCODE_KP_LEFTBRACE	SDLK_KP_LEFTBRACE
+"Keypad (" (テンキーの()	SDL_SCANCODE_KP_LEFTPAREN	SDLK_KP_LEFTPAREN
+"Keypad <" (テンキーの)	SDL_SCANCODE_KP_LESS	SDLK_KP_LESS
+"Keypad MemAdd" (テンキーのメモリ加算)	SDL_SCANCODE_KP_MEMADD	SDLK_KP_MEMADD
+"Keypad MemClear" (テンキーのメモリクリア)	SDL_SCANCODE_KP_MEMCLEAR	SDLK_KP_MEMCLEAR
+"Keypad MemDivide" (テンキーのメモリ除算)	SDL_SCANCODE_KP_MEMDIVIDE	SDLK_KP_MEMDIVIDE
+"Keypad MemMultiply" (テンキーのメモリ乗算)	SDL_SCANCODE_KP_MEMMULTIPLY	SDLK_KP_MEMMULTIPLY
+"Keypad MemRecall" (テンキーのメモリ呼出)	SDL_SCANCODE_KP_MEMRECALL	SDLK_KP_MEMRECALL
+"Keypad MemStore" (テンキーのメモリ保存)	SDL_SCANCODE_KP_MEMSTORE	SDLK_KP_MEMSTORE
+"Keypad MemSubtract" (テンキーのメモリ減算)	SDL_SCANCODE_KP_MEMSUBTRACT	SDLK_KP_MEMSUBTRACT
+"Keypad -" (テンキーの-)	SDL_SCANCODE_KP_MINUS	SDLK_KP_MINUS
+"Keypad *" (テンキーの*)	SDL_SCANCODE_KP_MULTIPLY	SDLK_KP_MULTIPLY
+"Keypad Octal" (テンキーの8進数)	SDL_SCANCODE_KP_OCTAL	SDLK_KP_OCTAL
+"Keypad %" (テンキーの%)	SDL_SCANCODE_KP_PERCENT	SDLK_KP_PERCENT
+"Keypad ." (テンキーの.)	SDL_SCANCODE_KP_PERIOD	SDLK_KP_PERIOD
+"Keypad +" (テンキーの+)	SDL_SCANCODE_KP_PLUS	SDLK_KP_PLUS
+"Keypad +/-" (テンキーの+/-)	SDL_SCANCODE_KP_PLUSMINUS	SDLK_KP_PLUSMINUS
+"Keypad ^" (テンキーの^)	SDL_SCANCODE_KP_POWER	SDLK_KP_POWER
+"Keypad }" (テンキーの})	SDL_SCANCODE_KP_RIGHTBRACE	SDLK_KP_RIGHTBRACE
+"Keypad )" (テンキーの))	SDL_SCANCODE_KP_RIGHTPAREN	SDLK_KP_RIGHTPAREN
+"Keypad Space" (テンキーのスペース)	SDL_SCANCODE_KP_SPACE	SDLK_KP_SPACE
+"Keypad Tab" (テンキーのタブ)	SDL_SCANCODE_KP_TAB	SDLK_KP_TAB
+"Keypad |" (テンキーの|)	SDL_SCANCODE_KP_VERTICALBAR	SDLK_KP_VERTICALBAR
+"Keypad XOR" (テンキーのXOR)	SDL_SCANCODE_KP_XOR	SDLK_KP_XOR
+"L"	SDL_SCANCODE_L	SDLK_l
+"Left Alt" (Alt, Optionキー)	SDL_SCANCODE_LALT	SDLK_LALT
+"Left Ctrl"	SDL_SCANCODE_LCTRL	SDLK_LCTRL
+"Left" (左カーソルキー)	SDL_SCANCODE_LEFT	SDLK_LEFT
+"["	SDL_SCANCODE_LEFTBRACKET	SDLK_LEFTBRACKET
+"Left GUI" (Windows, Command(Apple), Metaキー)	SDL_SCANCODE_LGUI	SDLK_LGUI
+"Left Shift"	SDL_SCANCODE_LSHIFT	SDLK_LSHIFT
+"M"	SDL_SCANCODE_M	SDLK_m
+"Mail" (メール, eメールキー)	SDL_SCANCODE_MAIL	SDLK_MAIL
+"MediaSelect" (メディア選択キー)	SDL_SCANCODE_MEDIASELECT	SDLK_MEDIASELECT
+"Menu"	SDL_SCANCODE_MENU	SDLK_MENU
+"-"	SDL_SCANCODE_MINUS	SDLK_MINUS
+"ModeSwitch" (上記で網羅されているかはわからない. しかし, 特別なKMOD_MODEがあればここに追加する)	SDL_SCANCODE_MODE	SDLK_MODE
+"Mute"	SDL_SCANCODE_MUTE	SDLK_MUTE
+"N"	SDL_SCANCODE_N	SDLK_n
+"Numlock" (PCのNumLockキー, MacのClearキー)	SDL_SCANCODE_NUMLOCKCLEAR	SDLK_NUMLOCKCLEAR
+"O"	SDL_SCANCODE_O	SDLK_o
+"Oper"	SDL_SCANCODE_OPER	SDLK_OPER
+"Out"	SDL_SCANCODE_OUT	SDLK_OUT
+"P"	SDL_SCANCODE_P	SDLK_p
+"PageDown"	SDL_SCANCODE_PAGEDOWN	SDLK_PAGEDOWN
+"PageUp"	SDL_SCANCODE_PAGEUP	SDLK_PAGEUP
+"Paste"	SDL_SCANCODE_PASTE	SDLK_PASTE
+"Pause" (Pause/Breakキー)	SDL_SCANCODE_PAUSE	SDLK_PAUSE
+"."	SDL_SCANCODE_PERIOD	SDLK_PERIOD
+"Power" (USBドキュメントによると, これは状態フラグで, 物理的なキーではない. しかし, 一部のMacのキーボードには実際にPOWERキーが存在する)	SDL_SCANCODE_POWER	SDLK_POWER
+"PrintScreen"	SDL_SCANCODE_PRINTSCREEN	SDLK_PRINTSCREEN
+"Prior"	SDL_SCANCODE_PRIOR	SDLK_PRIOR
+"Q"	SDL_SCANCODE_Q	SDLK_q
+"R"	SDL_SCANCODE_R	SDLK_r
+"Right Alt" (オルタネートグラフィックキー, Optionキー)	SDL_SCANCODE_RALT	SDLK_RALT
+"Right Ctrl"	SDL_SCANCODE_RCTRL	SDLK_RCTRL
+"Return" (メインキーボードのENTERキー)	SDL_SCANCODE_RETURN	SDLK_RETURN
+"Return"	SDL_SCANCODE_RETURN2	SDLK_RETURN2
+"Right GUI" (Windows, Command(Apple), Metaキー)	SDL_SCANCODE_RGUI	SDLK_RGUI
+"Right" (右カーソルキー)	SDL_SCANCODE_RIGHT	SDLK_RIGHT
+"]"	SDL_SCANCODE_RIGHTBRACKET	SDLK_RIGHTBRACKET
+"Right Shift"	SDL_SCANCODE_RSHIFT	SDLK_RSHIFT
+"S"	SDL_SCANCODE_S	SDLK_s
+"ScrollLock"	SDL_SCANCODE_SCROLLLOCK	SDLK_SCROLLLOCK
+"Select"	SDL_SCANCODE_SELECT	SDLK_SELECT
+";"	SDL_SCANCODE_SEMICOLON	SDLK_SEMICOLON
+"Separator"	SDL_SCANCODE_SEPARATOR	SDLK_SEPARATOR
+"/"	SDL_SCANCODE_SLASH	SDLK_SLASH
+"Sleep"	SDL_SCANCODE_SLEEP	SDLK_SLEEP
+"Space"	SDL_SCANCODE_SPACE	SDLK_SPACE
+"Stop"	SDL_SCANCODE_STOP	SDLK_STOP
+"SysReq"	SDL_SCANCODE_SYSREQ	SDLK_SYSREQ
+"T"	SDL_SCANCODE_T	SDLK_t
+"Tab"	SDL_SCANCODE_TAB	SDLK_TAB
+"ThousandsSeparator" (桁区切りキー)	SDL_SCANCODE_THOUSANDSSEPARATOR	SDLK_THOUSANDSSEPARATOR
+"U"	SDL_SCANCODE_U	SDLK_u
+"Undo"	SDL_SCANCODE_UNDO	SDLK_UNDO
+"" (名前なし)	SDL_SCANCODE_UNKNOWN	SDLK_UNKNOWN
+"Up" (上カーソルキー)	SDL_SCANCODE_UP	SDLK_UP
+"V"	SDL_SCANCODE_V	SDLK_v
+"VolumeDown"	SDL_SCANCODE_VOLUMEDOWN	SDLK_VOLUMEDOWN
+"VolumeUp"	SDL_SCANCODE_VOLUMEUP	SDLK_VOLUMEUP
+"W"	SDL_SCANCODE_W	SDLK_w
+"WWW" (WWW/World Wide Webキー)	SDL_SCANCODE_WWW	SDLK_WWW
+"X"	SDL_SCANCODE_X	SDLK_X
+"Y"	SDL_SCANCODE_Y	SDLK_y
+"Z"	SDL_SCANCODE_Z	SDLK_z
+これらの物理キーに対応する仮想キーは存在しない
+"" (名前なし. アジアのキーボードで使われる. 末尾のUSBドキュメントを参照すること)	SDL_SCANCODE_INTERNATIONAL1	(なし)
+"" (名前なし)	SDL_SCANCODE_INTERNATIONAL2	(なし)
+"" (名前なし. 円記号)	SDL_SCANCODE_INTERNATIONAL3	(なし)
+"" (名前なし)	SDL_SCANCODE_INTERNATIONAL4	(なし)
+"" (名前なし)	SDL_SCANCODE_INTERNATIONAL5	(なし)
+"" (名前なし)	SDL_SCANCODE_INTERNATIONAL6	(なし)
+"" (名前なし)	SDL_SCANCODE_INTERNATIONAL7	(なし)
+"" (名前なし)	SDL_SCANCODE_INTERNATIONAL8	(なし)
+"" (名前なし)	SDL_SCANCODE_INTERNATIONAL9	(なし)
+"" (名前なし. ハングル/英文字トグル)	SDL_SCANCODE_SDL_SCANCODE_LANG1	(なし)
+"" (名前なし. 韓国の漢字変換)	SDL_SCANCODE_SDL_SCANCODE_LANG2	(なし)
+"" (名前なし. カタカナ)	SDL_SCANCODE_SDL_SCANCODE_LANG3	(なし)
+"" (名前なし. ひらがな)	SDL_SCANCODE_SDL_SCANCODE_LANG4	(なし)
+"" (名前なし. 全角/半角)	SDL_SCANCODE_SDL_SCANCODE_LANG5	(なし)
+"" (名前なし. 予約)	SDL_SCANCODE_SDL_SCANCODE_LANG6	(なし)
+"" (名前なし. 予約)	SDL_SCANCODE_SDL_SCANCODE_LANG7	(なし)
+"" (名前なし. 予約)	SDL_SCANCODE_SDL_SCANCODE_LANG8	(なし)
+"" (名前なし. 予約)	SDL_SCANCODE_SDL_SCANCODE_LANG9	(なし)
+"" (名前なし)	SDL_SCANCODE_LOCKINGCAPSLOCK	(なし)
+"" (名前なし)	SDL_SCANCODE_LOCKINGNUMLOCK	(なし)
+"" (名前なし)	SDL_SCANCODE_LOCKINGSCROLLLOCK	(なし)
+"" (名前なし. これはISOキーボードでANSIキーボードに追加されたキーで, 左シフトとYの間に位置する. アメリカとイギリスのMacレイアウトならば抑音アクセントとチルダ, アメリカとイギリスのWindowsレイアウトならば逆斜線(バックススラッシュ)と縦線, スイス(ドイツ語)・ドイツ・フランスのレイアウトならば小なり記号と大なり記号)	SDL_SCANCODE_NONUSBACKSLASH	(なし)
+"" (名前なし. ISO USBキーボードでは, 実際にはこのコードを49のキーの代わりに使っている. しかし, 見る限り全てのOSは2つのコードを同一視している. よってSDLを実装する者は, 使っているキーボードがこれら2つのコードを生成しない, そしてOSが区別しない限り, SDL_SCANCODE_BACKSLASHをこのコードの代わりに生成すべきである. SDLのユーザは, SDLはほとんどの(全ての?)キーボードでこのコードを生成しないため, このコードを当てにしてはならない.)	SDL_SCANCODE_NONUSHASH	(なし)
+これらの仮想キーに対応する物理キーは存在しない
+"&"	(なし)	SDLK_AMPERSAND
+"*"	(なし)	SDLK_ASTERISK
+"@"	(なし)	SDLK_AT
+"^"	(なし)	SDLK_CARET
+":"	(なし)	SDLK_COLON
+"$"	(なし)	SDLK_DOLLAR
+"!"	(なし)	SDLK_EXCLAIM
+">"	(なし)	SDLK_GREATER
+"#"	(なし)	SDLK_HASH
+"("	(なし)	SDLK_LEFTPAREN
+"<"	(なし)	SDLK_LESS
+"%"	(なし)	SDLK_PERCENT
+"+"	(なし)	SDLK_PLUS
+"?"	(なし)	SDLK_QUESTION
+"""	(なし)	SDLK_QUOTEDBL
+")"	(なし)	SDLK_RIGHTPAREN
+"_"	(なし)	SDLK_UNDERSCORE
+
+
+
+
 <div class="subtitle">サンプルコード</div>
 
 ---
