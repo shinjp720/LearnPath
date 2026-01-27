@@ -1740,7 +1740,7 @@ numkeys: NULLでないとき, 戻した配列の長さが代入される
 <div class="subtitle">サンプルコード</div>
 <pre><code class="example">const Uint8 *state = SDL_GetKeyboardState(NULL);
 if (state[SDL_SCANCODE_RETURN]) {
-    printf("<RETURN> が押された¥n");
+    printf("&lt;RETURN&gt; が押された¥n");
 }
 if (state[SDL_SCANCODE_RIGHT] && state[SDL_SCANCODE_UP]) {
     printf("右と上が押された¥n");
