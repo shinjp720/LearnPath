@@ -435,6 +435,7 @@ std::cerr << SDL_GetError() << std::endl;
 ---
 
 #### SDL_Init
+SDLライブラリを初期化する. 他のほとんどのSDLの関数を呼び出す前にこの関数を呼ぶ必要がある.
 
 <div class="subtitle">構文</div>
 int SDL_Init(Uint32 flags)
@@ -479,6 +480,7 @@ int main(int argc, char* argv[]) {
 ---
 
 #### SDL_Quit
+サブシステムを終了する. いかなる場合でもこの関数を呼ばなければならない.
 
 <div class="subtitle">構文</div>
 void SDL_Quit(void)
@@ -489,6 +491,7 @@ SDL_QuitSubSystem()で既に個別にサブシステムを終了した場合で�
 ---
 
 #### SDL_GetError
+現在のスレッドで最後に発生したエラーのメッセージを得る.
 
 <div class="subtitle">構文</div>
 const char* SDL_GetError(void)
