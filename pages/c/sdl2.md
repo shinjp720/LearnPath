@@ -1002,24 +1002,21 @@ a: 描画で使われるα成分の値を代入するポインタ. 通常はSDL_
 
 ---
 
-#### SDL_RenderDrawPoint  
+#### SDL_RenderDrawPoint
+現在のレンダーターゲットに点を描く.
 
 <div class="subtitle">構文</div>
-
 int SDL_RenderDrawPoint(SDL_Renderer* renderer, int x, int y)
 
 <div class="subtitle">引数</div>
-
 renderer: レンダリングコンテキスト
 x: 点のX座標
 y: 点のY座標
 
 <div class="subtitle">戻り値</div>
-
 成功のとき0, 失敗のとき負の数のエラーコードを戻す. SDL_GetError()で詳細を知ることができる.
 
 <div class="subtitle">詳細</div>
-
 現在のレンダーターゲットに点を描く.<br>
 SDL_RenderDrawPoint()は1つの点を描く. 複数の点を描く場合は, 代わりにSDL_RenderDrawPoints()が使える.
 
@@ -1039,50 +1036,230 @@ SDL_RenderFillRect(renderer, &rectangle);</code></pre>
 現在のレンダーターゲットに直線を描く.
 
 <div class="subtitle">構文</div>
+int SDL_RenderDrawLine(SDL_Renderer* renderer, int x1, int y1, int x2, int y2)
+
 <div class="subtitle">引数</div>
+renderer: レンダリングコンテキスト
+x1: 始点のX座標
+y1: 始点のY座標
+x2: 終点のX座標
+y2: 終点のY座標
+
 <div class="subtitle">戻り値</div>
+成功のとき0, 失敗のとき負の数のエラーコードを戻す. SDL_GetError()で詳細を知ることができる.
+
 <div class="subtitle">詳細</div>
+
 <div class="subtitle">サンプルコード</div>
+<pre><code class="example">#include "SDL.h"
+
+int main(int argc, char* argv[])
+{
+    if (SDL_Init(SDL_INIT_VIDEO) == 0) {
+        SDL_Window* window = NULL;
+        SDL_Renderer* renderer = NULL;
+
+        if (SDL_CreateWindowAndRenderer(640, 480, 0, &window, &renderer) == 0) {
+            SDL_bool done = SDL_FALSE;
+
+            while (!done) {
+                SDL_Event event;
+
+                SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+                SDL_RenderClear(renderer);
+
+                SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
+                SDL_RenderDrawLine(renderer, 320, 200, 300, 240);
+                SDL_RenderDrawLine(renderer, 300, 240, 340, 240);
+                SDL_RenderDrawLine(renderer, 340, 240, 320, 200);
+                SDL_RenderPresent(renderer);
+
+                while (SDL_PollEvent(&event)) {
+                    if (event.type == SDL_QUIT) {
+                        done = SDL_TRUE;
+                    }
+                }
+            }
+        }
+
+        if (renderer) {
+            SDL_DestroyRenderer(renderer);
+        }
+        if (window) {
+            SDL_DestroyWindow(window);
+        }
+    }
+    SDL_Quit();
+    return 0;
+}</code></pre>
 
 ---
 
 #### SDL_RenderDrawRect  
+現在のレンダーターゲットに長方形を描く.
 
 <div class="subtitle">構文</div>
+int SDL_RenderDrawRect(SDL_Renderer* renderer, const SDL_Rect* rect)
+
 <div class="subtitle">引数</div>
+renderer: レンダリングコンテキスト
+rect: 描かれる長方形のSDL_Rect. NULLのとき全体
+
 <div class="subtitle">戻り値</div>
-<div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+成功のとき0, 失敗のとき負の数のエラーコードを戻す. SDL_GetError()で詳細を知ることができる.
 
 ---
 
-#### SDL_RenderFillRect  
+#### SDL_RenderFillRect
+現在のレンダーターゲットに塗りつぶした長方形を描く.
 
 <div class="subtitle">構文</div>
+int SDL_RenderFillRect(SDL_Renderer* renderer, const SDL_Rect* rect)
+
 <div class="subtitle">引数</div>
+renderer: レンダリングコンテキスト
+rect: 描かれる塗りつぶした長方形のSDL_Rect. NULLのとき全体
+
 <div class="subtitle">戻り値</div>
+成功のとき0, 失敗のとき負の数のエラーコードを戻す. SDL_GetError()で詳細を知ることができる.
+
 <div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+塗りつぶす色はSDL_SetRenderDrawColor()で設定する. 色のα値はSDL_SetRenderDrawBlendMode()が呼ばれブレンドが有効でない限り無視される.
 
 ---
 
 #### SDL_RenderCopy  
+テクスチャの一部を現在のレンダーターゲットにコピーする.
 
 <div class="subtitle">構文</div>
-<div class="subtitle">引数</div>
-<div class="subtitle">戻り値</div>
-<div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+int SDL_RenderCopy(SDL_Renderer* renderer, SDL_Texture* texture, const SDL_Rect* srcrect, const SDL_Rect* dstrect)
 
+<div class="subtitle">引数</div>
+renderer: レンダリングコンテキスト
+texture: コピー元テクスチャ (詳細を参照すること)
+srcrect: コピー元のSDL_Rect. NULLのとき全体
+dstrect: コピー先のSDL_Rect. NULLのとき全体. テクスチャはこの領域に合うように拡大縮小される.
+
+<div class="subtitle">戻り値</div>
+成功のとき0, 失敗のとき負の数のエラーコードを戻す. SDL_GetError()で詳細を知ることができる.
+
+<div class="subtitle">詳細</div>
+テクスチャはSDL_SetTextureBlendMode()で設定したブレンドモードでコピー先のテクスチャとブレンドされる.<br>
+テクスチャの色はSDL_SetTextureColorMod()で設定した色の影響を受ける.<br>
+テクスチャのα値はSDL_SetTextureAlphaMod()で設定したα値の影響を受ける.
+
+<div class="subtitle">サンプルコード</div>
+<pre><code class="example">#include "SDL.h"
+#define SHAPE_SIZE 16
+
+int main(int argc, char *argv[])
+{
+  SDL_Window* Main_Window;
+  SDL_Renderer* Main_Renderer;
+  SDL_Surface* Loading_Surf;
+  SDL_Texture* Background_Tx;
+  SDL_Texture* BlueShapes;
+
+  /* レンダリングする(テクスチャ内の)コピー元と(画面の)コピー先の領域 */
+  SDL_Rect SrcR;
+  SDL_Rect DestR;
+
+  SrcR.x = 0;
+  SrcR.y = 0;
+  SrcR.w = SHAPE_SIZE;
+  SrcR.h = SHAPE_SIZE;
+
+  DestR.x = 640 / 2 - SHAPE_SIZE / 2;
+  DestR.y = 580 / 2 - SHAPE_SIZE / 2;
+  DestR.w = SHAPE_SIZE;
+  DestR.h = SHAPE_SIZE;
+
+  /* レンダリングの前にウィンドウとレンダラーを生成する */
+  Main_Window = SDL_CreateWindow("SDL_RenderCopy Example",
+  SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 580, 0);
+  Main_Renderer = SDL_CreateRenderer(Main_Window, -1, SDL_RENDERER_ACCELERATED);
+
+  /* 背景画像を読み込む. SDL_LoadBMP()はサーフェイスを戻すので,
+  それを高速にコピーできるテクスチャに変換する */
+  Loading_Surf = SDL_LoadBMP("Background.bmp");
+  Background_Tx = SDL_CreateTextureFromSurface(Main_Renderer, Loading_Surf);
+  SDL_FreeSurface(Loading_Surf);  /* テクスチャは得られた -> サーフェイスを解放する */
+
+  /* 追加のテクスチャを読み込む */
+  Loading_Surf = SDL_LoadBMP("Blueshapes.bmp");
+  BlueShapes = SDL_CreateTextureFromSurface(Main_Renderer, Loading_Surf);
+  SDL_FreeSurface(Loading_Surf);
+
+  /* ここが最も関心のある部分である.
+  Blueshapes.bmpの選択された部分を画面の中央にレンダリングする */
+  int i;
+  int n;
+  for(i=0;i<2;i++)
+  {
+    for(n=0;n<4;n++)
+    {
+      SrcR.x = SHAPE_SIZE * (n % 2);
+      if(n > 1)
+      {
+        SrcR.y = SHAPE_SIZE;
+      }
+      else
+      {
+        SrcR.y = 0;
+      }
+
+      /* 背景をレンダリングする. NULLはコピー元とコピー先がデフォルトであることを意味する */
+      SDL_RenderCopy(Main_Renderer, Background_Tx, NULL, NULL);
+
+      /* 図形をレンダリングしてアニメーションにする */
+      SDL_RenderCopy(Main_Renderer, BlueShapes, &SrcR, &DestR);  
+      SDL_RenderPresent(Main_Renderer);
+      SDL_Delay(500);
+    }
+  }
+
+  /* このレンダラーは大きなキャンバスのようなものである:
+  RenderCopy()で画像を加えると, その度に上書きされる.
+  新しいデータがどのようにブレンドされるかは変更できる.
+  あなたの「絵」が完成すれば, それをSDL_RenderPresent()を使って見せることができる */
+
+  /* SDL 1.2ユーザへのヒント: レンダラーが理解しづらいならば, 1.2のサーフェイスとコピーに置き換えて,
+  レンダラーはメインサーフェイス, SDL_RenderCopy()はメインサーフェイスへのコピー,
+  SDL_RenderPresent()は旧バージョンのSDL_Flip()関数と考えればよいかもしれない */
+
+  SDL_DestroyTexture(BlueShapes);
+  SDL_DestroyTexture(Background_Tx);
+  SDL_DestroyRenderer(Main_Renderer);
+  SDL_DestroyWindow(Main_Window);
+  SDL_Quit();
+
+  return 0;
+}</code></pre>
 ---
 
 #### SDL_RenderCopyEx  
+テクスチャの一部を, 指定の点を中心に回転させ, 上下左右を反転を指定して, 現在のレンダーターゲットにコピーする.
 
 <div class="subtitle">構文</div>
+int SDL_RenderCopyEx(SDL_Renderer* renderer, SDL_Texture* texture, const SDL_Rect* srcrect, const SDL_Rect* dstrect, const double angle, const SDL_Point* center, const SDL_RendererFlip flip)
+
 <div class="subtitle">引数</div>
+renderer: レンダリングコンテキスト
+texture: コピー元テクスチャ (詳細を参照すること)
+srcrect: コピー元のSDL_Rect. NULLのとき全体
+dstrect: コピー先のSDL_Rect. NULLのとき全体. テクスチャはこの領域に合うように拡大縮小される.
+angle: dstrectにコピーするときの画像の角度(度数法・時計回り)
+center: dstrectにコピーするときの画像の回転の中心を表すSDL_Pointのポインタ (NULLのときdstrect.w/2, dstrect.h/2)
+flip: テクスチャの上下左右反転を表すSDL_RendererFlip
+
 <div class="subtitle">戻り値</div>
+成功のとき0, 失敗のとき負の数のエラーコードを戻す. SDL_GetError()で詳細を知ることができる.
+
 <div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+テクスチャの一部を現在のレンダリングターゲットにコピーする. 指定の点を中心に回転させ, 上下かつ/または左右を反転させることもできる.<br>
+テクスチャはSDL_SetTextureBlendMode()で設定したブレンドモードでコピー先のテクスチャとブレンドされる.<br>
+テクスチャの色はSDL_SetTextureColorMod()で設定した色の影響を受ける.<br>
+テクスチャのα値はSDL_SetTextureAlphaMod()で設定したα値の影響を受ける.<br>
 
 ---
 
@@ -1090,63 +1267,210 @@ SDL_RenderFillRect(renderer, &rectangle);</code></pre>
 
 ---
 
-#### SDL_CreateTexture  
+#### SDL_CreateTexture
+レンダリングコンテキストのテクスチャを生成する.
 
 <div class="subtitle">構文</div>
-<div class="subtitle">引数</div>
-<div class="subtitle">戻り値</div>
-<div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+SDL_Texture* SDL_CreateTexture(SDL_Renderer* renderer, Uint32 format, int access, int w, int h)
 
+<div class="subtitle">引数</div>
+renderer: レンダリングコンテキスト
+format: SDL_PixelFormatEnumの1つ
+access: SDL_TextureAccessの1つ
+w: テクスチャの幅
+h: テクスチャの高さ
+
+<div class="subtitle">戻り値</div>
+成功のとき生成されたテクスチャへのポインタを戻す. レンダリングコンテキストが使えない, formatが対応していない, wまたはhが範囲外のときNULLを戻す. SDL_GetError()で詳細を知ることができる.
+
+<div class="subtitle">詳細</div>
+テクスチャを生成する前にSDL_HINT_RENDER_SCALE_QUALITYを設定することでテクスチャの拡大方法を設定できる.
+
+<div class="subtitle">サンプルコード</div>
+<pre><code class="example">#include&lt;stdlib.h&gt;
+#include"SDL.h"
+// 四角形を動かす
+int main()
+{
+        SDL_Window *window;
+        SDL_Renderer *renderer;
+        SDL_Texture *Texture;
+        SDL_Event event;
+        SDL_Rect r;
+        if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+                SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDLを初期化できなかった: %s", SDL_GetError());
+                return 3;
+        }
+
+        window = SDL_CreateWindow("SDL_CreateTexture",
+                        SDL_WINDOWPOS_UNDEFINED,
+                        SDL_WINDOWPOS_UNDEFINED,
+                        1024, 768,
+                        SDL_WINDOW_RESIZABLE);
+
+        r.w = 100;
+        r.h = 50;
+
+        renderer = SDL_CreateRenderer(window, -1, 0);
+
+        Texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 1024, 768);
+
+        while(1)
+        {
+                SDL_PollEvent(&event);
+                if(event.type == SDL_QUIT)
+                        break;
+                r.x=rand()%500;
+                r.y=rand()%500;
+
+                SDL_SetRenderTarget(renderer, Texture);
+                SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
+                SDL_RenderClear(renderer);
+                SDL_RenderDrawRect(renderer,&r);
+                SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0x00);
+                SDL_RenderFillRect(renderer, &r);
+                SDL_SetRenderTarget(renderer, NULL);
+                SDL_RenderCopy(renderer, Texture, NULL, NULL);
+                SDL_RenderPresent(renderer);
+        }
+        SDL_DestroyRenderer(renderer);
+        return 0;
+}</code></pre>
 ---
 
 #### SDL_DestroyTexture  
+テクスチャを破棄する.    
 
 <div class="subtitle">構文</div>
+void SDL_DestroyTexture(SDL_Texture* texture)
+
 <div class="subtitle">引数</div>
-<div class="subtitle">戻り値</div>
+texture: 破棄するテクスチャ
+
 <div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+NULLや不正なテクスチャを渡した場合はSDLエラーメッセージに"Invalid texture"が設定される.
 
 ---
 
-#### SDL_CreateTextureFromSurface  
+#### SDL_CreateTextureFromSurface
+サーフェイスからテクスチャを生成する.
 
 <div class="subtitle">構文</div>
+SDL_Texture* SDL_CreateTextureFromSurface(SDL_Renderer* renderer, SDL_Surface* surface)
+
 <div class="subtitle">引数</div>
+renderer: レンダリングコンテキスト
+surface: テクスチャで使うピクセルデータを持つSDL_Surface
+
 <div class="subtitle">戻り値</div>
+成功のとき生成されたテクスチャ, 失敗のときNULLを戻す. SDL_GetError()で詳細を知ることができる.
+
 <div class="subtitle">詳細</div>
+この関数はサーフェイスを修正/解放しない.<br>
+このテクスチャのSDL_TextureAccessヒントはSDL_TEXTUREACCESS_STATICである.<br>
+生成されるテクスチャのピクセル形式はサーフェイスのピクセル形式とは異なる場合がある. テクスチャのピクセル形式はSDL_QueryTexture()で得ることができる.
+    
 <div class="subtitle">サンプルコード</div>
+<pre><code class="example">    /* OpenGLのテクスチャとして使うために
+       各ピクセルがR,G,B,A順の32bitサーフェイスを生成する */
+    SDL_Surface *surface;
+    Uint32 rmask, gmask, bmask, amask;
+
+    /* SDLはピクセルを32bitの値として解釈する.
+       よって, マスクはマシンのエンディアン(バイト順)に依存する */
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+    rmask = 0xff000000;
+    gmask = 0x00ff0000;
+    bmask = 0x0000ff00;
+    amask = 0x000000ff;
+#else
+    rmask = 0x000000ff;
+    gmask = 0x0000ff00;
+    bmask = 0x00ff0000;
+    amask = 0xff000000;
+#endif
+
+surface = SDL_CreateRGBSurface(0, width, height, 32,
+                               rmask, gmask, bmask, amask);
+if (surface == NULL) {
+    fprintf(stderr, "CreateRGBSurface 失敗: %s¥n", SDL_GetError());
+    exit(1);
+}
+
+SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+
+if (texture == NULL) {
+    fprintf(stderr, "CreateTextureFromSurface 失敗: %s¥n", SDL_GetError());
+    exit(1);
+}
+
+SDL_FreeSurface(surface);
+surface = NULL;</code></pre>
 
 ---
 
-#### SDL_QueryTexture  
+#### SDL_QueryTexture
+テクスチャの情報を得る.
 
 <div class="subtitle">構文</div>
+int SDL_QueryTexture(SDL_Texture* texture, Uint32* format, int* access, int* w, int* h)
+
 <div class="subtitle">引数</div>
+texture: 調査するテクスチャ
+format: テクスチャの生の形式を代入するポインタ(SDL_PixelFormat). 実際の形式とは異なることがある. しかし, ピクセルのコピーではこの形式が使われる. この情報が必要なければNULLにできる
+access: 実際のアクセスを代入するポインタ(SDL_TextureAccessの1つ). この情報が必要なければNULLにできる
+w: テクスチャの幅を代入するポインタ. この情報が必要なければNULLにできる
+h: テクスチャの高さを代入するポインタ. この情報が必要なければNULLにできる
+
 <div class="subtitle">戻り値</div>
-<div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+成功のとき0, 失敗のとき負の数のエラーコードを戻す. SDL_GetError()で詳細を知ることができる.
 
 ---
 
 #### SDL_LoadBMP  
+BMPファイルをサーフェイスに読み込む.
 
 <div class="subtitle">構文</div>
+SDL_Surface* SDL_LoadBMP(const char* file)
+
 <div class="subtitle">引数</div>
+file: BMPイメージファイル
+
 <div class="subtitle">戻り値</div>
+成功のとき生成されたSDL_Surface, 失敗のときNULLを戻す. SDL_GetError()を呼んで詳細を知ることができる.
+
 <div class="subtitle">詳細</div>
+生成されたサーフェイスはSDL_FreeSurface()で解放する必要がある.<br>
+SDL_LoadBMP()は, SDL_RWFromFile()でファイルを開き自動的にファイルを閉じるSDL_LoadBMP_RW()のマクロである.
+
 <div class="subtitle">サンプルコード</div>
+<pre><code class="example">const char *image_path = "myimage.bmp";
+SDL_Surface *image = SDL_LoadBMP(image_path);
+
+/* ファイルの読み込みに失敗したらユーザに知らせる */
+if (!image) {
+    printf("画像の読み込みに失敗した %s: %s¥n", image_path, SDL_GetError());
+    return 1;
+}
+
+/* ここで画像を使う */
+
+/* 最後にサーフェイスの資源を解放する */
+SDL_FreeSurface(image);</code></pre>
 
 ---
 
-#### SDL_FreeSurface  
+#### SDL_FreeSurface
+RGBサーフェイスを解放する.
 
 <div class="subtitle">構文</div>
+void SDL_FreeSurface(SDL_Surface* surface)
+
 <div class="subtitle">引数</div>
-<div class="subtitle">戻り値</div>
+surface: 解放するSDL_Surface
+    
 <div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+この関数はNULLを渡しても安全である.
 
 ---
 
@@ -1154,13 +1478,39 @@ SDL_RenderFillRect(renderer, &rectangle);</code></pre>
 
 ---
 
-#### IMG_Init  
+#### IMG_Init
+SDL_imageを初期化する.
 
 <div class="subtitle">構文</div>
+int IMG_Init(int flags)
+
 <div class="subtitle">引数</div>
+flags: 初期化フラグ. 論理和で複数指定できる
+
 <div class="subtitle">戻り値</div>
+初期化された全てのフラグ
+
 <div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+この関数はSDL_imageが必要とする動的リンクライブラリを読み込み, 使用するために初期化する. この関数はSDL_imageの内で最初に呼ばなければならない. もし呼び出しに失敗すれば, ライブラリを使うことはできない.<br>
+フラグはIMG_InitFlagsの1つか, 論理和で複数選択する. 成功のとき初期化に成功したフラグ, 失敗のとき0が戻される.<br>
+現在, 以下のフラグがある
+
+| フラグ |
+| --- |
+| IMG_INIT_JPG |
+| IMG_INIT_PNG |
+| IMG_INIT_TIF |
+| IMG_INIT_WEBP |
+| IMG_INIT_JXL |
+| IMG_INIT_AVIF |
+
+フラグは将来のSDL_imageのリリースで追加される可能性がある.<br>
+この関数は様々な画像の読み書きに対応するために外部の共有ライブラリを必要とする. そのため, 共有ライブラリが使えない場合は, メモリ不足などの問題がなくシステムが正常でも初期化に失敗する場合がある.<br>
+この関数はフラグを追加するために複数回呼び出せる. その場合の戻り値には, 新たに正常に初期化されたフラグと, 以前に初期化したフラグの両方が含まれている.<br>
+以前に初期化したフラグを戻すために0(フラグなし)で呼び出すことは可能である. この方法で変更を加えず安全に現在の状態を得ることができる.<br>
+この関数は以前初期化したフラグを新たなものと同様に戻すため, この関数を0で呼ぶことはできるが, 戻り値が0か否かでエラーをチェックすることはできない. 代わりに戻り値に要求したフラグが全て含まれているかでチェックすべきである. もしゲームに特定のフォーマットのデータがあるならば, 致命的なエラーを引き起こしてしまう. 一般的な画像表示アプリケーションならば, JPGとPNGに対応していれば恐らく問題はなく, たとえあらゆる形式を要求したとしても, WEBPはなくても十分だろう.<br>
+他の周辺ライブラリとは違い, IMG_Initは重ならない. 一度IMG_Quit()を呼べば全て終了するため, IMG_Initの回数呼ぶ必要はない. そのため, プログラム中ではIMG_InitとIMG_Quitを1度だけ呼ぶのが最良と考えられる. これは必須ではないが, そうでない場合は発生する危険性に注意する必要がある.<br>
+SDL_imageを初期化した後, アプリケーションはSDL_SurfaceやSDL_Textureに画像を読み込むことができるようになる.<br>
 
 ---
 
@@ -1513,3 +1863,4 @@ SDL_RenderFillRect(renderer, &rectangle);</code></pre>
 ---
 
 ## 導入 <a id="introduction" data-name="導入"></a>
+<pre><code class="example"></code></pre>
