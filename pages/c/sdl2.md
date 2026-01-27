@@ -1263,6 +1263,11 @@ SDL_RenderDrawPoint()は1つの点を描く. 複数の点を描く場合は, 代
 
 ---
 
+### 入力（キーボード・マウス・ゲームパッド）
+
+---
+
+#### SDL_GetKeyboardState
 
 <div class="subtitle">構文</div>
 <div class="subtitle">引数</div>
@@ -1272,20 +1277,67 @@ SDL_RenderDrawPoint()は1つの点を描く. 複数の点を描く場合は, 代
 
 ---
 
-### 入力（キーボード・マウス・ゲームパッド）
+#### SDL_GetScancodeFromKey  
 
-SDL_GetKeyboardState  
-SDL_GetScancodeFromKey  
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
 
-SDL_MouseButtonEvent  
-SDL_MouseMotionEvent  
+---
 
-SDL_NumJoysticks  
-SDL_GameControllerOpen  
-SDL_GameControllerGetButton  
-SDL_GameControllerGetAxis 
+#### SDL_MouseButtonEvent
 
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
 
+---
+
+#### SDL_MouseMotionEvent  
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+---
+
+#### SDL_NumJoysticks  
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+---
+
+#### SDL_GameControllerOpen  
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+---
+
+#### SDL_GameControllerGetButton  
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+  
+---
+
+#### SDL_GameControllerGetAxis 
 
 <div class="subtitle">構文</div>
 <div class="subtitle">引数</div>
@@ -1297,14 +1349,39 @@ SDL_GameControllerGetAxis
 
 ###  時間・FPS制御
 
-SDL_GetTicks  
-SDL_GetPerformanceCounter  
-SDL_GetPerformanceFrequency  
+---
 
-SDL_Delay  
+#### SDL_GetTicks  
 
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
 
+---
 
+#### SDL_GetPerformanceCounter  
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+---
+
+#### SDL_GetPerformanceFrequency  
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+---
+
+### SDL_Delay  
 
 <div class="subtitle">構文</div>
 <div class="subtitle">引数</div>
@@ -1316,10 +1393,29 @@ SDL_Delay
 
 ### ウィンドウとレンダラーの実用系
 
-SDL_SetRenderTarget  
-SDL_GetRendererOutputSize  
-SDL_SetRenderScale  
+---
 
+#### SDL_SetRenderTarget  
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+---
+
+#### SDL_GetRendererOutputSize  
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+---
+
+#### SDL_SetRenderScale  
 
 <div class="subtitle">構文</div>
 <div class="subtitle">引数</div>
@@ -1331,9 +1427,19 @@ SDL_SetRenderScale
 
 ### クリップ・表示範囲
 
-SDL_RenderSetClipRect  
-SDL_RenderGetClipRect  
+---
 
+#### SDL_RenderSetClipRect  
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+---
+
+#### SDL_RenderGetClipRect  
 
 <div class="subtitle">構文</div>
 <div class="subtitle">引数</div>
@@ -1345,10 +1451,29 @@ SDL_RenderGetClipRect
 
 ### カーソル・表示
 
-SDL_ShowCursor  
-SDL_SetCursor  
-SDL_CreateSystemCursor  
+---
 
+#### SDL_ShowCursor  
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+---
+
+#### SDL_SetCursor  
+
+<div class="subtitle">構文</div>
+<div class="subtitle">引数</div>
+<div class="subtitle">戻り値</div>
+<div class="subtitle">詳細</div>
+<div class="subtitle">サンプルコード</div>
+
+---
+
+#### SDL_CreateSystemCursor  
 
 <div class="subtitle">構文</div>
 <div class="subtitle">引数</div>
@@ -1360,9 +1485,9 @@ SDL_CreateSystemCursor
 
 ### その他よく使う補助
 
-SDL_memset  
-SDL_memcpy  
-SDL_Log  
+---
+
+#### SDL_memset  
 
 <div class="subtitle">構文</div>
 <div class="subtitle">引数</div>
@@ -1370,11 +1495,9 @@ SDL_Log
 <div class="subtitle">詳細</div>
 <div class="subtitle">サンプルコード</div>
 
-<div class="subtitle">構文</div>
-<div class="subtitle">引数</div>
-<div class="subtitle">戻り値</div>
-<div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+---
+
+#### SDL_memcpy  
 
 <div class="subtitle">構文</div>
 <div class="subtitle">引数</div>
@@ -1382,11 +1505,9 @@ SDL_Log
 <div class="subtitle">詳細</div>
 <div class="subtitle">サンプルコード</div>
 
-<div class="subtitle">構文</div>
-<div class="subtitle">引数</div>
-<div class="subtitle">戻り値</div>
-<div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+---
+
+#### SDL_Log  
 
 <div class="subtitle">構文</div>
 <div class="subtitle">引数</div>
@@ -1394,45 +1515,6 @@ SDL_Log
 <div class="subtitle">詳細</div>
 <div class="subtitle">サンプルコード</div>
 
-<div class="subtitle">構文</div>
-<div class="subtitle">引数</div>
-<div class="subtitle">戻り値</div>
-<div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
-
-<div class="subtitle">構文</div>
-<div class="subtitle">引数</div>
-<div class="subtitle">戻り値</div>
-<div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
-
-<div class="subtitle">構文</div>
-<div class="subtitle">引数</div>
-<div class="subtitle">戻り値</div>
-<div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
-
-<div class="subtitle">構文</div>
-<div class="subtitle">引数</div>
-<div class="subtitle">戻り値</div>
-<div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
-
-<div class="subtitle">構文</div>
-<div class="subtitle">引数</div>
-<div class="subtitle">戻り値</div>
-<div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
-
-<div class="subtitle">構文</div>
-<div class="subtitle">引数</div>
-<div class="subtitle">戻り値</div>
-<div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
-
-
-
-
-
+---
 
 ## 導入 <a id="introduction" data-name="導入"></a>
