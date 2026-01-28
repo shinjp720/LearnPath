@@ -1710,7 +1710,7 @@ bg: テキストの背景色
 この関数は改行しないため, どれだけ文字列が長くてもサーフェイスのテキストは1行である. 改行して複数行にする必要がある場合は, 代わりにTTF_RenderText_Blended_Wrapped()を使うことができる.<br>
 この関数は改行コードで改行しない.<br>
 1バイトLatin1でエンコードされているのが確実でない限り, 本当に必要なのはTTF_RenderUTF8_Blendedだろう. US ASCII文字はどちらの関数でも正常に動作するが, 他の多くの文字はUTF-8としての処理が必要である.<br>
-TTF_RenderText_Solid, TTF_RenderText_Blended, TTF_RenderText_LCDを使うと別の画質でレンダリングできる.<br>
+TTF_RenderText_Solid, TTF_RenderText_Blended, TTF_RenderText_LCDを使うと別の画質でレンダリングできる.
 
 ---
 
@@ -1762,13 +1762,14 @@ SDL_Keycodeに割り当てられたSDL_Scancodeを戻す.
 
 <div class="subtitle">詳細</div>
 SDL_Scancode
+
 | キー名 | SDL_Scancodeの値 | SDL_Keycodeの値 |
-| --- | --- |--- |
+| --- | --- | --- |
 | "0" | SDL_SCANCODE_0 | SDLK_0 |
-"1"	SDL_SCANCODE_1	SDLK_1
-"2"	SDL_SCANCODE_2	SDLK_2
-"3"	SDL_SCANCODE_3	SDLK_3
-"4"	SDL_SCANCODE_4	SDLK_4
+| "1" | SDL_SCANCODE_1 | SDLK_1 |
+| "2" | SDL_SCANCODE_2 | SDLK_2 |
+| "3" | SDL_SCANCODE_3 | SDLK_3 |
+| "4" | SDL_SCANCODE_4 | SDLK_4 |
 "5"	SDL_SCANCODE_5	SDLK_5
 "6"	SDL_SCANCODE_6	SDLK_6
 "7"	SDL_SCANCODE_7	SDLK_7
@@ -2026,8 +2027,15 @@ SDL_Scancode
 
 
 
-
 <div class="subtitle">サンプルコード</div>
+<pre><code class="example">const Uint8 *state = SDL_GetKeyboardState(NULL);
+if (state[SDL_SCANCODE_RETURN]) {
+    printf("&lt;RETURN&gt; が押された¥n");
+}
+if (state[SDL_SCANCODE_RIGHT] && state[SDL_SCANCODE_UP]) {
+    printf("右と上が押された¥n");
+}
+</code></pre>
 
 ---
 
@@ -2096,42 +2104,175 @@ SDL_Scancode
 ---
 
 #### SDL_GetTicks  
+SDLが初期化されてから経過した時間をミリ秒で得る.
 
 <div class="subtitle">構文</div>
-<div class="subtitle">引数</div>
-<div class="subtitle">戻り値</div>
-<div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+Uint32 SDL_GetTicks(void)
 
+<div class="subtitle">戻り値</div>
+SDLが初期化されてから経過した時間を32bit符号なし整数で戻す.
+
+<div class="subtitle">詳細</div>
+この値はプログラムが実行されてから約49日で巻き戻る.
+
+この関数はSDL 2.0.18以降は使用を推奨しない. 代わりにSDL_GetTicks64()を使うべきである. これは49日経っても巻き戻らない. SDLにはバイナリ互換を失わせない限り変更できない32ビットタイムスタンプを提供する箇所があるため, この関数は正式には廃止されない.
+
+<div class="subtitle">サンプルコード</div>
+<pre><code class="example">unsigned int lastTime = 0, currentTime;
+while (!quit) {
+    // ここで処理を行う
+    // ...
+
+    // 1秒に1回報告する
+    currentTime = SDL_GetTicks();
+    if (currentTime > lastTime + 1000) {
+        printf("報告: %d¥n", variable);
+        lastTime = currentTime;
+    }
+}</code></pre>
 ---
 
 #### SDL_GetPerformanceCounter  
+高分解能カウンタの現在の値を得る.
 
 <div class="subtitle">構文</div>
-<div class="subtitle">引数</div>
+Uint64 SDL_GetPerformanceCounter(void)
+
 <div class="subtitle">戻り値</div>
+現在のカウンタの値を戻す.
+
 <div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+この関数は, 性能分析で使うのが典型である.<br>
+このカウンタ値は差のみ意味を持つ. SDL_GetPerformanceFrequency()で値の差を時間に変換できる.
 
 ---
 
-#### SDL_GetPerformanceFrequency  
+#### SDL_GetPerformanceFrequency
+1秒あたりの高分解能カウンタを得る.   
 
 <div class="subtitle">構文</div>
-<div class="subtitle">引数</div>
+Uint64 SDL_GetPerformanceFrequency(void)
+
 <div class="subtitle">戻り値</div>
+環境に依存した1秒あたりのカウント数を得る.
+
 <div class="subtitle">詳細</div>
 <div class="subtitle">サンプルコード</div>
+<pre><code class="example">#include "SDL.h"
+
+#define DEFAULT_RESOLUTION  1
+
+static int ticks = 0;
+
+static Uint32 SDLCALL
+ticktock(Uint32 interval, void *param)
+{
+    ++ticks;
+    return (interval);
+}
+
+static Uint32 SDLCALL
+callback(Uint32 interval, void *param)
+{
+    SDL_Log("タイマ %d : パラメータ = %d", interval, (int) (uintptr_t) param);
+    return interval;
+}
+
+int
+main(int argc, char *argv[])
+{
+    int i, desired;
+    SDL_TimerID t1, t2, t3;
+    Uint32 start32, now32;
+    Uint64 start, now;
+
+    /* 通常のアプリケーションログを有効にする */
+    SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);
+
+    if (SDL_Init(SDL_INIT_TIMER) &lt; 0) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDLを初期化できなかった: %s", SDL_GetError());
+        return (1);
+    }
+
+    /* タイマを開始する */
+    desired = 0;
+    if (argv[1]) {
+        desired = SDL_atoi(argv[1]);
+    }
+    if (desired == 0) {
+        desired = DEFAULT_RESOLUTION;
+    }
+    t1 = SDL_AddTimer(desired, ticktock, NULL);
+
+    /* 10秒間待つ */
+    SDL_Log("10秒間待つ");
+    SDL_Delay(10 * 1000);
+
+    /* タイマを停止する */
+    SDL_RemoveTimer(t1);
+
+    /* 結果を表示する */
+    if (ticks) {
+        SDL_Log("タイマ分解能: 要求 = %d ms, 実際 = %f ms",
+                desired, (double) (10 * 1000) / ticks);
+    }
+
+    /* 複数のタイマのテスト */
+    SDL_Log("複数のタイマのテスト...");
+    t1 = SDL_AddTimer(100, callback, (void *) 1);
+    if (!t1)
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,"タイマ1を生成できなかった: %s", SDL_GetError());
+    t2 = SDL_AddTimer(50, callback, (void *) 2);
+    if (!t2)
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,"タイマ2を生成できなかった: %s", SDL_GetError());
+    t3 = SDL_AddTimer(233, callback, (void *) 3);
+    if (!t3)
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,"タイマ3を生成できなかった: %s", SDL_GetError());
+
+    /* 10秒間待つ */
+    SDL_Log("10秒間待つ");
+    SDL_Delay(10 * 1000);
+
+    SDL_Log("タイマ1を削除し, さらに5秒間待つ");
+    SDL_RemoveTimer(t1);
+
+    SDL_Delay(5 * 1000);
+
+    SDL_RemoveTimer(t2);
+    SDL_RemoveTimer(t3);
+
+    start = SDL_GetPerformanceCounter();
+    for (i = 0; i < 1000000; ++i) {
+        ticktock(0, NULL);
+    }
+    now = SDL_GetPerformanceCounter();
+    SDL_Log("100万回のticktock関数の呼び出しには %f ms を要した", (double)((now - start)*1000) / SDL_GetPerformanceFrequency());
+
+    SDL_Log("1秒あたりの高分解能カウンタ: %"SDL_PRIu64"", (unsigned long long) SDL_GetPerformanceFrequency());
+    start32 = SDL_GetTicks();
+    start = SDL_GetPerformanceCounter();
+    SDL_Delay(1000);
+    now = SDL_GetPerformanceCounter();
+    now32 = SDL_GetTicks();
+    SDL_Log("SDL_Delay(1000) = %d ms, 高分解能では %f", (now32-start32), (double)((now - start)*1000) / SDL_GetPerformanceFrequency());
+
+    SDL_Quit();
+    return (0);
+}</code></pre>
 
 ---
 
 ### SDL_Delay  
+指定のミリ秒の間待つ.
 
 <div class="subtitle">構文</div>
+void SDL_Delay(Uint32 ms)
+
 <div class="subtitle">引数</div>
-<div class="subtitle">戻り値</div>
+ms: 待ち時間(ミリ秒)
+
 <div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+この関数は指定のミリ秒を待ってから戻る. 待ち時間は最小値であり, OSのスケジューリングによっては, より長くなる可能性がある.
 
 ---
 
@@ -2139,33 +2280,41 @@ SDL_Scancode
 
 ---
 
-#### SDL_SetRenderTarget  
+#### SDL_SetRenderTarget
+レンダラーのレンダーターゲットを設定する.
 
 <div class="subtitle">構文</div>
+int SDL_SetRenderTarget(SDL_Renderer *renderer, SDL_Texture *texture)
+
 <div class="subtitle">引数</div>
+renderer: レンダリングコンテキスト
+texture: レンダーターゲットとなるテクスチャ. SDL_TEXTUREACCESS_TARGETフラグをつけて生成されている必要がある. NULLでデフォルトのレンダーターゲットに戻される
+
 <div class="subtitle">戻り値</div>
+成功のとき0, 失敗のとき負の数のエラーコードを戻す. SDL_GetError()で詳細を知ることができる.
+
 <div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+この関数を使う前に, レンダーターゲット機能に対応しているかをSDL_RendererInfoのSDL_RENDERER_TARGETTEXTUREフラグをチェックする必要がある.<br>
+レンダーターゲットのデフォルトは, そのレンダラーを生成したウィンドウである. テクスチャのレンダリングをやめて, 再びウィンドウをレンダリングする場合は, textureをNULLにしてこの関数を呼ぶこと.
 
 ---
 
 #### SDL_GetRendererOutputSize  
+レンダリングコンテキストの出力サイズをピクセル数で得る.
 
 <div class="subtitle">構文</div>
+int SDL_GetRendererOutputSize(SDL_Renderer* renderer, int* w, int* h)
+
 <div class="subtitle">引数</div>
+renderer: レンダリングコンテキスト
+w: 幅を代入するポインタ
+h: 高さを代入するポインタ
+
 <div class="subtitle">戻り値</div>
+成功のとき0, 失敗のとき負の数のエラーコードを戻す. SDL_GetError()で詳細を知ることができる.
+
 <div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
-
----
-
-#### SDL_SetRenderScale  
-
-<div class="subtitle">構文</div>
-<div class="subtitle">引数</div>
-<div class="subtitle">戻り値</div>
-<div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+高DPIのとき, ウィンドウサイズよりもレンダリングコンテキストの方がピクセル数が多くなる. その場合, 描画可能な領域を得るためには, SDL_GetWindowSize()の代わりにこの関数を使う.
 
 ---
 
@@ -2173,23 +2322,30 @@ SDL_Scancode
 
 ---
 
-#### SDL_RenderSetClipRect  
+#### SDL_RenderSetClipRect
+レンダーターゲットにクリップ領域を設定する.
 
 <div class="subtitle">構文</div>
+int SDL_RenderSetClipRect(SDL_Renderer* renderer, const SDL_Rect* rect)
+
 <div class="subtitle">引数</div>
+renderer: クリップ領域を設定するレンダリングコンテキスト
+rect: クリップ領域のSDL_Rect. NULLのときクリップを無効にする
+
 <div class="subtitle">戻り値</div>
-<div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+成功のとき0, 失敗のとき負の数のエラーコードを戻す. SDL_GetError()で詳細を知ることができる.
 
 ---
 
-#### SDL_RenderGetClipRect  
+#### SDL_RenderGetClipRect
+現在のレンダーターゲットのクリップ領域を得る.
 
 <div class="subtitle">構文</div>
+void SDL_RenderGetClipRect(SDL_Renderer* renderer, SDL_Rect* rect)
+
 <div class="subtitle">引数</div>
-<div class="subtitle">戻り値</div>
-<div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+renderer: クリップ領域を調査するレンダリングコンテキスト
+rect: 現在のクリップ領域, またはクリップが無効な場合は空の領域が代入されるSDL_Rect
 
 ---
 
@@ -2197,33 +2353,63 @@ SDL_Scancode
 
 ---
 
-#### SDL_ShowCursor  
+#### SDL_ShowCursor
+マウスカーソルの表示・非表示を変更する.
 
 <div class="subtitle">構文</div>
+int SDL_ShowCursor(int toggle)
+
 <div class="subtitle">引数</div>
+toggle: SDL_ENABLEのとき表示, SDL_DISABLEのとき非表示, SDL_QUERYのとき現在の状態を調査する
+
 <div class="subtitle">戻り値</div>
+表示されているときSDL_ENABLE, 非表示のときSDL_DISABLE, 失敗のとき負の数のエラーコードを戻す. <br>SDL_GetError()で詳細を知ることができる.
+
 <div class="subtitle">詳細</div>
+カーソルは始めは表示されているが, 非表示にもできる. SDL_ENABLEを渡すと表示され, SDL_DISABLEを渡すと非表示になる.<br>
+SDL_QUERYを渡すと現在のカーソルの状態を得られる. SDL_DISABLEまたはSDL_ENABLEのいずれかが戻る.<br>
+toggleは次の値のいずれかである:
+
 <div class="subtitle">サンプルコード</div>
+<pre><code class="example">int main(int argc, char *argv[]) {
+    /* カーソルを見えないようにする */
+    SDL_ShowCursor(SDL_DISABLE);
+    /* ... */
+    return 0;
+}</code></pre>
 
 ---
 
 #### SDL_SetCursor  
+マウスカーソルを設定する.
 
 <div class="subtitle">構文</div>
+void SDL_SetCursor(SDL_Cursor* cursor)
+
 <div class="subtitle">引数</div>
-<div class="subtitle">戻り値</div>
+cursor: 設定するマウスカーソル (詳細を参照すること)
+
 <div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+この関数は現在のマウスカーソルを指定したものにする. カーソルが非表示ならば, 表示された直後に変更される. もし様々な理由で必要ならば, SDL_SetCursor(NULL)で強制的にカーソルを描き直せる.
 
 ---
 
 #### SDL_CreateSystemCursor  
+システムカーソルを生成する.
 
 <div class="subtitle">構文</div>
+SDL_Cursor* SDL_CreateSystemCursor(SDL_SystemCursor id)
+
 <div class="subtitle">引数</div>
+id: SDL_SystemCursor列挙体の値
+
 <div class="subtitle">戻り値</div>
-<div class="subtitle">詳細</div>
+成功のときカーソル, 失敗のときNULLを戻す. SDL_GetError()で詳細を知ることができる.
+
 <div class="subtitle">サンプルコード</div>
+<pre><code class="example">SDL_Cursor* cursor;
+cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
+SDL_SetCursor(cursor);</code></pre>
 
 ---
 
@@ -2231,33 +2417,15 @@ SDL_Scancode
 
 ---
 
-#### SDL_memset  
+#### SDL_Log
+SDL_LOG_CATEGORY_APPLICATION分類ログをSDL_LOG_PRIORITY_INFOの重要度で出力する.
 
 <div class="subtitle">構文</div>
+void SDL_Log(const char* fmt, ...)
+
 <div class="subtitle">引数</div>
-<div class="subtitle">戻り値</div>
-<div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
-
----
-
-#### SDL_memcpy  
-
-<div class="subtitle">構文</div>
-<div class="subtitle">引数</div>
-<div class="subtitle">戻り値</div>
-<div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
-
----
-
-#### SDL_Log  
-
-<div class="subtitle">構文</div>
-<div class="subtitle">引数</div>
-<div class="subtitle">戻り値</div>
-<div class="subtitle">詳細</div>
-<div class="subtitle">サンプルコード</div>
+fmt: printf()形式の文字列形式
+...: fmt文字列の%トークンに一致する追加の引数
 
 ---
 
