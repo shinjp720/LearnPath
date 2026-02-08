@@ -32,11 +32,16 @@ h2 {
 }
 
 h3 {
-    font-size: 1.2rem;
+    font-size: 1.6rem;
     font-weight: 600;
     color: #f0f6fc;
     margin: 1.2rem 0;
 }
+
+h4 {
+    font-size: 1.2rem;
+}
+
 
 /* naviのリスト */
 #navi ul {
@@ -93,18 +98,13 @@ h3 {
 
 /* 引用 */
 blockquote {
-    margin-left: 0%;
+    margin-left: 1rem;
 }
 
 blockquote p {
     color: rgb(251, 211, 211);
     font-size: 1.2rem;
 }
-
-blockquote p::before {
-    content: "・ ";
-}
-
 
 /* テーブル */
 table {
@@ -236,7 +236,7 @@ pre code {
     display: block;
     color: #bc8cff;
     font-weight: 600;
-    font-size: 1.6rem;
+    font-size: 1.2rem;
     padding: 1rem 0;
 }
 
