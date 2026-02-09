@@ -328,6 +328,71 @@ let m = Message::Write(String::from("hello"));
 m.call();
 ```
 
+## ベクタ <a id="vector" data-name="ベクタ"></a>
+
+ベクタは同じ型の値を動的にかつメモリ上で隣り合った形で保持できるコレクション。
+
+#### 生成
+
+- 空のベクタを生成
+```rust
+let mut v: Vec<i32> = Vec::new();
+```
+- 初期値を与える
+```rust
+let v = vec![1, 2, 3];
+```
+
+#### アクセス
+
+- インデックスでアクセス
+```rust
+let v = vec![1, 2, 3, 4, 5];
+
+let third: &i32 = &v[2]; // 範囲外アクセスはパニックとなる
+println!("The third element is {third}");
+```
+- getメソッドでアクセス
+```rust
+let third: Option<&i32> = v.get(2); // Optionで返される
+match third {
+    Some(third) => println!("The third element is {third}"),
+    None => println!("There is no third element."),
+}
+```
+
+#### 値の追加
+```rust
+let mut v = Vec::new();
+
+v.push(5);
+v.push(6);
+v.push(7);
+v.push(8);
+```
+---
+
+## ハッシュマップ <a id="hashmap" data-name="ハッシュマップ"></a>
+
+型HashMap<K, V>は、 K型のキーとV型の値の対応関係をハッシュ関数を使用して保持する。
+
+#### 生成
+
+```rust
+    use std::collections::HashMap;
+
+    let mut scores = HashMap::new();
+
+    scores.insert(String::from("Blue"), 10);
+    scores.insert(String::from("Yellow"), 50);
+```
+
+
+
+
+
+
+
 ---
 
 ## Option <a id="option" data-name="Option"></a>
