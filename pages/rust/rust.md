@@ -23,25 +23,11 @@ layout: default
 
 ## 関数 <a id="function" data-name="関数"></a>
 
-### 構文
+#### 構文
 
 ```rust
 fn func([argument...]) -> return_value {}
 ```
-
-### 文と式
-
-- 文は何らかの動作をして値を返さない命令。
-- 式は結果値に評価され、値を返す。
-
-```rust
-{
-    let x = 3; // 文
-    x + 1      // 式
-}
-```
-ブロックの最後にセミコロン(;)を付けない場合は式となり結果をreturnする。
-
 
 ---
 
@@ -637,8 +623,14 @@ for elm in a {
     println!("the value is: {elm}");
 }
 ```
+デフォルトでinto_iterが適用される。
 
-
+- iter
+  要素を借用する。
+- into_iter
+  要素をムーブする。
+- iter_mut
+  要素を可変借用する。
 
 ### while
 
@@ -718,6 +710,27 @@ println!("The result is {result}");
 #### continue
 
 continueは、continue以降の処理を飛ばしてブロックの先頭にジャンプする。
+
+#### ネストとラベル
+
+ネストしたループを回している時に外側のループをbreakまたはcontionueしたい場合は'labelを用いてラベルを貼り、break/continueをそのラベルを渡す。
+
+```rust
+fn main() {
+    'outer: loop {
+        println!("Entered the outer loop");
+        'inner: loop {
+            println!("Entered the inner loop");
+            // これは内側のループのみを中断
+            //break;
+            // こちらは外側を中断
+            break 'outer;
+        }
+        println!("This point will never be reached");
+    }
+    println!("Exited the outer loop");
+}
+```
 
 ---
 
