@@ -329,7 +329,8 @@ m.call();
 ```
 ## Option <a id="option" data-name="Option"></a>
 
-Optionは、何らかの値を持つ、何も持たないを表現するenumであり、標準ライブラリで定義されている。
+Optionは、何らかの値を持つ、何も持たないを表現するenumであり、標準ライブラリで定義されている。<br>
+Optionはpreludeに含まれているため、明示的にOption::と書かなくてもSomeとNoneを使える。
 
 ```rust
 enum Option<T> {
@@ -338,9 +339,8 @@ enum Option<T> {
 }
 ```
 
-Optionはpreludeに含まれているため、明示的にOption::と書かなくてもSomeとNoneを使える。<br>
-Some値があるとき、値があるとわかりその値はSomeに保持されている。<br>
-None値があるとき、値がないことがわかる。
+Some値であるとき、値があるとわかりその値はSomeに保持されている。<br>
+None値であるとき、値がないことがわかる。
 
 <br>
 
