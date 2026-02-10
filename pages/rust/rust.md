@@ -632,6 +632,25 @@ for elm in a {
 - iter_mut<br>
   要素を可変借用する。
 
+<br>
+
+このように使う。
+
+```rust
+fn main() {
+    let mut names = vec!["Bob", "Frank", "Ferris"];
+
+    for name in names.iter_mut() {
+        *name = match name {
+            &mut "Ferris" => "There is a rustacean among us!",
+            _ => "Hello",
+        }
+    }
+
+    println!("names: {:?}", names);
+}
+```
+
 ### while
 
 条件がtrueの間ブロック内を繰り返す。
