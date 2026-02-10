@@ -625,11 +625,11 @@ for elm in a {
 ```
 デフォルトでinto_iterが適用される。
 
-- iter
+- iter<br>
   要素を借用する。
-- into_iter
+- into_iter<br>
   要素をムーブする。
-- iter_mut
+- iter_mut<br>
   要素を可変借用する。
 
 ### while
