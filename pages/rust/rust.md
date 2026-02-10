@@ -327,6 +327,45 @@ impl Message {
 let m = Message::Write(String::from("hello"));
 m.call();
 ```
+## Option <a id="option" data-name="Option"></a>
+
+Optionは、何らかの値を持つ、何も持たないを表現するenumであり、標準ライブラリで定義されている。
+
+```rust
+enum Option<T> {
+    None,
+    Some(T),
+}
+```
+
+Optionはpreludeに含まれているため、明示的にOption::と書かなくてもSomeとNoneを使える。<br>
+Some値があるとき、値があるとわかりその値はSomeに保持されている。<br>
+None値があるとき、値がないことがわかる。
+
+<br>
+
+```rust
+let x: i8 = 5;
+let y: Option<i8> = Some(5);
+
+// let sum = x + y; // error!
+```
+
+このような書き方は言語仕様上禁止されていて、Optionは、SomeとNoneの場合の処理を記述することをプログラマに強制していると言える。<br>
+enumの処理は[match](#match)が適している。
+
+---
+
+## Result <a id="result" data-name="Result"></a>
+
+
+
+
+
+
+
+
+
 
 ## ベクタ <a id="vector" data-name="ベクタ"></a>
 
@@ -392,35 +431,6 @@ v.push(8);
 
 
 
-
----
-
-## Option <a id="option" data-name="Option"></a>
-
-Optionは、何らかの値を持つ、何も持たないを表現するenumであり、標準ライブラリで定義されている。
-
-```rust
-enum Option<T> {
-    None,
-    Some(T),
-}
-```
-
-Optionはpreludeに含まれているため、明示的にOption::と書かなくてもSomeとNoneを使える。<br>
-Some値があるとき、値があるとわかりその値はSomeに保持されている。<br>
-None値があるとき、値がないことがわかる。
-
-<br>
-
-```rust
-let x: i8 = 5;
-let y: Option<i8> = Some(5);
-
-// let sum = x + y; // error!
-```
-
-このような書き方は言語仕様上禁止されていて、Optionは、SomeとNoneの場合の処理を記述することをプログラマに強制していると言える。<br>
-enumの処理は[match](#match)が適している。
 
 ---
 
