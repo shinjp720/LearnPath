@@ -11,8 +11,9 @@ body {
     overflow-y: auto;
 }
 
+/* 見出し */
 h1 {
-    font-size: 2.8rem;
+    font-size: 2.6rem;
     font-weight: 600;
     color: #f0f6fc;
     border-bottom: 1px solid #21262d;
@@ -23,23 +24,31 @@ h1 {
 h2 {
     font-size: 1.8rem;
     font-weight: 600;
-    color: #f0f6fc;
+    color: #5d86ff;
     background-color: #131b29;
-    border-left: 4px solid #58a6ff;
+    border-left: 10px solid #58a6ff;
     padding: 0.8rem 1.2rem;
-    margin: 1.5rem 0;
     border-radius: 6px;
 }
 
 h3 {
-    font-size: 1.6rem;
+    font-size: 1.5rem;
     font-weight: 600;
-    color: #f0f6fc;
-    margin: 1.1rem 0;
+    color: #8ca9ff;
+    margin-top: 2rem;
+    margin-bottom: 0;
 }
 
 h4 {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
+    color: #9fccff;
+    margin: 0;
+    padding: 0;
+}
+
+/* 水平ライン */
+hr {
+    margin: 1rem 0;
 }
 
 
@@ -94,16 +103,6 @@ h4 {
 
 #toc ul li a:hover {
     color: #58a6ff;
-}
-
-/* 引用 */
-blockquote {
-    margin-left: 1rem;
-}
-
-blockquote p {
-    color: rgb(251, 211, 211);
-    font-size: 1.2rem;
 }
 
 /* テーブル */
@@ -164,11 +163,11 @@ pre code {
 /* 例 */
 .example {
     display: block;
-    color: #f0f6fc;
-    background-color: #1a4421;
+    color: #ffffff;
+    background-color: #08290d;
     font-weight: 500;
     border: 1px solid #2ea043;
-    border-left: 4px solid #2ea043;
+    border-left: 6px solid #2ea043;
     border-radius: 6px;
     padding: 1.2rem 1.6rem;
     margin: 1rem 0;
@@ -184,11 +183,11 @@ pre code {
 /* 注意 */
 .caution {
     display: block;
-    color: #f0f6fc;
-    background-color: #4c1f1a;
+    color: #ffffff;
+    background-color: #401712;
     font-weight: 500;
     border: 1px solid #f85149;
-    border-left: 4px solid #f85149;
+    border-left: 6px solid #f85149;
     border-radius: 6px;
     padding: 1.2rem 1.6rem;
     margin: 1rem 0;
@@ -204,11 +203,11 @@ pre code {
 /* tips */
 .tips {
     display: block;
-    color: #0d1117;
-    background-color: #bb8009;
+    color: #ffffff;
+    background-color: #6c4800;
     font-weight: 500;
     border: 1px solid #d29922;
-    border-left: 4px solid #d29922;
+    border-left: 6px solid #d29922;
     border-radius: 6px;
     padding: 1.2rem 1.6rem;
     margin: 1rem 0;

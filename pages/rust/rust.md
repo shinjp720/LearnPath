@@ -7,6 +7,12 @@ layout: default
 
 ---
 
+### コメント
+```rust
+// 行末までコメント
+/* 複数行コメント可能 */
+```
+
 ## cargo
 
 
@@ -26,7 +32,10 @@ layout: default
 #### 構文
 
 ```rust
-fn func([argument...]) -> return_value {}
+fn func([argument...]) -> return_value {
+    // 処理内容
+    return_value // セミコロンを付けなければ戻り値となる
+}
 ```
 
 ---
@@ -113,7 +122,7 @@ let (x, y, z) = tup;
 println!("The value of y is: {y}"); // 6.4
 ```
 
-上記のプログラムでは、まずタプルを生成しtupに束縛して、tupの中身を3つの変数(x, y, z)に束縛している。これを分配と呼ぶ。
+まずタプルを生成しtupに束縛して、tupの中身を3つの変数(x, y, z)に束縛している。これを分配と呼ぶ。
 
 #### インデックスアクセス
 
@@ -137,7 +146,8 @@ let one = x.2;
 
 ## 構造体 <a id="struct" data-name="構造体"></a>
 
-- 定義
+#### 定義
+
 ```rust
 struct User {
     active: bool,
@@ -146,7 +156,9 @@ struct User {
     sign_in_count: u64,
 }
 ```
-- 生成
+
+#### 生成
+
 ```rust
 fn main() {
     let mut user1 = User {
@@ -157,12 +169,12 @@ fn main() {
     };
 }
 ```
-- アクセス
+
+#### アクセス
+
 ```rust
 user1.email = String::from("anotheremail@example.com");
 ```
-
-<br>
 
 
 #### フィールド初期化省略記法
@@ -223,7 +235,9 @@ fn main() {
 #### 関連関数
 
 メソッドを定義するにはimplブロックで始める。<br>
-implブロック内で定義されたすべての関数は、implの後に書かれた型に関連付けられているので、<strong>関連関数</strong>と呼ばれる。
+implブロック内で定義されたすべての関数は、implの後に書かれた型に関連付けられているので、**関連関数**と呼ばれる。
+
+#### メソッド
 
 ```rust
 #[derive(Debug)]
@@ -233,11 +247,23 @@ struct Rectangle {
 }
 
 impl Rectangle {
-    fn area(&self) -> u32 {
+    fn area(&self) -> u32 { // インスタンスに関連づいているため&selfと書く
         self.width * self.height
     }
 }
 ```
+
+メソッドを呼び出す場合は、`インスタンス.関数名()`と記述する。
+
+```rust
+let rect = Rectangle {
+    width: 25,
+    height: 10,
+};
+println!("{}", rect.area()); // 250
+```
+
+#### メソッドではない関連関数
 
 対象とするインスタンスを必要としないためにselfを第1引数として持たない(つまりメソッドではない)関連関数を定義することもできる。<br>
 メソッドではない関連関数は、構造体の新規インスタンスを返すコンストラクタによく使用される。
@@ -253,7 +279,7 @@ impl Rectangle {
 }
 ```
 
-この関数を呼び出すために構造体名と::を使用する。
+この関数を呼び出すには、`構造体名::関数名()`と記述する。
 
 ```rust
 Rectangle::square(3);
@@ -263,22 +289,27 @@ Rectangle::square(3);
 
 ## enum <a id="enum" data-name="enum"></a>
 
-IPアドレスのように、2つの規格(IPv4とIPv6)のいずれかの値(複数の値)を持つものを表現するにはenumが適している。
+IPアドレスのように、2つの規格(IPv4とIPv6)のいずれかの値(複数の中のいずれか)を持つものを表現するにはenumが適している。
 
-- 宣言
+#### 宣言
+
 ```rust
 enum IpAddrKind {
     V4,
     V6,
 }
 ```
-- 生成
+
+#### 生成
+
 ```rust
 let four = IpAddrKind::V4;
 let six = IpAddrKind::V6;
 ```
 
-そしてenumはタグ(列挙子)に加えて直接データを持てる。
+#### enumにデータを持たせる
+
+enumはタグ(列挙子)に加えて直接データを持てる。
 
 ```rust
 enum IpAddr {
@@ -316,10 +347,13 @@ impl Message {
 let m = Message::Write(String::from("hello"));
 m.call();
 ```
+
 ## Option <a id="option" data-name="Option"></a>
 
-Optionは、何らかの値を持つ、何も持たないを表現するenumであり、標準ライブラリで定義されている。<br>
+Optionは、何らかの値を持つ、何も持たない状態を表現するenumであり、標準ライブラリで定義されている。<br>
 Optionはpreludeに含まれているため、明示的にOption::と書かなくてもSomeとNoneを使える。
+
+#### Option
 
 ```rust
 enum Option<T> {
@@ -328,20 +362,6 @@ enum Option<T> {
 }
 ```
 
-Some値であるとき、値があるとわかりその値はSomeに保持されている。<br>
-None値であるとき、値がないことがわかる。
-
-<br>
-
-```rust
-let x: i8 = 5;
-let y: Option<i8> = Some(5);
-
-// let sum = x + y; // error!
-```
-
-このような書き方は言語仕様上禁止されていて、Optionは、SomeとNoneの場合の処理を記述することをプログラマに強制していると言える。<br>
-enumの処理は[match](#match)が適している。
 
 ---
 
@@ -390,6 +410,7 @@ match third {
 ```
 
 #### 値の追加
+
 ```rust
 let mut v = Vec::new();
 
@@ -497,7 +518,7 @@ let slice = &s[..];
 
 ## 変数 <a id="variable" data-name="変数"></a>
 
-> let
+#### let
 
 letで不変の変数となる。<br>
 値の再代入ができないという意味で、宣言時に値が決まればいい。
@@ -507,7 +528,7 @@ let i : i32 = 15;
 // i = 30 // error
 ```
 
-> let mut
+#### let mut
 
 let mutで可変な変数となる。
 
@@ -516,7 +537,7 @@ let mut i: i32 = 15;
 i = 30; // ok
 ```
 
-> const
+#### const
 
 constで定数となりる。<br>
 constの場合はコンパイル時に値が決まっている必要がある。
@@ -525,7 +546,7 @@ constの場合はコンパイル時に値が決まっている必要がある。
 
 シャドーイングとは、前に定義した変数と同じ名前で変数を宣言することを言い、前に宣言された変数は破棄され、新たな変数で覆い隠す。
 
-> メリット
+#### メリット
 
 - mutを付けて可変にせずに一時的に値を書き換えることができる。
 ```rust
@@ -546,13 +567,11 @@ let x = x.parse::<i32>().unwrap();
 - スコープを抜けると自動で以前の意味に戻る。
 ```rust
 let x = 10;
-
 // 一時的な計算
 {
     let x = x + 5;
     println!("{}", x); // 15
 }
-
 println!("{}", x); // 10
 ```
 
@@ -584,7 +603,7 @@ for _i in 1..16 {
 }
 ```
 
-<br>
+#### 戻り値を持つif
 
 ifは式なので、letの右辺に持ってきて結果を代入することができる。
 
@@ -606,18 +625,15 @@ for _i: i32 in 0..=10 { // 0から10まで
 }
 ```
 
-<br>
+#### 逆順
 
-逆順で取り出す。
 ```rust
 for num in (1..4).rev() {
     println!("{num}"); // 3 2 1
 }
 ```
 
-<br>
-
-コレクションを順番に取り出す
+#### イテレータの要素を順番に取り出す
 
 ```rust
 let a = [10, 20, 30, 40, 50];
@@ -626,18 +642,15 @@ for elm in a {
     println!("the value is: {elm}");
 }
 ```
+
+| --- | ---|
+| iter() | 要素を借用する |
+| into_iter() | 要素をムーブする |
+| iter_mut() | 要素を可変借用する |
+
 デフォルトでinto_iterが適用される。
 
-- iter<br>
-  要素を借用する。
-- into_iter<br>
-  要素をムーブする。
-- iter_mut<br>
-  要素を可変借用する。
-
-<br>
-
-このように使う。
+#### 使用例
 
 ```rust
 fn main() {
@@ -683,33 +696,6 @@ fn main() {
 }
 ```
 
-<br>
-
-loopの中にloopがある場合、ループラベルを使用することでbreakやcontinueが適用されるループを指定することができる。<br>
-ループラベルはシングルクォートで始める。
-
-```rust
-let mut count = 0;
-'counting_up: loop {
-    println!("count = {count}");
-    let mut remaining = 10;
-
-    loop {
-        println!("remaining = {remaining}");
-        if remaining == 9 {
-            break;
-        }
-        if count == 2 {
-            break 'counting_up;
-        }
-        remaining -= 1;
-    }
-
-    count += 1;
-}
-println!("End count = {count}");
-```
-
 #### break
 
 ブロックを抜けるにはbreakを使う。<br>
@@ -731,11 +717,11 @@ println!("The result is {result}");
 
 #### continue
 
-continueは、continue以降の処理を飛ばしてブロックの先頭にジャンプする。
+continueは、以降の処理を飛ばしてブロックの先頭にジャンプする。
 
 #### ネストとラベル
 
-ネストしたループを回している時に外側のループをbreakまたはcontionueしたい場合は'labelを用いてラベルを貼り、break/continueをそのラベルを渡す。
+ネストしたループを回している時に外側のループを`break`、または`continue`したい場合は`'label`を用いてラベルを貼り、break/continueにそのラベルを渡す。
 
 ```rust
 fn main() {
@@ -744,7 +730,7 @@ fn main() {
         'inner: loop {
             println!("Entered the inner loop");
             // これは内側のループのみを中断
-            //break;
+            // break;
             // こちらは外側を中断
             break 'outer;
         }
@@ -759,7 +745,7 @@ fn main() {
 ### match
 
 matchは、一連のパターンに対して値を比較し、マッチしたパターンに応じて処理を実行する。<br>
-また、matchは包括的であり、すべての可能性を網羅しないとコンパイルが通らないという特徴がある。
+また、matchは包括的であり、すべての可能性を網羅しないとコンパイルが通らないという特性を持つ。
 
 ```rust
 fn plus_one(x: Option<i32>) -> Option<i32> {
@@ -817,30 +803,159 @@ fn value_in_cents(coin: Coin) -> u8 {
 
 ---
 
+## 出力・フォーマット <a id="output-format" data-name="出力・フォーマット"></a>
 
-### println!
+#### マクロ
 
-#### デバッグ用出力
+出力、フォーマット用に以下のようなマクロが提供されている。
 
-構造体定義の前に以下のように外部属性を追加すると
+| --- | --- |
+| format! | フォーマットされたテキストをStringに書き込む |
+| print! | format!と同様だが、標準出力(io::stdout)にそのテキストを出力する |
+| println! | print!と同様だが、改行が付け加えられる |
+| eprint! | format!と同様だが、標準エラー出力(io::stderr)にそのテキストを出力する |
+| eprintln! | eprint!と同様だが、改行が付け加えられる |
+
+#### fmt::Debug
+
+主に開発者のための機能で、構造体やenum定義の前に以下のように外部属性を追加するだけで
+
 ```rust
 #[derive(Debug)]
 struct Rectangle {
     width: u32,
     height: u32,
 }
-
-int main() {
-    let rect = Rectangle {
-        width: 30,
-        height: 50, 
-    };
-}
 ```
 
-printでデバッグ用の出力を得られる
+`"{:?}"`により、デバッグ用の出力を得られる。
 
 ```rust
 println!("{:?}", rect);
-// { width: 30, height: 50 }
+// Rectangle { width: 30, height: 50 }
 ```
+
+#### fmt::Display
+
+エンドユーザー(アプリ利用者)のための機能で、自由に表示形式を定義できる。
+
+```rust
+use std::fmt;
+
+struct User {
+    id: u32,
+    name: String,
+}
+
+// Displayトレイトを手動で実装する
+impl fmt::Display for User {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // ユーザーに id は見せず、名前だけを表示したい
+        write!(f, "User: {}", self.name)
+    }
+}
+```
+
+```rust
+let u = User {
+    id: 32,
+    name: String::from("Alice"),
+};
+println!("{u}"); // User: Alice
+```
+
+### フォーマット
+
+#### 変数を引数に取る
+
+Rust  1.58以降では周囲の変数から直接引数に取ることができる。
+
+```rust
+let number: f64 = 1.0;
+println!("number is {number}");
+```
+
+#### {}による置き換え
+
+{}はどんな引数でも自動的に置き換えられる
+
+```rust
+println!("{} days", 31);
+```
+
+#### 位置引数
+
+{}で整数を指定することでどの引数で置換されるか決まる。
+
+```rust
+println!("{0}, this is {1}. {1}, this is {0}", "Alice", "Bob");
+```
+
+#### 名前で指定
+
+名前での指定も可能。
+
+```rust
+println!("{subject} {verb} {object}",
+    object="the lazy dog",
+    subject="the quick brown fox",
+    verb="jumps over");
+```
+
+#### :によるフォーマット
+
+:の後にフォーマット文字を指定して異なるフォーマットにすることも可能。
+
+```rust
+println!("Base 10:               {}",   69420); // 69420
+println!("Base 2 (binary):       {:b}", 69420); // 10000111100101100
+println!("Base 8 (octal):        {:o}", 69420); // 207454
+println!("Base 16 (hexadecimal): {:x}", 69420); // 10f2c
+```
+
+右寄せ
+
+```rust
+println!("{number:>5}", number=1); // 右寄せ5文字幅
+```
+
+0埋め
+
+```rust
+// 右寄せで0埋め
+println!("{number:0>5}", number=1); // 00001
+// 左寄せで0埋め
+println!("{number:0<5}", number=1); // 10000
+```
+
+名前付き引数
+
+```rust
+// $をつけることで名前付き引数を利用できる
+println!("{number:0>width$}", number=1, width=5);
+```
+
+## 開発 <a id="development" data-name="開発"></a>
+
+### 警告を消す
+
+使っていない変数や、呼び出されていない関数に対する警告を消すには主に2つの方法がある。
+
+#### アンダースコアを付ける
+
+名前の先頭に`_`を付けることであえて使っていないことを明示する。
+
+#### アトリビュート`#[allow(unused)]`を使う
+
+ファイルの先頭に以下を記述する。
+
+| 警告メッセージ | 意味 | 対策アトリビュート |
+| --- | --- | --- |
+| unused_variables | 定義した変数が一度も使われていない | `#[allow(unused_variables)]` |
+| dead_code | 関数や構造体がどこからも呼び出されていない | `#[allow(dead_code)]` |
+| unused_imports | useしたけれど使っていない | `#[allow(unused_imports)]` |
+| 全部まとめて | 上記すべて | `#[allow(unused)]` |
+
+
+
+
