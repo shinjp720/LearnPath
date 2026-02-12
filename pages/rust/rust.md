@@ -54,13 +54,13 @@ Rustは静的型付き言語であり、コンパイル時に型が決まって�
 | i32 | 32ビット整数 |
 | i64 | 64ビット整数 |
 | i128 | 128ビット整数 |
-| isize | 符号付整数で、サイズはアーキテクチャで最速の型となる |
+| isize | 符号付整数で、サイズはアーキテクチャで最速の型となる<br>32ビット環境なら32ビット、64ビット環境なら64ビット |
 | u8 | 8ビット符号なし整数 |
 | u16 | 16ビット符号なし整数 |
 | u32 | 32ビット符号なし整数 |
 | u64 | 64ビット符号なし整数 |
 | u128 | 128ビット符号なし整数 |
-| usize | 符号なし整数で、サイズはアーキテクチャで最速の型となる |
+| usize | 符号なし整数で、サイズはアーキテクチャで最速の型となる<br>32ビット環境なら32ビット、64ビット環境なら64ビット |
 | f32 | 32ビット浮動小数点数 |
 | f64 | 64ビット浮動小数点数 |
 
@@ -107,7 +107,7 @@ let a: [i32; 5] = [1, 2, 3, 4, 5];
 角括弧の中に初期値とセミコロン(;)と配列の要素数を書いて同じ値で初期化することもできる。
 
 ```rust
-let a = [3; 5];
+let a = [3; 5]; // 5つの要素をすべて3で初期化
 ```
 
 ### タプル
@@ -151,7 +151,7 @@ let one = x.2;
 
 ---
 
-## 文字列
+## 文字列 <a id="string" data-name="文字列"></a>
 
 Rustにおける文字列(および文字)の表現は３種類ある。
 
@@ -159,7 +159,6 @@ Rustにおける文字列(および文字)の表現は３種類ある。
 | String | サイズ変更可能な文字列バッファであり、ヒープ領域にデータの実態を持ち、UTF-8でエンコードされている |
 | &str | 文字列データへの参照で、データの開始ポインタと文字長を持つ |
 | char | 1つの文字そのもの。Unicodeで常に4バイト |
-
 
 ---
 
@@ -194,7 +193,6 @@ fn main() {
 ```rust
 user1.email = String::from("anotheremail@example.com");
 ```
-
 
 #### フィールド初期化省略記法
 
@@ -245,63 +243,6 @@ struct AlwaysEqual;
 fn main() {
     let subject = AlwaysEqual;
 }
-```
-
----
-
-## メソッド <a id="method" data-name="メソッド"></a>
-
-#### 関連関数
-
-メソッドを定義するにはimplブロックで始める。<br>
-implブロック内で定義されたすべての関数は、implの後に書かれた型に関連付けられているので、**関連関数**と呼ばれる。
-
-#### メソッド
-
-```rust
-#[derive(Debug)]
-struct Rectangle {
-    width: u32,
-    height: u32,
-}
-
-impl Rectangle {
-    fn area(&self) -> u32 { // インスタンスに関連づいているため&selfと書く
-        self.width * self.height
-    }
-}
-```
-
-メソッドを呼び出す場合は、`インスタンス.関数名()`と記述する。
-
-```rust
-let rect = Rectangle {
-    width: 25,
-    height: 10,
-};
-println!("{}", rect.area()); // 250
-```
-
-#### メソッドではない関連関数
-
-対象とするインスタンスを必要としないためにselfを第1引数として持たない(つまりメソッドではない)関連関数を定義することもできる。<br>
-メソッドではない関連関数は、構造体の新規インスタンスを返すコンストラクタによく使用される。
-
-```rust
-impl Rectangle {
-    fn square(size: u32) -> Self {
-        Self {
-            width: size,
-            height: size,
-        }
-    }
-}
-```
-
-この関数を呼び出すには、`構造体名::関数名()`と記述する。
-
-```rust
-Rectangle::square(3);
 ```
 
 ---
@@ -367,12 +308,69 @@ let m = Message::Write(String::from("hello"));
 m.call();
 ```
 
+---
+
+## メソッド <a id="method" data-name="メソッド"></a>
+
+#### 関連関数
+
+メソッドを定義するにはimplブロックで始める。<br>
+implブロック内で定義されたすべての関数は、implの後に書かれた型に関連付けられているので、**関連関数**と呼ばれる。
+
+#### メソッド
+
+```rust
+#[derive(Debug)]
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+impl Rectangle {
+    fn area(&self) -> u32 { // インスタンスに関連づいているため&selfと書く
+        self.width * self.height
+    }
+}
+```
+
+メソッドを呼び出す場合は、`インスタンス.関数名()`と記述する。
+
+```rust
+let rect = Rectangle {
+    width: 25,
+    height: 10,
+};
+println!("{}", rect.area()); // 250
+```
+
+#### メソッドではない関連関数
+
+対象とするインスタンスを必要としないためにselfを第1引数として持たない(つまりメソッドではない)関連関数を定義することもできる。<br>
+メソッドではない関連関数は、構造体の新規インスタンスを返すコンストラクタによく使用される。
+
+```rust
+impl Rectangle {
+    fn square(size: u32) -> Self {
+        Self {
+            width: size,
+            height: size,
+        }
+    }
+}
+```
+
+この関数を呼び出すには、`構造体名::関数名()`と記述する。
+
+```rust
+Rectangle::square(3);
+```
+
+
+
 ## Option <a id="option" data-name="Option"></a>
 
 Optionは、何らかの値を持つ、何も持たない状態を表現するenumであり、標準ライブラリで定義されている。<br>
 Optionはpreludeに含まれているため、明示的にOption::と書かなくてもSomeとNoneを使える。
-
-#### Option
 
 ```rust
 enum Option<T> {
@@ -393,7 +391,7 @@ enum Option<T> {
 
 
 
-
+---
 
 ## ベクタ <a id="vector" data-name="ベクタ"></a>
 
