@@ -42,8 +42,20 @@ fn func([argument...]) -> return_value {
 
 ## 型 <a id="type" data-name="型"></a>
 
-
 Rustは静的型付き言語であり、コンパイル時に型が決まっている必要がある。
+
+### use
+
+use宣言を使用すると、名前にアクセスするために完全なモジュールパスを入力する必要がなくなる。
+
+
+
+### type
+
+型エイリアス(type)を用いると型の名前があまりに長かったり、あまりに一般的だったりで改名したい場合に役立つ。<br>
+命名する名前はUpperCamelCaseである必要がある。唯一の例外は基本型(usize, f32など)。<br>
+あくまでエイリアスであり新たな型を定義しているわけではないことに注意。
+
 
 
 ### 数値型
@@ -148,6 +160,19 @@ let one = x.2;
 
 値をひとつも持たないタプルはユニットという特別な名前を持ち、()と書き表され、空の値や空の戻り値を表現する。<br>
 式が値を返さなければ暗黙的にユニット値を返す。
+
+---
+
+## 定数 <a id="constant" data-name="定数"></a>
+
+Rustには2種類の定数があり、いずれもグローバルスコープを含む任意のスコープで宣言が可能。<br>
+またいずれも型を明示する必要がある。
+
+| --- | --- |
+| const | 不変の値(通常はこちらを使う) |
+| static | `'static`ライフタイムを持つ変更可能な値<br>可変なスタティック値へのアクセスや変更は安全ではない |
+
+
 
 ---
 
@@ -592,7 +617,7 @@ let x = 10;
 println!("{}", x); // 10
 ```
 
-#### 型変換
+### 型変換(キャスト)
 
 asで型を変換する。
 
@@ -765,19 +790,20 @@ matchは、一連のパターンに対して値を比較し、マッチしたパ
 また、matchは包括的であり、すべての可能性を網羅しないとコンパイルが通らないという特性を持つ。
 
 ```rust
-fn plus_one(x: Option<i32>) -> Option<i32> {
-    match x {
-        None => None,
-        Some(i) => Some(i + 1),
-    }
+let number = 13;
+
+println!("Tell me about {}", number);
+match number {
+    // 単一の値とのマッチをチェック
+    1 => println!("One!"),
+    // いくつかの値とのマッチをチェック
+    2 | 3 | 5 | 7 | 11 => println!("This is a prime"),
+    // 特定の範囲の値とのマッチをチェック
+    13..=19 => println!("A teen"),
+    // その他の場合の処理
+    _ => println!("Ain't special"),
 }
-
-let five = Some(5);
-let six = plus_one(five);
-let none = plus_one(None);
 ```
-
-
 
 ```rust
 enum Coin {
@@ -954,6 +980,8 @@ println!("{number:0>width$}", number=1, width=5);
 
 ## 開発 <a id="development" data-name="開発"></a>
 
+
+
 ### 警告を消す
 
 使っていない変数や、呼び出されていない関数に対する警告を消すには主に2つの方法がある。
@@ -962,16 +990,16 @@ println!("{number:0>width$}", number=1, width=5);
 
 名前の先頭に`_`を付けることであえて使っていないことを明示する。
 
-#### アトリビュート`#[allow(unused)]`を使う
+#### アトリビュート`#![allow(unused)]`を使う
 
 ファイルの先頭に以下を記述する。
 
 | 警告メッセージ | 意味 | 対策アトリビュート |
 | --- | --- | --- |
-| unused_variables | 定義した変数が一度も使われていない | `#[allow(unused_variables)]` |
-| dead_code | 関数や構造体がどこからも呼び出されていない | `#[allow(dead_code)]` |
-| unused_imports | useしたけれど使っていない | `#[allow(unused_imports)]` |
-| 全部まとめて | 上記すべて | `#[allow(unused)]` |
+| unused_variables | 定義した変数が一度も使われていない | `#![allow(unused_variables)]` |
+| dead_code | 関数や構造体がどこからも呼び出されていない | `#![allow(dead_code)]` |
+| unused_imports | useしたけれど使っていない | `#![allow(unused_imports)]` |
+| 全部まとめて | 上記すべて | `#![allow(unused)]` |
 
 
 
