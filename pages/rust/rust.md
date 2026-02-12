@@ -15,7 +15,12 @@ layout: default
 
 ## cargo
 
-
+| --- | --- |
+| cargo new プロジェクト名 | プロジェクト名で新たにプロジェクトディレクトリを作る |
+| cargo init | カレントディレクトリをプロジェクトディレクトリとする |
+| cargo run | プロジェクトのビルドと実行を1ステップで行う |
+| cargo build | プロジェクトをビルドする |
+| cargo check | バイナリを生成せずにビルドしてエラーチェックができる |
 
 
 
@@ -48,7 +53,13 @@ Rustは静的型付き言語であり、コンパイル時に型が決まって�
 
 use宣言を使用すると、名前にアクセスするために完全なモジュールパスを入力する必要がなくなる。
 
+#### ライブラリ
+Rustには、利用可能な機能が3つの層に分かれている。
 
+| --- | --- |
+| prelude | useせずに使える(Vec, String, Option, Result, panic!など) |
+| 標準ライブラリ(std) | フルパスで書くか、useする必要がある(std::io, std::Collections::HashMapなど) |
+| 外部ライブラリ(Crates) | Dependenciesに加えて、かつフルパスで書くか、useが必要(rand, regexなど) |
 
 ### type
 
@@ -392,10 +403,12 @@ Rectangle::square(3);
 
 
 
-## Option <a id="option" data-name="Option"></a>
+## OptionとResult <a id="option-result" data-name="OptionとResult"></a>
 
-Optionは、何らかの値を持つ、何も持たない状態を表現するenumであり、標準ライブラリで定義されている。<br>
-Optionはpreludeに含まれているため、明示的にOption::と書かなくてもSomeとNoneを使える。
+### Option
+
+Optionは、何らかの値を持つ、または何もない状態を表現するenum。<br>
+preludeに含まれているため、明示的にOption::と書かなくてもSomeとNoneを使える。
 
 ```rust
 enum Option<T> {
@@ -404,14 +417,17 @@ enum Option<T> {
 }
 ```
 
+### Result
 
----
+Resultは、結果の値を持つ、または失敗してerrorを持つ状態を表現するenum。<br>
+preludeに含まれているため、明示的にRsult::と書かなくてもOkとErrを使える。
 
-## Result <a id="result" data-name="Result"></a>
-
-
-
-
+```rust
+enum Result<T> {
+    Ok(T),
+    Err,
+}
+```
 
 
 
