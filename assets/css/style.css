@@ -282,7 +282,7 @@ pre code {
 
 /* ナビゲーション */
 #navi {
-    width: 250px;
+    width: 200px;
     overflow-y: auto;
     height: 100vh;
     padding: 2rem 1rem;
@@ -299,7 +299,7 @@ pre code {
 
 /* 目次 */
 #toc {
-    width: 250px;
+    width: 200px;
     overflow-y: auto;
     height: 100vh;
     padding: 2rem 1rem;
