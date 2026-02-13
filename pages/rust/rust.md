@@ -433,7 +433,7 @@ enum Result<T> {
 
 | 手法 | Option | Result | 備考 |
 | --- | --- | --- | --- |
-| パターンマッチ | match opt {<br>  Some(v) => ...,<br>None => ...} | match res {<br>  Ok(v) => ...,<br>  Err(e) => ...<br>} | すべてのケースを網羅する最も安全な方法 |
+| パターンマッチ | match opt {<br>  Some(v) => ...,<br>None => ...<br>} | match res {<br>  Ok(v) => ...,<br>  Err(e) => ...<br>} | すべてのケースを網羅する最も安全な方法 |
 | 簡易マッチ | if let Some(v) = opt {<br>  ...<br>} | if let Ok(v) = res {...} | 片方のケースだけ必要 |
 | デフォルト値 | opt.unwrap?or(default) | res.unwrap_or(dafault) | 失敗時に変わりの値を使う |
 | 強制取り出し | opt.unwrap() | res.unwrap() | パニック。テスト以外は非推奨 |
