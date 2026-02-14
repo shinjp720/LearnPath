@@ -346,6 +346,56 @@ m.call();
 
 ---
 
+## OptionとResult <a id="option-result" data-name="OptionとResult"></a>
+
+### Option
+
+Optionは、何らかの値を持つ、または何もない状態を表現するenum。<br>
+preludeに含まれているため、明示的にOption::と書かなくてもSomeとNoneを使える。
+
+```rust
+enum Option<T> {
+    Some(T),
+    None,
+}
+```
+
+### Result
+
+Resultは、結果の値を持つ、または失敗してerrorを持つ状態を表現するenum。<br>
+preludeに含まれているため、明示的にRsult::と書かなくてもOkとErrを使える。
+
+```rust
+enum Result<T, E> {
+    Ok(T),
+    Err(E),
+}
+```
+
+#### 中身を取り出す
+
+| 手法 | Option | Result | 備考 |
+| --- | --- | --- | --- |
+| パターンマッチ | match opt { Some(v) => ..., None => ... } | match res { Ok(v) => ..., Err(e) => ... } | すべてのケースを網羅する最も安全な方法 |
+| 簡易マッチ | if let Some(v) = opt { ... } | if let Ok(v) = res { ... } | 片方のケースだけ必要な場合 |
+| デフォルト値 | opt.unwrap_or(default) | res.unwrap_or(dafault) | 失敗時に変わりの値を使う |
+| 強制取り出し | opt.unwrap() | res.unwrap() | パニック。テスト以外は非推奨 |
+
+#### 値を包んだまま操作する
+
+| 関数 | 例 | 説明 |
+| --- | --- | --- |
+| map() | opt.map(|x| x*2), NoneならNoneのまま | 中身がSomeやOkの時だけ関数を適用し、結果を箱に戻す |
+| and_then() | res.and_then(check_condition) | 処理の結果がさらにOptionやResultを返す場合に使う(ネストを防ぐ) |
+
+#### ?演算子による伝播
+
+| --- | --- |
+| Optionを返す関数内 | Noneだったら return None; |
+| Resultを返す関数内 | Errだったら return Err(e); |
+
+---
+
 ## メソッド <a id="method" data-name="メソッド"></a>
 
 メソッドを定義するにはimplブロックで始める。
@@ -397,44 +447,6 @@ impl Rectangle {
 ```rust
 Rectangle::square(3);
 ```
-
-
-
-## OptionとResult <a id="option-result" data-name="OptionとResult"></a>
-
-### Option
-
-Optionは、何らかの値を持つ、または何もない状態を表現するenum。<br>
-preludeに含まれているため、明示的にOption::と書かなくてもSomeとNoneを使える。
-
-```rust
-enum Option<T> {
-    None,
-    Some(T),
-}
-```
-
-### Result
-
-Resultは、結果の値を持つ、または失敗してerrorを持つ状態を表現するenum。<br>
-preludeに含まれているため、明示的にRsult::と書かなくてもOkとErrを使える。
-
-```rust
-enum Result<T> {
-    Ok(T),
-    Err,
-}
-```
-
-### 中身を取り出す
-
-| 手法 | Option | Result | 備考 |
-| --- | --- | --- | --- |
-| パターンマッチ | match opt {<br>  Some(v) => ...,<br>None => ...<br>} | match res {<br>  Ok(v) => ...,<br>  Err(e) => ...<br>} | すべてのケースを網羅する最も安全な方法 |
-| 簡易マッチ | if let Some(v) = opt {<br>  ...<br>} | if let Ok(v) = res {...} | 片方のケースだけ必要 |
-| デフォルト値 | opt.unwrap?or(default) | res.unwrap_or(dafault) | 失敗時に変わりの値を使う |
-| 強制取り出し | opt.unwrap() | res.unwrap() | パニック。テスト以外は非推奨 |
-
 
 ---
 
@@ -802,8 +814,6 @@ fn main() {
 }
 ```
 
----
-
 ### match
 
 matchは、一連のパターンに対して値を比較し、マッチしたパターンに応じて処理を実行する。<br>
@@ -843,8 +853,8 @@ fn value_in_cents(coin: Coin) -> u8 {
 }
 ```
 
-アームのコードが短い場合、波括弧({})は使用しない。<br>
-複数行のコードがある場合は波括弧で囲い、カンマ(,)は省略する。
+アームのコードが短い場合、波括弧{}は使用しない。<br>
+複数行のコードがある場合は波括弧で囲い、カンマ( , )は省略する。
 
 ```rust
 fn value_in_cents(coin: Coin) -> u8 {
