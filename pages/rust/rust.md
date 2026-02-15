@@ -244,7 +244,7 @@ Stringおよび&str(文字列スライス)は、Vec&lt;u8&gt;のラップであ�
 
 ```rust
 for c in "Зд".chars() {
-println!("{c}");
+    println!("{c}");
 }
 ```
 
@@ -254,13 +254,13 @@ println!("{c}");
 let chars: Vec<char> = s.chars().collect();
 println!("{}", chars[3]);
 ```
-collect()すると1要素、char型(4バイト)となる。
+collect()すると、ひとつの要素がchar型(4バイト)となる。
 
 #### byteに変換
 
 ```rust
 for b in "Зд".bytes() {
-println!("{b}");
+    println!("{b}");
 }
 ```
 
@@ -453,7 +453,7 @@ enum Result<T, E> {
 
 | 関数 | 例 | 説明 |
 | --- | --- | --- |
-| map() | opt.map(|x| x*2), NoneならNoneのまま | 中身がSomeやOkの時だけ関数を適用し、結果を箱に戻す |
+| map() | opt.map(\|x\| x*2), NoneならNoneのまま | 中身がSomeやOkの時だけ関数を適用し、結果を箱に戻す |
 | and_then() | res.and_then(check_condition) | 処理の結果がさらにOptionやResultを返す場合に使う(ネストを防ぐ) |
 
 #### ?演算子による伝播
