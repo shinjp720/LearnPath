@@ -196,6 +196,74 @@ Rustにおける文字列(および文字)の表現は３種類ある。
 | &str | 文字列データへの参照で、データの開始ポインタと文字長を持つ |
 | char | 1つの文字そのもの。Unicodeで常に4バイト |
 
+#### 生成
+
+```rust
+let mut s = String::new() // 空の文字列
+
+// 以下の例は等価
+let data = "initial contents";
+let s = data.to_string(); // &strから生成
+
+let s = "initial contents".to_string(); // 文字リテラルから生成
+
+let s = String::from("initial contents"); // fromで生成
+```
+
+#### 文字列の追加
+
+```rust
+s.push_str("bar");
+```
+
+#### +演算子で文字列の連結
+
+```rust
+let s1 = String::from("Hello, ");
+let s2 = String::from("world!");
+let s3 = s1 + &s2; // s1はムーブされもう使用できない
+```
+
+#### format!マクロでの文字列の連結
+
+```rust
+let s1 = String::from("tic");
+let s2 = String::from("tac");
+let s3 = String::from("toe");
+// format!は参照を使用するため所有権を奪わない
+let s = format!("{s1}-{s2}-{s3}");
+```
+
+### 文字へのアクセス
+
+Stringおよび&str(文字列スライス)は、Vec&lt;u8&gt;のラップであり、内部的にUTF-8でデータを保持しているため、インデックスでアクセスして複数バイトの一部のみを取り出そうとするとパニックする。
+
+文字列の部分に対して操作を行う場合は、文字に対して操作したいのかバイトに対して操作したいのかを明示する。
+
+#### charに変換
+
+```rust
+for c in "Зд".chars() {
+println!("{c}");
+}
+```
+
+#### インデックスでアクセス
+
+```rust
+let chars: Vec<char> = s.chars().collect();
+println!("{}", chars[3]);
+```
+collect()すると1要素、char型(4バイト)となる。
+
+#### byteに変換
+
+```rust
+for b in "Зд".bytes() {
+println!("{b}");
+}
+```
+
 ---
 
 ## 構造体 <a id="struct" data-name="構造体"></a>
@@ -394,6 +462,11 @@ enum Result<T, E> {
 | Optionを返す関数内 | Noneだったら return None; |
 | Resultを返す関数内 | Errだったら return Err(e); |
 
+<pre><code class="tips">for entry in fs::read_dir(".")? {
+    let entry = entry?; // ここでResultをはがす(Errならreturn (Err(e)))
+    println!("{:?}", entry.path()); 
+}</code></pre>
+
 ---
 
 ## メソッド <a id="method" data-name="メソッド"></a>
@@ -462,7 +535,7 @@ let mut v: Vec<i32> = Vec::new();
 ```
 - 初期値を与える
 ```rust
-let v = vec![1, 2, 3];
+let v = vec![1, 2, 3]; // マクロによる型推論
 ```
 
 #### アクセス
@@ -491,7 +564,6 @@ let mut v = Vec::new();
 v.push(5);
 v.push(6);
 v.push(7);
-v.push(8);
 ```
 ---
 
