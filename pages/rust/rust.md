@@ -254,6 +254,7 @@ for c in "Зд".chars() {
 let chars: Vec<char> = s.chars().collect();
 println!("{}", chars[3]);
 ```
+
 collect()すると、ひとつの要素がchar型(4バイト)となる。
 
 #### byteに変換
@@ -523,7 +524,24 @@ Rectangle::square(3);
 
 ---
 
-## ベクタ <a id="vector" data-name="ベクタ"></a>
+## collections <a id="collections" data-name="collections"></a>
+
+Rustの標準コレクション
+
+| Rust | 用途 | C++ |
+| --- | --- | --- |
+| Vec&lt;T&gt; | 可変長配列 | std::vector&lt;T&gt; |
+| VecDeque&lt;T&gt; | 両端キュー | std::deque&lt;T&gt; |
+| LinkedList&lt;T&gt; | 双方向リスト | std::list&lt;T&gt; |
+| HashMap&lt;K, V&gt; | ハッシュマップ | std::unorderd_map&lt;K, V&gt; |
+| BTreeMap&lt;T, V&gt; | 木構造マップ | std::map&lt;T, V&gt; |
+| HashSet&lt;T&gt; | ハッシュ集合 | std::unorderd_set&lt;T&gt; |
+| BTreeSet&lt;T&gt; | 木構造集合 | std::set&lt;T&gt; |
+| BinaryHeap&lt;T&gt; | 優先度付きキュー | std::priority_queue&lt;T&gt; |
+
+---
+
+### ベクタ <a id="vector" data-name="ベクタ"></a>
 
 ベクタは同じ型の値を動的にかつメモリ上で隣り合った形で保持できるコレクション。
 
@@ -565,9 +583,10 @@ v.push(5);
 v.push(6);
 v.push(7);
 ```
+
 ---
 
-## ハッシュマップ <a id="hashmap" data-name="ハッシュマップ"></a>
+### ハッシュマップ <a id="hashmap" data-name="ハッシュマップ"></a>
 
 型HashMap<K, V>は、 K型のキーとV型の値の対応関係をハッシュ関数を使用して保持する。
 
