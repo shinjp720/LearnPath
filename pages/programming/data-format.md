@@ -190,3 +190,58 @@ DEBUG=true</code></pre>
 ---
 
 ## XML <a id="xml" data-name="XML"></a>
+
+```
+XML文書の最初にバージョンやエンコーディングを指定する宣言を置くことが推奨される
+<?xml version="1.0" encoding="UTF-8"?>
+
+XMLは基本構造として要素(タグ)を持つ。要素は開始タグ<element>と終了タグ</element>で囲む
+要素は他の要素やテキストを含むことができる
+<person>
+    <name>John Doe</name>
+    <age>30</age>
+    <married>true</married>
+</person>
+
+要素には属性を持たせることができ、属性は開始タグ内でキーと値のペアで、値は”(ダブルクォート)で囲む
+<person id="123" nationality="American">
+    <name>John Doe</name>
+    <age>30</age>
+    <married>true</married>
+</person>
+
+要素はネストすることができ、階層構造を持たせることができ、データの関連性を明示的にできる
+<family>
+    <parent>
+        <name>John Doe</name>
+        <age>30</age>
+    </parent>
+    <children>
+        <child>
+            <name>Jane Doe</name>
+            <age>10</age>
+        </child>
+        <child>
+            <name>Jack Doe</name>
+            <age>7</age>
+        </child>
+    </children>
+</family>
+
+内容のない要素は終了タグを省略して開始タグの末尾に/(スラッシュ)を置くことで空要素として表現できる
+<person id="123" />
+
+特殊文字や他のマークアップを含むテキストをそのまま扱いたい場合、CDATAセクションを使用する。CDATAセクション内のデータはパースされない
+<script>
+    <![CDATA[
+    if (age < 18) {
+        alert("Underage");
+    }
+    ]]>
+</script>
+
+XML文書には必ず1つのルート要素(最外の要素)が存在する
+タグ名や属性名は大文字小文字を区別する
+データを属性として表現するか要素として表現するかは設計次第で、要素の中により多くのデータを含む場合、要素を使用するのが一般的
+コメントは<!-- -->で囲んで記述する
+```
