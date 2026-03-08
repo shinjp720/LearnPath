@@ -5,6 +5,8 @@ layout: default
 
 # CSS <a id="top" data-name="TOP"></a>
 
+---
+
 ## 基本 <a id="basic" data-name="基本"></a>
 
 - CSS(CascadingStyleSheet)は、ウェブサイト、ウェブアプリの見た目を整えるための言語で、
@@ -59,6 +61,8 @@ h1, h2 {
 ```css
 /* コメント */
 ```
+
+---
 
 ## セレクター <a id="selector" data-name="セレクター"></a>
 
@@ -160,8 +164,29 @@ body * p {
 同じ親要素内で、指定した要素が最初の子要素である時にスタイルを適用する。<br>
 上記の場合、一つ目の&lt;p&gt;の文字色が赤になるが、仮に&lt;span&gt;が先にあった場合はマッチしない。
 
+---
 
 ## プロパティ <a id="property" data-name="プロパティ"></a>
+
+### box-sizing
+
+widthの計算方法を指定する。デフォルトでcontent-box。
+
+#### box-sizing: content-box;
+
+要素にwidthを指定すると、ボックスモデルのcontentに対してwidthが反映されるため、
+width + padding + borderがボーダーまでの幅となる。
+
+
+#### box-sizing: border-box;
+
+要素にwidthをを指定すると、width = content + padding + borderとなる。
+
+<pre><code class="example">*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}</code></pre>
 
 ### display: flex;
 
