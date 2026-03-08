@@ -98,6 +98,7 @@ layout: default
         <tr><td>Ctrl+R</td><td>最近使用したワークスペースを開く</td></tr>
         <tr><td>Ctrl+K, V</td><td>Markdownプレビューを横に表示</td></tr>
         <tr><td>Ctrl+K, Z</td><td>禅モード</td></tr>
+
 </table>
 
 <table>
@@ -109,12 +110,201 @@ layout: default
         <tr><td>Ctrl+K, Ctrl+]</td><td>再帰的に展開</td></tr>
 </table>
 
+---
+
+## Emmet <a id="emmet" data-name="Emmet"></a>
+
+Emmetは、HTML/CSSを高速で書くための省略記法ツール。<br>
+VSCodeではデフォルトで使用可能。
+
+### コマンドパレット
+
+#### タグで囲む
+
+囲みたい範囲を選択。コマンドパレットから&nbsp;`Emmet: Wrap with Abbreviation`&nbsp;囲みたいタグを入力
+
+#### 対応するタグにジャンプ
+
+タグにカーソルを置いてコマンドパレットから&nbsp;`Emmet: Go to Matching Pair`
+
+#### タグだけ削除
+
+削除したいタグの中でコマンドパレットから&nbsp;`Emmet: Remove Tag`
+
+#### タグを変更
+
+変更したいタグの中でコマンドパレットから&nbsp;`Emmet: Update Tag`&nbsp;変更したいタグを入力
+
+#### DOM単位で選択範囲を広げる
+
+範囲を選択。コマンドパレットから&nbsp;`Emmet: Balance (Outward)`
+
+#### DOM単位で範囲を狭める
+
+範囲を選択。コマンドパレットから&nbsp;`Emmet: Balance (Inward)`
+
+---
+
+### エディタ
+
+#### HTMLテンプレート &nbsp;!
+
+`!`
+
+```
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+</head>
+<body>
+
+</body>
+</html>
+```
+
+#### 子要素 &nbsp;&gt;
+
+`ul>li`
+
+```
+<ul>
+  <li>></li>
+</ul>
+```
+
+#### 複数生成 &nbsp;*
+
+`ul>li*3`
+
+```
+<ul>
+  <li>></li>
+  <li>></li>
+  <li>></li>
+</ul>
+```
+
+#### class &nbsp;.
+
+`div.container`
+
+```
+<div class="container"></div>
+```
+
+#### id &nbsp;#
+
+`div#main`
+
+```
+<div id="main"></div>
+```
+
+#### 兄弟要素 &nbsp;+
+
++で同じ階層
+
+`header+main+footer`
+
+```
+<header></header>
+<main></main>
+<footer></footer>
+```
+
+#### グループ &nbsp;()
+
+`div>(header+main+footer)`
+
+```
+<div>
+  <header></header>
+  <main></main>
+  <footer></footer>
+</div>
+```
+
+#### 番号 &nbsp;$
+
+`ul>li.item$*3`
+
+```
+<ul>
+  <li class="item1"></li>
+  <li class="item2"></li>
+  <li class="item3"></li>
+</ul>
+```
+
+#### テキスト &nbsp;{}
+
+`a{Click here}`
+
+```
+<a href="">Click here</a>
+```
+
+#### 上の階層 &nbsp;^
+
+^で上の階層
+
+`table>thead>tr>th*3^^tbody>tr*3>td*3`
+
+```
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+  </tbody>
+</table>
+```
+
+<pre><code class="example">div.container&gt;ul.list&gt;li.item$*3&gt;a{link $}
+↓
+&lt;div class="container"&gt;
+  &lt;ul class="list"&gt;
+    &lt;li class="item1"&gt;&lt;a href=""&gt;link 1&lt;/a&gt;&lt;/li&gt;
+    &lt;li class="item2"&gt;&lt;a href=""&gt;link 2&lt;/a&gt;&lt;/li&gt;
+    &lt;li class="item3"&gt;&lt;a href=""&gt;link 3&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/div&gt;
+</code></pre>
+
+<pre><code class="example">form&gt;label{User}+input[type=text]+br+label{Pass}+input[type=password]+br+button{Login}
+↓
+&lt;form&gt;
+  &lt;label&gt;User&lt;/label&gt;
+  &lt;input type="text"&gt;
+  &lt;br&gt;
+  &lt;label&gt;Pass&lt;/label&gt;
+  &lt;input type="password"&gt;
+  &lt;br&gt;
+  &lt;button&gt;Login&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+
+---
+
 ## DevContainer <a id="dev-container" data-name="DevContainer"></a>
+
 DevContainerは、開発環境を標準化するための技術で、これは主に、VSCodeのRemote-Containers拡張機能を使用して、開発環境をコンテナ内に設定するために利用される。
 
 - .devcontainerディレクトリのあるワークスペースを開くとdevcontainer.jsonでワークスペースを開き直すかの確認ダイアログが表示される。これを手動で行うには、コマンドパレットからDevContainers: Reopen Folder in Containerで実行する。
 
 ### devcontainer.json
+
 devcontainer.jsonは開発コンテナの設定ファイルで、コンテナイメージ、拡張機能、コンテナ開始時に実行するコマンドなどを定義する。
 <pre><code class="example">{
   "name": "Node.js Sample",
