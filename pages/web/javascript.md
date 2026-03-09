@@ -656,3 +656,27 @@ testButton.addEventListener("contextmenu", (event) => {
 <ul><li>&lt;script&gt;タグの属性にdeferを指定する。</li>
     <li>&lt;body&gt;タグの一番最後にスクリプトファイルを読み込む指定をする。</li>
     <li>document.addEventListener("DOMContentLoaded", () => {})</li></ul></code></pre>
+
+
+## example <a id="example" data-name="example"></a>
+
+#### よくあるforumの例
+
+<pre><code class="example">&lt;form id="login-form"&gt;
+  &lt;input name="user"&gt;
+  &lt;input name="password"&gt;
+  &lt;button type="submit"&gt;ログイン&lt;/button&gt;
+&lt;/form&gt;
+
+const form = document.querySelector("#login-form");
+
+form.addEventListener("submit", async (e) =&gt; {
+  e.preventDefault();  // 通常送信を止める
+
+  const formData = new FormData(form);
+
+  await fetch("/login", {
+    method: "POST",
+    body: formData
+  });
+});</code></pre>
