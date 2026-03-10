@@ -47,6 +47,19 @@ h1, h2 {
 └───────────────────────┘
 ```
 
+#### margin, paddingの複数指定
+
+```css
+/* 四辺すべてに適用 */
+margin: -3px;
+/* 上下 | 左右 */
+margin: 5% auto;
+/* 上 | 左右 | 下 */
+margin: 1em auto 2em;
+/* 上 | 右 | 下 | 左 */
+margin: 2px 1em 0 auto;
+```
+
 #### HTMLへの適用
 
 1. **外部ファイル**: .cssファイルを作成し、HTMLの&lt;head&gt;タグ内で読み込む。<br>
@@ -54,7 +67,6 @@ h1, h2 {
 2. **内部埋め込み**: HTMLの&lt;style&gt;タグ内に書く。
 3. **インライン**: タグに直接書く。<br>
 `<p style="color: red;">`
-
 
 #### コメント
 
