@@ -149,20 +149,190 @@ body * p {
     color: red;
 }</code></pre>
 
-#### 疑似クラス(コロン)
-- 最初の子要素
-<pre><code class="example">&lt;div&gt;
-    &lt;p&gt;これは p タグの1つ目&lt;/p&gt;
-    &lt;span&gt;これは span タグ&lt;/span&gt;
-    &lt;p&gt;これは p タグの2つ目&lt;/p&gt;
-&lt;/div&gt;</code></pre>
+---
 
-<pre><code class="example">div p:first-child {
-    color: red;
+## 疑似クラス <a id="pseudo-class" data-name="疑似クラス"></a>
+
+#### :hover
+
+要素にマウスを乗せた時。
+
+#### :active
+
+クリックしている間。
+
+#### :focus
+
+要素にフォーカスがある時。
+
+#### :visited
+
+訪問済みリンク。
+
+#### :link
+
+未訪問リンク。
+
+<pre><code class="example">a:hover {
+  text-decoration: underline;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+input:focus {
+  outline: 2px solid blue;
 }</code></pre>
 
-同じ親要素内で、指定した要素が最初の子要素である時にスタイルを適用する。<br>
-上記の場合、一つ目の&lt;p&gt;の文字色が赤になるが、仮に&lt;span&gt;が先にあった場合はマッチしない。
+#### :checked
+
+チェックされている。
+
+#### :enabled
+
+有効。
+
+#### :disabled
+
+無効。
+
+#### :required
+
+必須。
+
+#### :valid
+
+バリデーションOK。
+
+#### :invalid
+
+バリデーションNG。
+
+<pre><code class="example">input:invalid {
+  border: 2px solid red;
+}
+
+input:valid {
+  border: 2px solid green;
+}</code></pre>
+
+#### :first-child
+
+最初の子要素。
+
+#### :last-child
+
+最後の子要素。
+
+#### nth-child()
+
+n番目の要素。
+
+#### nth-of-type()
+
+同じタグのn番目。
+
+#### only-child
+
+子が1要素。
+
+<pre><code class="example">li:first-child {
+  font-weight: bold;
+}
+
+li:nth-child(2) {
+  color: red;
+}</code></pre>
+
+#### :not()
+
+条件否定。
+
+#### :is()
+
+複数条件。
+
+#### :where()
+
+isの軽量版。
+
+<pre><code class="example">button:not(.primary) {
+  background: gray;
+}</code></pre>
+
+#### :focus-visible
+
+キーボードフォーカス。
+
+#### :focus-within
+
+子要素にフォーカス。
+
+#### :empty
+
+中身なし。
+
+<pre><code class="example">.form:focus-within {
+  border-color: blue;
+}</code></pre>
+
+
+---
+
+## 疑似要素 <a id="pseudo-element" data-name="疑似要素"></a>
+
+#### ::before
+
+要素の前に内容を追加。
+
+#### ::after
+
+要素の後に内容を追加。
+
+<pre><code class="example">.button::before {
+  content: "★ ";
+}
+
+.button::after {
+  content: " →";
+}</code></pre>
+
+#### ::first-letter
+
+最初の文字。
+
+#### ::first-line
+
+最初の行。
+
+#### ::selection
+
+選択された文字。
+
+<pre><code class="example">p::first-letter {
+  font-size: 200%;
+}</code></pre>
+
+<pre><code class="example">::selection {
+  background: yellow;
+}</code></pre>
+
+#### ::placeholder
+
+inputのプレースホルダ。
+
+<pre><code class="example">input::placeholder {
+  color: gray;
+}</code></pre>
+
+#### ::marker
+
+リストの記号。
+
+<pre><code class="example">li::marker {
+  color: red;
+}</code></pre>
 
 ---
 
@@ -172,13 +342,12 @@ body * p {
 
 widthの計算方法を指定する。デフォルトでcontent-box。
 
-#### box-sizing: content-box;
+#### content-box
 
 要素にwidthを指定すると、ボックスモデルのcontentに対してwidthが反映されるため、
 width + padding + borderがボーダーまでの幅となる。
 
-
-#### box-sizing: border-box;
+#### border-box
 
 要素にwidthをを指定すると、width = content + padding + borderとなる。
 
@@ -187,6 +356,20 @@ width + padding + borderがボーダーまでの幅となる。
 *::after {
   box-sizing: border-box;
 }</code></pre>
+
+### border-collapse
+
+tableの枠線の重なりを指定する。
+
+#### collapse
+
+隣接するセルで境界線を共有する。
+
+#### separate
+
+隣接するセルが個別に境界線を持つ。
+
+---
 
 ### display: flex;
 
