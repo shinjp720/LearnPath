@@ -369,6 +369,8 @@ width + padding + borderがボーダーまでの幅となる。
   box-sizing: border-box;
 }</code></pre>
 
+---
+
 ### border-collapse
 
 tableの枠線の重なりを指定する。
@@ -383,92 +385,170 @@ tableの枠線の重なりを指定する。
 
 ---
 
-### display: flex;
+### display: flex; <a id="flex" data-name="flex"></a>
 
 1次元方向に子要素を並べる、Flexレイアウトが有効になる。<br>
 デフォルトで横方向。
 
-#### flex-direction
+### flex-direction
 
 要素の方向を決める。
 
-- `flex-direction: row;`<br>
-  横方向(デフォルト)。
-- `flex-direction: column;`<br>
-  縦方向。
+#### row
 
-#### justify-content
+横方向(デフォルト)。
+
+#### column
+
+縦方向。
+
+### justify-content
 
 メイン方向の配置を決める。
 
-- `justify-content: center;`<br>
-  中央に寄せる。
+#### center
 
-- `justify-content: flex-start;`<br>
-  左寄せ。
+中央に寄せる。
 
-- `justify-content: flex-end;`<br>
-  右寄せ。
+#### flex-start
 
-- `justify-content: space-between;`<br>
-  両端揃え。
+左寄せ。
 
-- `justify-content: space-around;`<br>
-  均等。
+#### flex-end
 
-#### align-items
+右寄せ。
+
+#### space-between
+
+両端揃え。
+
+#### space-around
+
+均等。
+
+### align-items
 
 交差軸の配置。
 
-- `align-items: center;`<br>
-  中央。
+#### center
 
-- `align-items: stretch;`<br>
-  引き伸ばす。
+中央。
 
-- `align-items: flex-start;`<br>
-  上。
+#### stretch
 
-- `align-items: flex-end;`<br>
-  下。
+引き伸ばす。
 
-#### flex
+#### flex-start
 
-余ったスペースを埋める。
+上。
 
-- `flex: 1;`<br>
-  他の要素で指定された幅(高さ)の余った分を埋める。<br>
-  割合で指定することもできる。
+#### flex-end;
 
-#### gap
+下。
 
-要素同士の間隔。
+### flex
 
-- `gap: 10px`<br>
-  隙間を空ける。
+余ったスペースを埋める。子要素で指定する。<br>
+他の要素で指定された幅(高さ)の余った分を埋める。<br>
+割合で指定することもできる。
 
-#### flex-wrap
+```css
+flex: 1;
+```
+
+### gap
+
+要素同士の隙間。
+
+### flex-wrap
 
 折り返し。
 
-- `flex-wrap: wrap`<br>
-  折り返す。
+#### wrap
 
-- `flex-wrap: nowrap`<br>
-  折り返さない。
+折り返す。
 
+#### nowrap
 
+折り返さない。
 
-### display: grid;
+---
 
+### display: grid; <a id="grid" data-name="grid"></a>
 
+子要素を格子状に配置する。
 
+#### grid-template-columns
+#### grid-template-rows
 
+実質必須。列と行の数とサイズを指定する。
 
+| --- | --- |
+| px | 固定サイズ |
+| fr | 残りスペース |
+| % | 親基準 |
+| auto | 内容サイズ |
 
+#### grid-column
+#### grid-row
 
+子要素で指定して、グリッドの何マス分使うかを指定する。
 
+```css
+grid-row: 1 / 3;
+```
 
+```css
+grid-column: span 2;
+```
+
+### grid-template-areas
+
+要素の配置を文字で書くことができる。
+
+```css
+.container {
+  display: grid;
+  grid-template-columns: 200px 1fr 200px;
+  grid-template-rows: auto 1fr auto;
+
+  grid-template-areas:
+    "left header right"
+    "left main   right"
+    "left footer right";
+}
+```
+
+子要素側ではgrid-areaを書く。
+
+```css
+.left   { grid-area: left; }
+.header { grid-area: header; }
+.main   { grid-area: main; }
+.right  { grid-area: right; }
+.footer { grid-area: footer; }
+```
+
+HTML
+
+```html
+<div class="container">
+  <div class="left">left</div>
+  <div class="header">header</div>
+  <div class="main">main</div>
+  <div class="right">right</div>
+  <div class="footer">footer</div>
+</div>
+```
+
+要素をなにも置かない場合は.(ドット)を使う。
+
+```
+grid-template-areas:
+  "header header header"
+  ".      main   ."
+  "footer footer footer";
+```
 
 
 
