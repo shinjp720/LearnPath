@@ -89,6 +89,7 @@ margin: 2px 1em 0 auto;
 **.クラス名 {}**
 
 #### 子孫セレクター(スペース)
+
 親要素である要素Aに含まれる全ての要素Bにスタイルを適用する。<br>
 **要素A 要素B {}**
 
@@ -98,18 +99,22 @@ margin: 2px 1em 0 auto;
 **要素A, 要素B {}**
 
 #### 子セレクター(大なり)
+
 親要素である要素A直下の(子のみで孫には反映されない)要素Bにスタイルを適用する。<br>
 **要素A > 要素B {}**
 
 #### 隣接セレクター(プラス)
+
 同じ親要素内の隣接する要素の、要素Aの直後にあるひとつの要素Bにスタイルを適用する。<br>
 **要素A + 要素B {}**
 
 #### 間接セレクター(チルダ)
+
 同じ親要素内にある要素Aより後ろに記述された要素Bすべてにスタイルを適用する。<br>
 **要素A ~ 要素B {}**
 
 #### 属性セレクター(角括弧)
+
 - 指定した属性を持つ要素。<br>
   **要素名[属性]**
   <pre><code class="example">[disabled] {
@@ -147,7 +152,7 @@ margin: 2px 1em 0 auto;
 }</code></pre>
 
 - 指定した属性と指定した文字列と一致、または「指定した文字列-」で始まる属性値を持つ要素。<br>
-  **要素名[属性|="文字列"] {}**
+  **要素名[属性|="文字列"]**
   <pre><code class="example">[lang|="en"] {
     /* "en"または"en-"で始まる要素に適用 */
 }</code></pre>
@@ -222,11 +227,11 @@ input:focus {
 バリデーションNG。
 
 <pre><code class="example">input:invalid {
-  border: 2px solid red;
+    border: 2px solid red;
 }
 
 input:valid {
-  border: 2px solid green;
+    border: 2px solid green;
 }</code></pre>
 
 #### :first-child
@@ -250,11 +255,11 @@ n番目の要素。
 子が1要素。
 
 <pre><code class="example">li:first-child {
-  font-weight: bold;
+    font-weight: bold;
 }
 
 li:nth-child(2) {
-  color: red;
+    color: red;
 }</code></pre>
 
 #### :not()
@@ -270,7 +275,7 @@ li:nth-child(2) {
 isの軽量版。
 
 <pre><code class="example">button:not(.primary) {
-  background: gray;
+    background: gray;
 }</code></pre>
 
 #### :focus-visible
@@ -286,7 +291,7 @@ isの軽量版。
 中身なし。
 
 <pre><code class="example">.form:focus-within {
-  border-color: blue;
+    border-color: blue;
 }</code></pre>
 
 
@@ -303,11 +308,11 @@ isの軽量版。
 要素の後に内容を追加。
 
 <pre><code class="example">.button::before {
-  content: "★ ";
+    content: "★ ";
 }
 
 .button::after {
-  content: " →";
+    content: " →";
 }</code></pre>
 
 #### ::first-letter
@@ -323,11 +328,11 @@ isの軽量版。
 選択された文字。
 
 <pre><code class="example">p::first-letter {
-  font-size: 200%;
+    font-size: 200%;
 }</code></pre>
 
 <pre><code class="example">::selection {
-  background: yellow;
+    background: yellow;
 }</code></pre>
 
 #### ::placeholder
@@ -335,7 +340,7 @@ isの軽量版。
 inputのプレースホルダ。
 
 <pre><code class="example">input::placeholder {
-  color: gray;
+    color: gray;
 }</code></pre>
 
 #### ::marker
@@ -343,7 +348,7 @@ inputのプレースホルダ。
 リストの記号。
 
 <pre><code class="example">li::marker {
-  color: red;
+    color: red;
 }</code></pre>
 
 ---
@@ -366,7 +371,7 @@ width + padding + borderがボーダーまでの幅となる。
 <pre><code class="example">*,
 *::before,
 *::after {
-  box-sizing: border-box;
+    box-sizing: border-box;
 }</code></pre>
 
 ---
@@ -508,14 +513,14 @@ grid-column: span 2;
 
 ```css
 .container {
-  display: grid;
-  grid-template-columns: 200px 1fr 200px;
-  grid-template-rows: auto 1fr auto;
+    display: grid;
+    grid-template-columns: 200px 1fr 200px;
+    grid-template-rows: auto 1fr auto;
 
-  grid-template-areas:
-    "left header right"
-    "left main   right"
-    "left footer right";
+    grid-template-areas:
+        "left header right"
+        "left main   right"
+        "left footer right";
 }
 ```
 
@@ -533,11 +538,11 @@ HTML
 
 ```html
 <div class="container">
-  <div class="left">left</div>
-  <div class="header">header</div>
-  <div class="main">main</div>
-  <div class="right">right</div>
-  <div class="footer">footer</div>
+    <div class="left">left</div>
+    <div class="header">header</div>
+    <div class="main">main</div>
+    <div class="right">right</div>
+    <div class="footer">footer</div>
 </div>
 ```
 
@@ -545,9 +550,9 @@ HTML
 
 ```
 grid-template-areas:
-  "header header header"
-  ".      main   ."
-  "footer footer footer";
+    "header header header"
+    ".      main   ."
+    "footer footer footer";
 ```
 
 
