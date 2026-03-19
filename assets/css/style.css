@@ -52,6 +52,11 @@ hr {
     margin: 1rem 0;
 }
 
+/* code(インライン) */
+code {
+    font-weight: bold;
+}
+
 
 /* naviのリスト */
 #navi ul {

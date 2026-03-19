@@ -13,7 +13,7 @@ layout: default
 /* 複数行コメント可能 */
 ```
 
-## cargo
+## cargo <a id="cargo" data-name="cargo"></a>
 
 | --- | --- |
 | cargo new プロジェクト名 | プロジェクト名で新たにプロジェクトディレクトリを作る |
@@ -22,13 +22,36 @@ layout: default
 | cargo build | プロジェクトをビルドする |
 | cargo check | バイナリを生成せずにビルドしてエラーチェックができる |
 
+---
+
+## トレイト <a id="trait" data-name="Trait"></a>
 
 
 
+### トレイト境界
 
+トレイト境界とは、ジェネリック型に対する制約の事を言う。<br>
+トレイト境界を指定すると、ジェネリック型パラメータに特定のTraitが実装されていることを保証できる。
 
+書き方は3パターンある。
 
-
+- ジェネリクス + トレイト境界(基本形)
+  ```rust
+fn print<T: std::fmt::Display>(x: T)
+  ```
+- impl Trait(省略形)
+  ```rust
+fn print(x: impl std::fmt::Display)
+  ```
+- where句(増えた時に使う)
+  ```rust
+fn print<T>(x: T)
+where
+    T: std::fmt::Display
+{
+    println!("{}", x);
+}
+  ```
 
 ---
 
@@ -752,18 +775,52 @@ let mut code = ch as i8;
 
 ## 制御フロー <a id="control-flow" data-name="制御フロー"></a>
 
+### match
+
+matchは、値のパターンで識別して、中身を取り出しながら分岐し、しかも漏れがないか確認できる仕組み。<br>
+上から順に評価されて、最初にマッチしたアームが選ばれるので、より具体的なものを先、より包括的なものを後に書く。
+
+```rust
+let age = 15;
+
+match age {
+    0 => println!("新生児です"),
+    1 | 2 => println!("乳幼児です"), // 1 または 2
+    3..=12 => println!("子供です"),   // 3から12（12を含む）
+    13..=19 => println!("ティーンエイジャーです"),
+    _ => println!("大人です"),         // その他すべて
+}
+```
+
+アームのコードが短い場合、波括弧{}は使用しない。<br>
+複数行のコードがある場合は波括弧で囲い、カンマ( , )は省略する。
+
+```rust
+fn value_in_cents(coin: Coin) -> u8 {
+    match coin {
+        Coin::Penny => {
+            println!("Lucky penny!");
+            1
+        }
+        Coin::Nickel => 5,
+        Coin::Dime => 10,
+        Coin::Quarter => 25,
+    }
+}
+```
+
 ### if
 
 ```rust
-for _i in 1..16 {
-    if (_i % 3 == 0) && (_i % 5 == 0) {
+for i in 1..16 {
+    if (i % 3 == 0) && (i % 5 == 0) {
         println!("FizzBuzz");
-    } else if _i % 3 == 0 { // 基本は()括弧なし
+    } else if i % 3 == 0 { // 基本は()括弧なし
         println!("Fizz");
-    } else if _i % 5 == 0 {
+    } else if i % 5 == 0 {
         println!("Buzz");
     } else {
-        println!("{}", _i);
+        println!("{}", i);
     }
 }
 ```
@@ -774,6 +831,62 @@ ifは式なので、letの右辺に持ってきて、値を返して束縛する
 
 ```rust
 let number = if condition { 5 } else { 6 };
+```
+
+### if let
+
+特定のパターンだった場合にのみ処理する時に有効。
+
+```rust
+// Noneの場合は何もしない
+if let Some(i) = some_value {
+    println!("値は {} です", i);
+}
+```
+
+### while let
+
+パターンにマッチし続ける限りループする。
+
+```rust
+let mut stack = vec![1, 2, 3];
+
+// pop()はOptionを返す。Someである限りループを回す
+while let Some(top) = stack.pop() {
+    println!("取り出した値: {}", top);
+}
+```
+
+### let else(ガード構文)
+
+Rust1.65で追加された機能で、パターンに一致すれば変数を取り出し、一致しなければ早期returnする。<br>
+elseにreturn、brake/continue、panic!等で、後続のマッチした場合の処理を行わないようにする必要がある。
+
+```rust
+fn get_user_id(id_str: &str) -> i32 {
+    // Okなら id を取り出す。Errなら関数の外に抜ける（panicさせる例）
+    let Ok(id) = id_str.parse::<i32>() else {
+        panic!("IDは数字である必要があります: {}", id_str);
+    };
+    // ここで id (i32型) が直接使える
+    id * 10 
+}
+```
+
+ダメな条件で次々と弾いていくガード節を使うことにより、過度なネストを防ぐことができる。
+
+```rust
+fn process_input(input: Option<&str>) {
+    // 1. 文字列が入っていなければ終了
+    let Some(s) = input else { return; };
+    // 2. 数値として解析できなければ終了
+    let Ok(n) = s.parse::<i32>() else { return; };
+    // 3. 0以下なら終了
+    if n <= 0 { return; }
+
+    // ネストがなく、変数 s や n がこのスコープで直接使える
+    println!("有効な数値です: {}", n);
+}
 ```
 
 ### for
@@ -905,66 +1018,6 @@ fn main() {
     println!("Exited the outer loop");
 }
 ```
-
-### match
-
-matchは、値のパターンで識別して、中身を取り出しながら分岐し、しかも漏れがないか確認できる仕組み。<br>
-上から順に評価されて、最初にマッチしたアームが選ばれるので、より具体的なものを先、より包括的なものを後に書く。
-
-```rust
-let number = 13;
-
-println!("Tell me about {}", number);
-match number {
-    // 単一の値とのマッチをチェック
-    1 => println!("One!"),
-    // いくつかの値とのマッチをチェック
-    2 | 3 | 5 | 7 | 11 => println!("This is a prime"),
-    // 特定の範囲の値とのマッチをチェック
-    13..=19 => println!("A teen"),
-    // その他の場合の処理
-    _ => println!("Ain't special"),
-}
-```
-
-```rust
-enum Coin {
-    Penny,
-    Nickel,
-    Dime,
-    Quarter,
-}
-
-fn value_in_cents(coin: Coin) -> u8 {
-    match coin {
-        Coin::Penny => 1,
-        Coin::Nickel => 5,
-        Coin::Dime => 10,
-        Coin::Quarter => 25,
-    }
-}
-```
-
-アームのコードが短い場合、波括弧{}は使用しない。<br>
-複数行のコードがある場合は波括弧で囲い、カンマ( , )は省略する。
-
-```rust
-fn value_in_cents(coin: Coin) -> u8 {
-    match coin {
-        Coin::Penny => {
-            println!("Lucky penny!");
-            1
-        }
-        Coin::Nickel => 5,
-        Coin::Dime => 10,
-        Coin::Quarter => 25,
-    }
-}
-```
-
-
-
-
 
 ---
 
@@ -1100,29 +1153,6 @@ println!("{number:0<5}", number=1); // 10000
 println!("{number:0>width$}", number=1, width=5);
 ```
 
-## 開発 <a id="development" data-name="開発"></a>
-
-
-
-### 警告を消す
-
-使っていない変数や、呼び出されていない関数に対する警告を消すには主に2つの方法がある。
-
-#### アンダースコアを付ける
-
-名前の先頭に`_`を付けることであえて使っていないことを明示する。
-
-#### アトリビュート`#![allow(unused)]`を使う
-
-ファイルの先頭に以下を記述する。
-
-| 警告メッセージ | 意味 | 対策アトリビュート |
-| --- | --- | --- |
-| unused_variables | 定義した変数が一度も使われていない | `#![allow(unused_variables)]` |
-| dead_code | 関数や構造体がどこからも呼び出されていない | `#![allow(dead_code)]` |
-| unused_imports | useしたけれど使っていない | `#![allow(unused_imports)]` |
-| 全部まとめて | 上記すべて | `#![allow(unused)]` |
-
 ---
 
 ## アトリビュート <a id="attribute" data-name="アトリビュート"></a>
@@ -1157,3 +1187,28 @@ println!("{number:0>width$}", number=1, width=5);
 | ライブラリクレート | 再利用されるコード |
 | モジュール(Module) | コードの整理・名前空間管理 |
 | アトリビュート | `#[...]`という記述でコンパイラに情報を与える |
+
+---
+
+## 開発 <a id="development" data-name="開発"></a>
+
+### 警告を消す
+
+使っていない変数や、呼び出されていない関数に対する警告を消すには主に2つの方法がある。
+
+#### アンダースコアを付ける
+
+名前の先頭に`_`を付けることであえて使っていないことを明示する。
+
+#### アトリビュート`#![allow(unused)]`を使う
+
+ファイルの先頭に以下を記述する。
+
+| 警告メッセージ | 意味 | 対策アトリビュート |
+| --- | --- | --- |
+| unused_variables | 定義した変数が一度も使われていない | `#![allow(unused_variables)]` |
+| dead_code | 関数や構造体がどこからも呼び出されていない | `#![allow(dead_code)]` |
+| unused_imports | useしたけれど使っていない | `#![allow(unused_imports)]` |
+| 全部まとめて | 上記すべて | `#![allow(unused)]` |
+
+---
