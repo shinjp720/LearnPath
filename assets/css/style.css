@@ -4,6 +4,7 @@ html {
 
 body {
     margin: 0;
+    padding: 0;
     background-color: #0d1117;
     color: #c9d1d9;
     font-family: 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
@@ -279,7 +280,7 @@ pre code {
     border: 1px solid #353d47;
 }
 
-/* -----------------レイアウト----------------- */
+/* -----------レイアウト-----------*/
 /* 全体を横並びに */
 #container {
     display: flex;
@@ -361,7 +362,7 @@ pre code {
 }
 
 /* ----------- スマホ用 ----------- */
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 960px) {
     #container {
         display: block;
     }
@@ -397,9 +398,9 @@ pre code {
     }
 
     #main {
-        width: 100%;
+        max-width: 100vw;
         height: auto;
-        padding: 6rem 1.5rem 2rem;
+        padding: 2rem 1.5rem 2rem;
     }
 
     #menuBtn,

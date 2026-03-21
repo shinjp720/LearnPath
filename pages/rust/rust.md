@@ -206,8 +206,6 @@ Rustには2種類の定数があり、いずれもグローバルスコープを
 | const | 不変の値(通常はこちらを使う) |
 | static | `'static`ライフタイムを持つ変更可能な値<br>可変なスタティック値へのアクセスや変更は安全ではない |
 
-
-
 ---
 
 ## 文字列 <a id="string" data-name="文字列"></a>
@@ -225,12 +223,21 @@ Rustにおける文字列(および文字)の表現は３種類ある。
 let mut s = String::new() // 空の文字列
 
 // 以下の例は等価
-let data = "initial contents";
-let s = data.to_string(); // &strから生成
-
-let s = "initial contents".to_string(); // 文字リテラルから生成
+let data = "initial contents"; // リテラルは&str(不変参照)
+let s = data.to_string(); // &strからStringを生成(ヒープに確保)
 
 let s = String::from("initial contents"); // fromで生成
+```
+
+#### 文字列スライス
+
+文字列スライスとは、Stringの一部への参照で、開始地点へのポインタと長さ(len)の情報を持つ。
+
+```rust
+let s = String::from("hello world");
+
+let hello = &s[0..5];  // "hello"
+let world = &s[6..11]; // "world"
 ```
 
 #### 文字列の追加
@@ -259,7 +266,7 @@ let s = format!("{s1}-{s2}-{s3}");
 
 ### 文字へのアクセス
 
-Stringおよび&str(文字列スライス)は、Vec&lt;u8&gt;のラップであり、内部的にUTF-8でデータを保持しているため、インデックスでアクセスして複数バイトの一部のみを取り出そうとするとパニックする。
+Stringおよび&strは、Vec&lt;u8&gt;のラップであり、内部的にUTF-8でデータを保持しているため、インデックスでアクセスした際、複数バイトの境界にアクセスするとパニックする。
 
 文字列の部分に対して操作を行う場合は、文字に対して操作したいのかバイトに対して操作したいのかを明示する。
 
@@ -288,9 +295,99 @@ for b in "Зд".bytes() {
 }
 ```
 
+### 文字列の表現
+
+#### バイト列として扱う
+
+- バイトスライス<br>
+    パーサーやネットワーク・ファイル処理で重要。ASCIIのみ。
+    ```rust
+let bytes: &[u8] = b"hello";
+    ```
+    UTF-8エンコード文字列を、UTF-8保証なしのバイト列にする場合は、
+    ```rust
+let bytes = "あいう".as_bytes();
+    ```
+
+- 可変バイト列<br>
+    Stringの中身と同じ構造だが、UTF-8保証なし。
+    ```rust
+let mut v = vec![104, 101, 108, 108, 111];
+    ```
+
+- バイト文字列リテラル<br>
+    ASCII前提の高速処理で、コンパイル時にバイト列になる。
+    ```rust
+let b = b"hello";
+    ```
+
+#### 生文字列
+
+- エスケープなし文字列<br>
+    `\n`や`\"`を解釈しない。
+    ```rust
+let s = r"C:\Users\name";
+    ```
+
+- ダブルクォートを含めたい場合<br>
+    `r#"..."#`で囲む。
+    ```rust
+let s = r#"{"key": "value"}"#;
+    ```
+
+#### OS依存文字列
+
+OSのネイティブな表現で、UTF-8とは限らない。特にWindows、ファイルパスで必須。
+
+```rust
+use std::ffi::OsStr;
+```
+
+#### C互換文字列
+
+C言語とやり取りするためのNULL終端文字列。
+
+```rust
+use std::ffi::CString;
+```
+
+#### Cow(コピーオンライト)
+
+無駄なコピーを避けるためのenumで、ライブラリ設計で重要になる。
+
+```rust
+enum Cow<'a, B: ?Sized> {
+    Borrowed(&'a B),
+    Owned(<B as ToOwned>::Owned),
+}
+```
+
+必要になったら所有権を持つ。
+
+```rust
+let mut cow = Cow::Borrowed("hello");
+cow.to_mut().push_str(" world");
+```
+
+#### Box&lt;str&gt;
+
+Stringは再アロケートを少なくするために、余分なキャパシティーを持っているので、`Box<str>`に変換することで、所有権を持ちながら余分なキャパシティーを削減する。大量データ向け。<br>
+ただし不変なデータとなるので、文字列を変更する場合はStringに戻す必要がある。
+
+```rust
+let mut s = String::from("hello");
+s.push_str(" world");
+// もうsを変更しない
+let b = s.into_boxed_str();
+```
+
 ---
 
 ## 構造体 <a id="struct" data-name="構造体"></a>
+
+構造体は複数の値に名前を付けて(フィールド)保持するための型で、定義とインスタンスの生成を別々に行う。
+
+インスタンスが可変かどうかはmutキーワードで可変となるが、そのインスタンス全体が可変となり、一部のフィールドのみを可変にすることはできない。 
 
 #### 定義
 
@@ -349,6 +446,8 @@ let user2 = User {
 このように同じ値の代入を簡単に書ける。
 
 #### タプル構造体
+
+タプル構造体は、タプル全体に名前を付け、そのタプルを他のタプルとは異なる型にしたいが、各フィールドに名前を与えるのは冗長である場合などに有効。
 
 ```rust 
 struct Color(i32, i32, i32);
