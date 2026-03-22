@@ -48,6 +48,15 @@ h4 {
     padding: 0;
 }
 
+/* リンク */
+a:link {
+    color: #bc8cff;
+}
+
+a:visited {
+    color: #954df9;
+}
+
 /* 水平ライン */
 hr {
     margin: 1rem 0;
@@ -281,18 +290,10 @@ pre code {
 }
 
 /* -----------レイアウト-----------*/
-/* 全体を横並びに */
 #container {
+    /* 全体を横並びに */
     display: flex;
-    height: 100vh;
-}
-
-/* ナビゲーション */
-#navi {
-    width: 200px;
-    overflow-y: auto;
-    height: 100vh;
-    padding: 2rem 1rem;
+    min-height: 100vh;
 }
 
 /* メインコンテンツ */
@@ -300,23 +301,25 @@ pre code {
     background-color: #0d1117;
     flex: 1;
     overflow-y: auto;
-    height: 100vh;
+    min-height: 100vh;
     padding: 2rem 3rem;
 }
 
-/* 目次 */
+/* ナビ・目次 */
+#navi,
 #toc {
-    width: 200px;
     overflow-y: auto;
-    height: 100vh;
+    width: 250px;
+    color: #c9d1d9;
+    background-color: #0b0b0b;
+    min-height: 100vh;
     padding: 2rem 1rem;
 }
 
-#navi,
-#toc {
-    color: #c9d1d9;
-    background-color: #010409;
+#navi {
+    border-left: none;
     border-right: 1px solid #21262d;
+
 }
 
 #toc {
@@ -372,7 +375,7 @@ pre code {
         position: fixed;
         top: 0;
         bottom: 0;
-        width: 200px;
+        width: 350px;
         background-color: #010409;
         box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
         transition: transform 0.3s ease;

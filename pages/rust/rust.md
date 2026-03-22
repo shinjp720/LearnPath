@@ -24,37 +24,6 @@ layout: default
 
 ---
 
-## トレイト <a id="trait" data-name="Trait"></a>
-
-
-
-### トレイト境界
-
-トレイト境界とは、ジェネリック型に対する制約の事を言う。<br>
-トレイト境界を指定すると、ジェネリック型パラメータに特定のTraitが実装されていることを保証できる。
-
-書き方は3パターンある。
-
-- ジェネリクス + トレイト境界(基本形)
-  ```rust
-fn print<T: std::fmt::Display>(x: T)
-  ```
-- impl Trait(省略形)
-  ```rust
-fn print(x: impl std::fmt::Display)
-  ```
-- where句(増えた時に使う)
-  ```rust
-fn print<T>(x: T)
-where
-    T: std::fmt::Display
-{
-    println!("{}", x);
-}
-  ```
-
----
-
 ## 関数 <a id="function" data-name="関数"></a>
 
 #### 構文
@@ -1118,24 +1087,50 @@ fn main() {
 }
 ```
 
+
+
+
+
+
+
+
+
+
 ---
 
-## 出力・フォーマット <a id="output-format" data-name="出力・フォーマット"></a>
+## トレイト <a id="trait" data-name="Trait"></a>
 
-#### マクロ
 
-出力、フォーマット用に以下のようなマクロが提供されている。
+### トレイト境界
 
-| --- | --- |
-| format! | フォーマットされたテキストをStringに書き込む |
-| print! | format!と同様だが、標準出力(io::stdout)にそのテキストを出力する |
-| println! | print!と同様だが、改行が付け加えられる |
-| eprint! | format!と同様だが、標準エラー出力(io::stderr)にそのテキストを出力する |
-| eprintln! | eprint!と同様だが、改行が付け加えられる |
+トレイト境界とは、ジェネリック型に対する制約の事を言う。<br>
+トレイト境界を指定すると、ジェネリック型パラメータに特定のTraitが実装されていることを保証できる。
+
+書き方は3パターンある。
+
+- ジェネリクス + トレイト境界(基本形)
+    ```rust
+fn print<T: std::fmt::Display>(x: T)
+    ```
+
+- impl Trait(省略形)
+    ```rust
+fn print(x: impl std::fmt::Display)
+    ```
+
+- where句(増えた時に使う)
+    ```rust
+fn print<T>(x: T)
+where
+    T: std::fmt::Display
+{
+    println!("{}", x);
+}
+    ```
 
 #### fmt::Debug
 
-主に開発者のための機能で、構造体やenum定義の前に以下のように外部属性を追加するだけで
+主に開発用の機能で、構造体やenum定義の前に以下のようにアトリビュート追加するだけで
 
 ```rust
 #[derive(Debug)]
@@ -1151,6 +1146,17 @@ struct Rectangle {
 println!("{:?}", rect);
 // Rectangle { width: 30, height: 50 }
 ```
+
+または`"{:#?}"`により、整形され読みやすい形で出力される。
+
+```rust
+println!("{:#?}", rect);
+// Rectangle {
+//     width: 30,
+//     height: 50 
+// }
+```
+
 
 #### fmt::Display
 
@@ -1181,20 +1187,93 @@ let u = User {
 println!("{u}"); // User: Alice
 ```
 
-### フォーマット
+[文字列のフォーマット](#文字列のフォーマット)
+
+---
+
+## マクロ <a id="macro" data-name="マクロ"></a>
+
+### 出力・フォーマット 
+
+出力、フォーマット用に以下のようなマクロが提供されている。
+
+| マクロ | 説明 |
+| --- | --- |
+| format! | フォーマットしたテキストを String にして返す |
+| write! | すでにある場所にフォーマットしたテキストを書き込む |
+| print! | format! と同様だが、標準出力 (io::stdout) にそのテキストを出力する |
+| println! | print! と同様だが、改行が付け加えられる |
+| eprint! | format! と同様だが、標準エラー出力 (io::stderr) にそのテキストを出力する |
+| eprintln! | eprint! と同様だが、改行が付け加えられる |
+| dbg! | 所有権を奪ってデバッグ情報を出力し、所有権を返す |
+
+#### format!
+
+[文字列をフォーマット](#文字列のフォーマット)してヒープに確保して String として返す。
+
+```rust
+fn main() {
+    let name = "Rust";
+    let version = 1.75;
+    let s = format!("Hello, {} {}!", name, version);
+
+    println!("{}", s); // "Hello, Rust 1.75!"
+}
+```
+
+#### write!
+
+既にある場所(StringかI/O)に[文字列をフォーマット](#文字列のフォーマット)して書き込む。<br>
+書き込みに失敗する可能性があるので、戻り値は io::Result<()>。
+書き込み先に応じて use する。
+
+| --- | --- |
+| 文字列 | use std::fmt::Write |
+| 入出力 | use std::io::Write |
+
+```rust
+use std::io::{self, Write};
+
+fn main() -> io::Result<()> {
+    let mut stdout = io::stdout();
+
+    // 標準出力に直接書き込む（println!に近いが、より低レイヤー）
+    write!(&mut stdout, "Direct output to stdout\n")?;
+
+    Ok(())
+}
+```
+
+ループなどで毎回 String を生成するとアロケートに時間がかかる場合があるが、ひとつの String を使いまわせば、処理速度が向上する可能性がある。<br>
+また書き込み先がファイルでも String でもネットワークでも、同じマクロで扱える。
+
+#### dbg!
+
+標準エラー出力 (stderr) に、ファイル名、行番号、式そのものを出力する。<br>
+Debugトレイトを実装している必要がある。<br>
+所有権を奪ってそのまま返すので処理の流れを壊さない。ヒープの値は参照 (&) を渡すのが一般的。
+
+```rust
+// 1+2 の結果と 3+4 の結果がそれぞれ表示されつつ、合計は正しく計算される
+let total = dbg!(1 + 2) + dbg!(3 + 4);
+```
+
+<pre><code class="tips">引数なしで dbg!() とだけ書くと、「ここを通過した」というマーカーを置くことができる。</code></pre>
+
+## 文字列のフォーマット <a id="string-formatting" data-name="文字列のフォーマット"></a>
 
 #### 変数を引数に取る
 
-Rust  1.58以降では周囲の変数から直接引数に取ることができる。
+Rust 1.58以降では周囲の変数から直接引数に取ることができる。
 
 ```rust
 let number: f64 = 1.0;
 println!("number is {number}");
 ```
 
-#### {}による置き換え
+#### {} による置き換え
 
-{}はどんな引数でも自動的に置き換えられる
+{} は様々な引数を自動的に置き換える。
 
 ```rust
 println!("{} days", 31);
@@ -1202,7 +1281,7 @@ println!("{} days", 31);
 
 #### 位置引数
 
-{}で整数を指定することでどの引数で置換されるか決まる。
+{} で整数を指定することで、どの位置引数で置換されるか決まる。
 
 ```rust
 println!("{0}, this is {1}. {1}, this is {0}", "Alice", "Bob");
@@ -1219,9 +1298,9 @@ println!("{subject} {verb} {object}",
     verb="jumps over");
 ```
 
-#### :によるフォーマット
+#### : によるフォーマット
 
-:の後にフォーマット文字を指定して異なるフォーマットにすることも可能。
+(コロン): の後にフォーマット文字を指定して、異なるフォーマットにする。
 
 ```rust
 println!("Base 10:               {}",   69420); // 69420
@@ -1297,9 +1376,9 @@ println!("{number:0>width$}", number=1, width=5);
 
 #### アンダースコアを付ける
 
-名前の先頭に`_`を付けることであえて使っていないことを明示する。
+名前の先頭に `_` を付けることであえて使っていないことを明示する。
 
-#### アトリビュート`#![allow(unused)]`を使う
+#### アトリビュート `#![allow(unused)]` を使う
 
 ファイルの先頭に以下を記述する。
 
