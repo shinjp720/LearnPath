@@ -912,6 +912,16 @@ if let Some(i) = some_value {
 }
 ```
 
+else で包括的な処理も書けるが、アームが増えてらmatchが自然。
+
+```rust
+if let Some(i) = some_value {
+    println!("値は {} です", i);
+} else {
+    println!("Noneでした");
+}
+```
+
 ### while let
 
 パターンにマッチし続ける限りループする。
@@ -1258,7 +1268,7 @@ Debugトレイトを実装している必要がある。<br>
 let total = dbg!(1 + 2) + dbg!(3 + 4);
 ```
 
-<pre><code class="tips">引数なしで dbg!() とだけ書くと、「ここを通過した」というマーカーを置くことができる。</code></pre>
+<pre><code class="tips">引数なしで dbg!() とだけ書くと、「ここを通過した」というマーカーになる。</code></pre>
 
 ## 文字列のフォーマット <a id="string-formatting" data-name="文字列のフォーマット"></a>
 
