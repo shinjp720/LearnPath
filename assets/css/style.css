@@ -293,7 +293,8 @@ pre code {
 #container {
     /* 全体を横並びに */
     display: flex;
-    min-height: 100vh;
+    flex-direction: row;
+    height: 100vh;
 }
 
 /* メインコンテンツ */
