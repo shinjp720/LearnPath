@@ -1362,6 +1362,94 @@ println!("{number:0>width$}", number=1, width=5);
 
 ---
 
+## テスト <a id="test" data-name="テスト"></a>
+
+### テストの書き方
+
+`#[cfg(test)]`アトリビュートによってコンパイラに、test時のみモジュールを有効にするように指定する。
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test] // テスト時ここが実行される
+    fn it_works() {
+        assert_eq!(2 + 2, 4);
+    }
+}
+```
+
+### アサート関数
+
+#### assert!
+
+trueならOk。falseならpanic。
+
+```rust
+assert!(x > 0);
+```
+
+#### assert_eq!
+
+左辺と右辺が等しいならOk。等しくなければpanic。
+
+```rust
+assert_eq!(add(2, 3), 5);
+```
+
+#### assert_ne!
+
+左辺と右辺が等しくないならOk。等しければpanic。
+
+```rust
+assert_ne!(add(2, 2), 5);
+```
+
+#### should_panic
+
+panicすることが正しいケース。
+
+```rust
+#[test]
+#[should_panic]
+fn test_panic() {
+    panic!("error");
+}
+```
+
+#### Resultを使うパターン
+
+エラーならテスト失敗。
+
+```rust
+#[test]
+fn test_result() -> Result<(), String> {
+    let result = some_func()?;
+    assert_eq!(result, 42);
+    Ok(())
+}
+```
+
+#### カスタムメッセージ
+
+assertはメッセージを付けられる。
+
+```rust
+assert_eq!(a, b, "計算結果がおかしい");
+```
+
+#### debug_assert!
+
+デバッグビルドでは動いて、リリースビルドでは無視。
+
+```rust
+debug_assert!(x > 0);
+```
+
+
+---
+
 ## 用語 <a id="term" data-name="用語"></a>
 
 | 用語 | 意味 |
