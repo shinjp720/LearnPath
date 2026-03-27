@@ -35,6 +35,147 @@ fn func([argument...]) -> return_value {
 }
 ```
 
+
+---
+
+## クロージャ <a id="closure" data-name="クロージャ"></a>
+
+### 基本構文
+
+```rust
+|引数| 式;
+```
+
+以下は全て同じ意味で、下に行くほど表記が省略されている。
+
+```rust
+fn  add_one_v1(x: u32) -> u32 { x + 1 }
+let add_one_v2 = |x: u32| -> u32 { x + 1 };
+let add_one_v3 = |x| { x + 1 };
+let add_one_v4 = |x| x + 1;
+```
+
+### キャプチャ
+
+クロージャの大きな特徴として、スコープの変数をキャプチャして使える。
+
+```rust
+let x = 10;
+
+let f = |y| x + y; // xをキャプチャ
+
+println!("{}", f(5)); // 15
+```
+
+### クロージャのトレイト
+
+クロージャには3つのトレイトがあり、このキャプチャにおけるの所有権の扱いによって、そのクロージャがどのトレイトを実装するかが決まる。
+
+1. キャプチャなし、または不変借用
+    ```rust
+let x = 10;
+let f = |y| x + y; // &x を借用
+println!("{}", x); // OK
+    ```
+    - `Fn + FnMut + FnOnce`を実装。
+2. 可変借用
+    ```rust
+let mut x = 10;
+let mut f = |y| {
+    x += y;
+};
+f(5);
+println!("{}", x); // 15
+    ```
+    - `FnMut + FnOnce`を実装。
+3. 所有権を消費
+    ```rust
+let x = String::from("hello");
+let f = move || {
+    println!("{}", x);
+};
+f();
+// println!("{}", x); // ❌ 使えない
+    ```
+    - `FnOnce`を実装。
+
+---
+
+## イテレータ <a id="Iterator" data-name="イテレータ"></a>
+
+イテレータは要素をひとつずつ取り出す仕組みで、`Iterator`トレイトを実装する。<br>
+イテレータは怠惰なので呼ばれて初めて処理が走る。
+
+```rust
+trait Iterator {
+    type Item;
+
+    fn next(&mut self) -> Option<Self::Item>;
+}
+```
+
+### 3種類のイテレータ
+
+所有権に応じて3種類のイテレータがある。
+
+1. iter() (借用)
+    - 型：`&T`
+    - 不変参照
+2. iter_mut() (可変借用)
+    - 型：`&mut T`
+    - 値が変更可能
+3. into_iter() (ムーブ)
+    - 型：`T`
+    - 元のイテレータは使えなくなる
+
+### アダプタ
+
+アダプタはイテレータを返す。
+
+```rust
+v.iter()
+    .filter(|x| *x % 2 == 0)
+    .map(|x| x * 2)
+```
+
+#### filter
+
+値を選別する。
+
+```rust
+.filter(|x| 条件)
+// FnMut(&T) -> bool
+```
+
+#### map
+
+値を変換する。
+
+```rust
+.map(|x| 新しい値)
+// FnMut(T) -> U
+```
+
+#### collect
+
+collect でコレクションに変換する。
+
+```rust
+let v: Vec<_> = iter.collect();
+```
+
+#### for_each
+
+```rust
+iter.for_each(|x| println!("{}", x));
+```
+
+#### sum
+
+```rust
+let sum: i32 = v.iter().sum();
+```
+
 ---
 
 ## 型 <a id="type" data-name="型"></a>
