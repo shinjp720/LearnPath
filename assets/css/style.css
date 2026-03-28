@@ -48,6 +48,11 @@ h4 {
     padding: 0;
 }
 
+h5 {
+    color: #c6e1ff;
+    font-size: 1rem;
+}
+
 /* リンク */
 a:link {
     color: #bc8cff;
