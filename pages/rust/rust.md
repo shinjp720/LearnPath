@@ -118,13 +118,16 @@ trait Iterator {
 
 所有権に応じて3種類のイテレータがある。
 
-1. iter() (借用)
+1. iter()
+    - 借用
     - 型：`&T`
     - 不変参照
-2. iter_mut() (可変借用)
+2. iter_mut()
+    - 可変借用
     - 型：`&mut T`
     - 値が変更可能
-3. into_iter() (ムーブ)
+3. into_iter()
+    - ムーブ
     - 型：`T`
     - 元のイテレータは使えなくなる
 
@@ -175,6 +178,19 @@ iter.for_each(|x| println!("{}", x));
 ```rust
 let sum: i32 = v.iter().sum();
 ```
+
+---
+
+## スマートポインタ <a id="smart-pointer" data-name="スマートポインタ"></a>
+
+### `Box<T>`
+
+Boxにより、データを明示的にヒープに確保する。<br>
+以下はBoxの主な利用法。
+
+- コンパイル時にサイズを知ることができない型に対して
+- 多くのデータの所有権を移すときにコピーされないように
+- 値を所有する必要があり、特定の型ではなく特定のトレイトの実装の有無のみを気にかける場合
 
 ---
 
@@ -773,7 +789,7 @@ Rustの標準コレクション
 
 ---
 
-### ベクタ <a id="vector" data-name="ベクタ"></a>
+### ベクタ
 
 ベクタは同じ型の値を動的にかつメモリ上で隣り合った形で保持できるコレクション。
 
@@ -818,7 +834,7 @@ v.push(7);
 
 ---
 
-### ハッシュマップ <a id="hashmap" data-name="ハッシュマップ"></a>
+### ハッシュマップ
 
 型HashMap<K, V>は、 K型のキーとV型の値の対応関係をハッシュ関数を使用して保持する。
 
@@ -909,7 +925,70 @@ let slice = &s[..];
 
 <pre><code class="tips">Stringにおいてはスライスと&strは同等。</code></pre>
 
+### 所有権を軸にしたメソッドの命名規則
 
+#### `to_*`
+
+借用して、新しい型を作って返す。
+
+```rust
+let s = "Hello";
+let lower = s.to_lowercase();
+```
+
+- 引数：&self(借用)
+- 戻り値：新しい所有権
+
+#### `into_*`
+
+所有権をムーブして変換。
+
+```rust
+let s = String::from("Hello");
+let bytes = s.into_bytes();
+```
+
+- 引数：self(ムーブ)
+- 元の型は使えなくなる
+
+#### `as_*`
+
+参照で別の型として見るだけ。
+
+```rust
+let s = String::from("Hello");
+let slice = s.as_str();
+```
+
+- 引数：&self(借用)
+- 戻り値：&selfなど(参照)
+
+#### `get_*`
+
+安全に取り出す(失敗あり)。
+
+```rust
+let v = vec![1,2,3];
+let x = v.get(0);
+```
+
+- 戻り値：`Option<T>`や`Option<&T>`
+
+#### `new`
+
+空もしくはデフォルト値。
+
+- 引数：なし
+
+#### `from`
+
+別の型から生成。
+
+#### `push`/`insert`
+
+内部を変更。
+
+- &mut self
 
 ---
 
@@ -1249,7 +1328,8 @@ fn main() {
 
 ---
 
-## トレイト <a id="trait" data-name="Trait"></a>
+## トレイト <a id="trait" data-name="トレイト"></a>
+
 
 
 ### トレイト境界
@@ -1279,7 +1359,7 @@ where
 }
     ```
 
-#### fmt::Debug
+### fmt::Debug
 
 主に開発用の機能で、構造体やenum定義の前に以下のようにアトリビュート追加するだけで
 
@@ -1309,7 +1389,7 @@ println!("{:#?}", rect);
 ```
 
 
-#### fmt::Display
+### fmt::Display
 
 エンドユーザー(アプリ利用者)のための機能で、自由に表示形式を定義できる。
 
@@ -1338,7 +1418,7 @@ let u = User {
 println!("{u}"); // User: Alice
 ```
 
-[文字列のフォーマット](#文字列のフォーマット)
+文字列のフォーマットは <a href="#string-formatting">こちら </a>を参照。
 
 ---
 
@@ -1360,7 +1440,7 @@ println!("{u}"); // User: Alice
 
 #### format!
 
-[文字列をフォーマット](#文字列のフォーマット)してヒープに確保して String として返す。
+<a href="#string-formatting">文字列をフォーマット </a>してヒープに確保して String として返す。
 
 ```rust
 fn main() {
@@ -1374,7 +1454,8 @@ fn main() {
 
 #### write!
 
-既にある場所(StringかI/O)に[文字列をフォーマット](#文字列のフォーマット)して書き込む。<br>
+文字列のフォーマットは を参照。
+既にある場所(StringかI/O)に <a href="#string-formatting">文字列をフォーマット</a> して書き込む。<br>
 書き込みに失敗する可能性があるので、戻り値は io::Result<()>。
 書き込み先に応じて use する。
 
