@@ -5,8 +5,6 @@ layout: default
 
 # Rust <a id="top" data-name="TOP"></a>
 
----
-
 ### コメント
 ```rust
 // 行末までコメント
@@ -252,7 +250,7 @@ fn main() {
 
 `Rc<T>` は参照カウント方式のスマートポインタで、複数の所有者を持つことができ、すべての所有者がなくなってから解放される。<br>
 `Rc<T>` は不変であり、シングルスレッドで使用するためだけのものであることに注意。<br>
-可変で使用する場合は `RefCell<T>` と組み合わせる。また、マルチスレッド環境で使用する場合は `Arc<T>` を使用する。
+可変で使用する場合は <a href="#rc-refcell">RefCell&lt;T&gt; と組み合わせる。</a>また、マルチスレッド環境で使用する場合は `Arc<T>` を使用する。
 
 #### 使い方
 
@@ -274,17 +272,78 @@ fn main() {
 
 #### `Rc<T>` を単独で使用するケース
 
-1. 通常の借用 `(&T)` は、所有者が借りる側よりも長く生きることをコンパイラに証明する必要があるが、
+- 通常の借用 `(&T)` は、所有者が借りる側よりも長く生きることをコンパイラに証明する必要があるが、
 グラフ構造や木構造で、親ノードが消えても子ノードが別の場所から参照されて生き残る必要がある場合や、
 イベント駆動・コールバックのイベントなど、いつ実行されるか分からない関数にデータを渡す場合。
-2. 一部のライブラリや関数が、引数として参照 `(&T)` ではなく所有権 `(T)` を要求する場合、
- `Rc<T>` であれば `Clone()` しても増えるのは参照カウントだけでありコストが少ない。
-3. `Rc<T>` は一度作ったら中身が変わらないという特性を持つため、低コストで配れる。
+- 一部のライブラリや関数が、引数として参照 `(&T)` ではなく所有権 `(T)` を要求する場合、
+ `Rc<T>` であれば `Clone()` で増えるのは参照カウントだけでコストが少ない。
+- `Rc<T>` は一度作ったら中身が変わらないという特性を持つため、低コストで配れる。
 
 ### `RefCell<T>`
 
-`RefCell<T>` は、コンパイル時のルールを回避して、実行時に借用規則をチェックする仕組み。
+`RefCell<T>` は、コンパイル時のルールを回避して、実行時に借用規則をチェックする仕組み。<br>
+コードが借用規則に則っているとプログラマが確証を得ているが、コンパイラがそれを理解し保証できない場合に有用。<br>
+`RefCell<T>` はシングルスレッド用で、スレッド間で共有する場合は `Mutex` を使う。<br>
+借用規則に違反すると、パニックが発生する。
 
+#### `RefCell` を使うべきケース
+
+- グラフ構造、オブザーバーパターン、モックオブジェクトの作成など
+
+### 使い方
+
+```rust
+use std::cell::RefCell;
+
+fn main() {
+    let data = RefCell::new(10);
+
+    {
+        // 不変参照として借りる
+        let r1 = data.borrow();
+        println!("値は: {}", r1);
+        // let r2 = data.borrow_mut(); // ここでこれを呼ぶと実行時にパニック！
+    } // r1 がここでスコープを抜けるので、次は可変で借りられる
+
+    // 可変参照として借りて値を書き換える
+    *data.borrow_mut() += 10;
+
+    println!("更新後の値: {:?}", data.borrow()); // 20
+}
+```
+
+### `Rc<T>` と `RefCell<T>` の組み合わせ <a id="rc-refcell"></a>
+
+```rust
+use std::rc::Rc;
+use std::cell::RefCell;
+
+struct GameConfig {
+    difficulty: String,
+}
+
+fn main() {
+    // 1. 共有したいデータを RefCell で包み、さらに Rc で包む
+    let shared_config = Rc::new(RefCell::new(GameConfig {
+        difficulty: "Normal".to_string(),
+    }));
+
+    // 2. 参照をコピーして別々の場所に持っていく(中身は同じ実体)
+    let player1_config = Rc::clone(&shared_config);
+    let player2_config = Rc::clone(&shared_config);
+
+    // 3. 片方が値を書き換える
+    {
+        let mut config = player1_config.borrow_mut();
+        config.difficulty = "Hard".to_string();
+    } // ここでロック(借用)が解除される
+
+    // 4. もう片方でも変更が反映されている
+    println!("Player 2 sees difficulty: {}", player2_config.borrow().difficulty);
+}
+```
+
+<pre><code class="caution">この組み合わせはシングルスレッド限定</code></pre>
 
 ---
 
@@ -1162,7 +1221,7 @@ let age = 15;
 match age {
     0 => println!("新生児です"),
     1 | 2 => println!("乳幼児です"), // 1 または 2
-    3..=12 => println!("子供です"),   // 3から12（12を含む）
+    3..=12 => println!("子供です"),   // 3から12(12を含む)
     13..=19 => println!("ティーンエイジャーです"),
     _ => println!("大人です"),         // その他すべて
 }
@@ -1250,7 +1309,7 @@ elseにreturn、brake/continue、panic!等で、後続のマッチした場合�
 
 ```rust
 fn get_user_id(id_str: &str) -> i32 {
-    // Okなら id を取り出す。Errなら関数の外に抜ける（panicさせる例）
+    // Okなら id を取り出す。Errなら関数の外に抜ける(panicさせる例)
     let Ok(id) = id_str.parse::<i32>() else {
         panic!("IDは数字である必要があります: {}", id_str);
     };
@@ -1405,18 +1464,11 @@ fn main() {
 }
 ```
 
-
-
-
-
-
-
-
-
-
 ---
 
 ## トレイト <a id="trait" data-name="トレイト"></a>
+
+
 
 
 
@@ -1557,7 +1609,7 @@ use std::io::{self, Write};
 fn main() -> io::Result<()> {
     let mut stdout = io::stdout();
 
-    // 標準出力に直接書き込む（println!に近いが、より低レイヤー）
+    // 標準出力に直接書き込む(println!に近いが、より低レイヤー)
     write!(&mut stdout, "Direct output to stdout\n")?;
 
     Ok(())
@@ -1660,7 +1712,7 @@ println!("{number:0>width$}", number=1, width=5);
 - コンパイル時の条件分岐
 - クレート名、バージョン、種類(バイナリか、ライブラリか)の設定
 - リントの無効化
-- コンパイラ付属の機能（マクロ、グロブ、インポートなど）の使用
+- コンパイラ付属の機能(マクロ、グロブ、インポートなど)の使用
 - 外部ライブラリへのリンク
 - ユニットテスト用の関数を明示
 - ベンチマーク用の関数を明示
