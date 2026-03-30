@@ -1830,6 +1830,29 @@ debug_assert!(x > 0);
 
 ## 開発 <a id="development" data-name="開発"></a>
 
+### 複数のバイナリクレートを切り替える
+
+同じプロジェクト内でバイナリクレート(実行ファイル)のコンパイルを切り替えるには、
+通常 `src/bin/` ディレクトリに複数の `.rs` ファイルを作成して、
+
+```
+my_project/
+├── Cargo.toml
+├── src/
+│   ├── main.rs      (デフォルトのバイナリ: cargo run)
+│   └── bin/
+│       ├── tool_a.rs (別のバイナリ: cargo run --bin tool_a)
+│       └── tool_b.rs (別のバイナリ: cargo run --bin tool_b)
+```
+
+コンパイル時に、
+
+```bash
+cargo run --bin tool_a
+```
+
+ファイル名を指定する。
+
 ### 警告を消す
 
 使っていない変数や、呼び出されていない関数に対する警告を消すには主に2つの方法がある。
