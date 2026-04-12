@@ -1891,6 +1891,55 @@ debug_assert!(x > 0);
 
 ---
 
+## 外部クレート <a id="external-crates" data-name="外部クレート"></a>
+
+### 標準のリポジトリ
+
+#### cargo addコマンド
+
+2022年(Rust 1.62)から標準搭載された cargo の機能で、最新バージョンの検索、Cargo.toml への追記、依存関係の解決まで行ってくれる。<br>
+基本的に add コマンドを使い、細かい調整が必要な時は Cargo.toml を編集するのが一般的。
+
+#### Cargo.toml に直接書く
+
+微調整向きで、 GitHub のこのブランチの、このディレクトリにあるクレートなどといった複雑な指定をする場合は直接編集した方が早い。
+
+### Gitリポジトリ
+
+GitHub や GitLab リポジトリ上のソースを直接参照できる。特定のブランチやコミットハッシュを指定することもできる。
+
+<pre><code class="example">[dependencies]
+# リポジトリURLを指定
+regex = { git = "https://github.com/rust-lang/regex" }
+
+# 特定のブランチやタグを指定する場合
+rand = { git = "https://github.com/rust-lang-nursery/rand", branch = "master" }</code></pre>
+
+### ローカルのパス
+
+同じPC内の別のディレクトリにあるクレートを参照する。巨大なプロジェクトを複数のパッケージに分割して開発する場合などにも用いられる。
+
+<pre><code class="example">[dependencies]
+my_library = { path = "../my_library" }</code></pre>
+
+### クレートの登録
+
+crates.io にパブリッシュして、自分のコードをクレートとして登録して誰でも cargo add できるようにする。
+
+1. cargo login でトークンを設定
+2. Cargo.toml に description や license などの必須項目を記入
+3. cargo publish コマンドを実行。
+
+### ワークスペース
+
+複数の関連するクレートをひとつのプロジェクト(ディレクトリ)内で管理する方法。
+
+- ルートの Cargo.toml で全体を管理し、小ディレクトリのクレート同士を path でつなぐ。
+- コンパイル結果(targetディレクトリ)を共有できるため、ビルド時間の短縮につながる。
+
+
+---
+
 ## 開発 <a id="development" data-name="開発"></a>
 
 ### 複数のバイナリクレートを切り替える
