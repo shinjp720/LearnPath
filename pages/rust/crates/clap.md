@@ -58,7 +58,7 @@ fn main() {
 
 ### `///`
 
-この文字列がhelpで表示される。
+この文字列が help で表示される。
 
 ### `#[derive(Parser)]`
 
@@ -81,7 +81,7 @@ name: String,</code></pre>
 
 ### 省略可能オプション
 
-オプションの指定だけで引数を省略可能にする場合はOptionにする。
+オプションの指定だけで引数を省略可能にする場合は Option にする。
 
 ```rust
 #[arg(long)]
@@ -90,7 +90,7 @@ name: Option<String>,
 
 ### 複数受け取る
 
-同じオプションを複数受け取れる様にするならVecにする。
+同じオプションを複数受け取れる様にするなら Vec にする。
 
 ```rust
 #[arg(long)]
@@ -106,7 +106,7 @@ files: Vec<String>,
 cargo run で実行する場合
 
 ```bash
-# cargoへの引数と分けるため -- を置く
+# cargo への引数と分けるため -- を置く
 cargo run -- -n shin --debug input.txt
 ```
 

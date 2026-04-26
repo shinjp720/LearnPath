@@ -544,9 +544,16 @@ let one = x.2;
 Rustには2種類の定数があり、いずれもグローバルスコープを含む任意のスコープで宣言が可能。<br>
 またいずれも型を明示する必要がある。
 
-| --- | --- |
-| const | 不変の値(通常はこちらを使う) |
-| static | `'static`ライフタイムを持つ変更可能な値<br>可変なスタティック値へのアクセスや変更は安全ではない |
+### const
+
+通常の定数はこちらを使う。<br>
+`const` の場合はコンパイル時に計算され、バイナリに直接値が埋め込まれるため、物理的に値を変更できない。<br>
+実質的にリテラルと `const` は同等。
+
+### static
+
+`static` はプログラムの実行中は必ず存在する一意の値で、参照(&)を取ることができ、 `'static` なライフタイムを持つ。<br>
+`Mutex` や `Atomic` や `unsafe` を用いて内部可変を得ることができる。
 
 ---
 
@@ -1005,7 +1012,7 @@ Rustの標準コレクション
 
 ---
 
-### ベクタ
+### Vec
 
 ベクタは同じ型の値を動的にかつメモリ上で隣り合った形で保持できるコレクション。
 
@@ -1019,13 +1026,29 @@ let mut v: Vec<i32> = Vec::new();
 ```rust
 let v = vec![1, 2, 3]; // マクロによる型推論
 ```
+- 型推論
+```rust
+let v: Vec<_> = (1..3).collect();
+```
+- ターボフィッシュ + 型推論
+```rust
+fn process_data(data: Vec<i32>) {
+    // データを受け取って何かする関数
+}
+fn main() {
+    // 変数に入れれば推論できるが、行数が増える
+    // let v: Vec<_> = (1..5).collect();
+    // process_data(v);
+    // メソッドチェーンでターボフィッシュを使えば1行で書ける
+    process_data((1..5).collect::<Vec<_>>());
+}
+```
 
 #### アクセス
 
 - インデックスでアクセス
 ```rust
 let v = vec![1, 2, 3, 4, 5];
-
 let third: &i32 = &v[2]; // 範囲外アクセスはパニックとなる
 println!("The third element is {third}");
 ```
@@ -1050,9 +1073,9 @@ v.push(7);
 
 ---
 
-### ハッシュマップ
+### HashMap
 
-型HashMap<K, V>は、 K型のキーとV型の値の対応関係をハッシュ関数を使用して保持する。
+型 `HashMap<K, V>` は、 K型のキーとV型の値の対応関係をハッシュ関数を使用して保持する。
 
 #### 生成
 
@@ -1531,9 +1554,61 @@ fn main() {
 
 ## トレイト <a id="trait" data-name="トレイト"></a>
 
+RustにおけるTraitは他の言語で言うところのインターフェースのようなもので、特定の型が共通して持つべき振る舞いを定義するために使う。
 
+### トレイトの定義
 
+```rust
+trait Greet {
+    // メソッドのシグネチャのみを定義
+    fn say_hello(&self) -> String;
 
+    // デフォルトの実装を持つこともできる
+    fn say_goodbye(&self) {
+        println!("さようなら！");
+    }
+}
+```
+
+### トレイトの実装
+
+定義したトレイトを特定の構造体やenumに実装する。
+
+```rust
+struct Person {
+    name: String,
+}
+
+struct Robot;
+
+// Person型にGreetを実装
+impl Greet for Person {
+    fn say_hello(&self) -> String {
+        format!("こんにちは、私は{}です。", self.name)
+    }
+}
+
+// Robot型にGreetを実装
+impl Greet for Robot {
+    fn say_hello(&self) -> String {
+        String::from("ピポパ。私はロボットです。")
+    }
+}
+```
+
+### メソッドの呼び出し
+
+```rust
+fn main() {
+    let p = Person { name: String::from("太郎") };
+    let r = Robot;
+
+    println!("{}", p.say_hello()); // こんにちは、私は太郎です。
+    println!("{}", r.say_hello()); // ピポパ。私はロボットです。
+
+    p.say_goodbye(); // デフォルト実装が呼ばれる：さようなら！
+}
+```
 
 ### トレイト境界
 
