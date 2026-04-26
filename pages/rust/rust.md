@@ -432,7 +432,20 @@ Rustには、利用可能な機能が3つの層に分かれている。
 命名する名前はUpperCamelCaseである必要がある。唯一の例外は基本型(usize, f32など)。<br>
 あくまでエイリアスであり新たな型を定義しているわけではないことに注意。
 
+### 型キャスト
 
+Rustは暗黙的に型変換を行うことはないので、as キーワードでキャストする。
+
+```rust
+let decimal = 65.4321_f32;
+
+// 明示的な型変換
+let integer = decimal as u8;
+let character = integer as char;
+
+println!("Casting: {} -> {} -> {}", decimal, integer, character);
+// Casting: 65.4321 -> 65 -> A
+```
 
 ### 数値型
 
