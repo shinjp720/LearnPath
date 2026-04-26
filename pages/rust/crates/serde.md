@@ -1,11 +1,11 @@
 ---
-title: Serde
+title: serde
 layout: default
 ---
 
-# Serde <a id="top" data-name="TOP"></a>
+# serde <a id="top" data-name="TOP"></a>
 
-Serdeは構造体とデータフォーマットの変換をほぼ自動化してくれるデファクトスタンダード。
+serdeは構造体とデータフォーマットの変換をほぼ自動化してくれるデファクトスタンダード。
 
 ---
 
