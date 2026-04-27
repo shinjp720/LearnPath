@@ -434,7 +434,11 @@ Rustには、利用可能な機能が3つの層に分かれている。
 
 ### 型キャスト
 
-Rustは暗黙的に型変換を行うことはないので、as キーワードでキャストする。
+Rustは暗黙的に型変換を行うことはほとんどない(Derefによる強制変換はある)。
+
+#### asによる明示的キャスト
+
+プリミティブ型同士の変換に使う。
 
 ```rust
 let decimal = 65.4321_f32;
@@ -446,6 +450,150 @@ let character = integer as char;
 println!("Casting: {} -> {} -> {}", decimal, integer, character);
 // Casting: 65.4321 -> 65 -> A
 ```
+
+<pre><code class="caution">大きい型から小さい型への変換は切り捨てが発生する</code></pre>
+
+#### Traitを使った安全な型変換
+
+##### `From` と `Into`
+
+確実に変換できる場合に実装する。<br>
+`From` を実装すると `Into` も使えるようになる。
+
+```rust
+let my_str = "hello";
+let my_string = String::from(my_str); // From を使用
+
+let another_string: String = "world".into(); // Into を使用
+```
+
+##### `TryFrom` と `TryInto`
+
+失敗する可能性がある場合に実装して、 `Result` を返す。
+
+```rust
+use std::convert::TryInto;
+
+let big_number: i32 = 300;
+let small_number: Result<u8, _> = big_number.try_into();
+
+if let Ok(value) = small_number {
+    println!("変換成功: {}", value);
+} else {
+    println!("エラー: u8の範囲(0-255)を超えています");
+}
+```
+
+##### From の実装
+
+`From` を実装すると対になる `Into` はコンパイラが自動で実装してくれる。
+
+```rust
+struct Number {
+    value: i32,
+}
+
+// i32 から Number への変換を定義
+impl From<i32> for Number {
+    fn from(item: i32) -> Self {
+        Number { value: item }
+    }
+}
+
+fn main() {
+    // From を使った呼び出し
+    let num = Number::from(30);
+
+    // Into が自動的に実装されるので、こう書くこともできる
+    let num2: Number = 50.into();
+    
+    println!("Value: {}", num.value);
+}
+```
+
+##### TryInto の実装
+
+```rust
+use std::convert::TryFrom;
+
+#[derive(Debug, PartialEq)]
+struct EvenNumber(i32);
+
+#[derive(Debug)]
+enum Error {
+    NotEven,
+}
+
+// i32 から EvenNumber への「失敗するかもしれない」変換
+impl TryFrom<i32> for EvenNumber {
+    type Error = Error; // 失敗した時の型を指定
+
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        if value % 2 == 0 {
+            Ok(EvenNumber(value))
+        } else {
+            Err(Error::NotEven)
+        }
+    }
+}
+
+fn main() {
+    // 成功するケース
+    let ok_num = EvenNumber::try_from(8);
+    assert_eq!(ok_num.unwrap(), EvenNumber(8));
+
+    // 失敗するケース
+    let err_num = EvenNumber::try_from(5);
+    println!("{:?}", err_num); // Err(NotEven)
+}
+```
+
+
+#### `unsafe` を使った危険な変換
+
+##### `std::mem::transmute`
+
+ビット列をそのまま別型として解釈する。<br>
+型のサイズが一致している必要がある。
+
+```rust
+use std::mem;
+
+fn main() {
+    let raw_bits: u32 = 0x3f800000; // 浮動小数点数 1.0 のビット表現
+
+    // 安全な世界ではできない変換を強制実行
+    unsafe {
+        let f: f64 = mem::transmute(raw_bits as u64); // サイズを合わせるために一旦u64へ
+        // または直接
+        let f_direct: f32 = mem::transmute(raw_bits);
+        println!("The value is: {}", f_direct); // "1.0" と表示される
+    }
+}
+```
+
+#### 生ポインタのキャスト
+
+C言語のようなメモリアドレスの型変換。<br>
+中身を参照(デリファレンス)する際に `unsafe` が必要。
+
+```rust
+fn main() {
+    let my_num: i32 = 42;
+    
+    // 参照を「生ポインタ」に変換（これは安全）
+    let ptr: *const i32 = &my_num as *const i32;
+
+    // ポインタを別の型のポインタにキャスト（これも安全）
+    let char_ptr: *const u8 = ptr as *const u8;
+
+    unsafe {
+        // ポインタを辿って値を読み出す（ここが unsafe）
+        println!("最初のバイト: {}", *char_ptr);
+    }
+}
+```
+
 
 ### 数値型
 
