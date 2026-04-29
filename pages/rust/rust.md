@@ -893,6 +893,147 @@ let b = s.into_boxed_str();
 
 ---
 
+## 文字列のフォーマット <a id="string-formatting" data-name="文字列のフォーマット"></a>
+
+### 出力・フォーマット 
+
+出力、フォーマット用に以下のようなマクロが提供されている。
+
+| マクロ | 説明 |
+| --- | --- |
+| format! | フォーマットしたテキストを String にして返す |
+| write! | すでにある場所にフォーマットしたテキストを書き込む |
+| print! | format! と同様だが、標準出力 (io::stdout) にそのテキストを出力する |
+| println! | print! と同様だが、改行が付け加えられる |
+| eprint! | format! と同様だが、標準エラー出力 (io::stderr) にそのテキストを出力する |
+| eprintln! | eprint! と同様だが、改行が付け加えられる |
+| dbg! | 所有権を奪ってデバッグ情報を出力し、所有権を返す |
+
+#### format!
+
+文字列をフォーマットしてヒープに確保して String として返す。
+
+```rust
+fn main() {
+    let name = "Rust";
+    let version = 1.75;
+    let s = format!("Hello, {} {}!", name, version);
+
+    println!("{}", s); // "Hello, Rust 1.75!"
+}
+```
+
+#### write!
+
+文字列のフォーマットは を参照。
+既にある場所(StringかI/O)に 文字列をフォーマットして書き込む。<br>
+書き込みに失敗する可能性があるので、戻り値は io::Result<()>。
+書き込み先に応じて use する。
+
+| --- | --- |
+| 文字列 | use std::fmt::Write |
+| 入出力 | use std::io::Write |
+
+```rust
+use std::io::{self, Write};
+
+fn main() -> io::Result<()> {
+    let mut stdout = io::stdout();
+
+    // 標準出力に直接書き込む(println!に近いが、より低レイヤー)
+    write!(&mut stdout, "Direct output to stdout\n")?;
+
+    Ok(())
+}
+```
+
+ループなどで毎回 String を生成するとアロケートに時間がかかる場合があるが、ひとつの String を使いまわせば、処理速度が向上する可能性がある。<br>
+また書き込み先がファイルでも String でもネットワークでも、同じマクロで扱える。
+
+#### dbg!
+
+標準エラー出力 (stderr) に、ファイル名、行番号、式そのものを出力する。<br>
+Debugトレイトを実装している必要がある。<br>
+所有権を奪ってそのまま返すので処理の流れを壊さない。ヒープの値は参照 (&) を渡すのが一般的。
+
+```rust
+// 1+2 の結果と 3+4 の結果がそれぞれ表示されつつ、合計は正しく計算される
+let total = dbg!(1 + 2) + dbg!(3 + 4);
+```
+
+<pre><code class="tips">引数なしで dbg!() とだけ書くと、「ここを通過した」というマーカーになる。</code></pre>
+
+#### 変数を引数に取る
+
+Rust 1.58以降では周囲の変数から直接引数に取ることができる。
+
+```rust
+let number: f64 = 1.0;
+println!("number is {number}");
+```
+
+#### {} による置き換え
+
+{} は様々な引数を自動的に置き換える。
+
+```rust
+println!("{} days", 31);
+```
+
+#### 位置引数
+
+{} で整数を指定することで、どの位置引数で置換されるか決まる。
+
+```rust
+println!("{0}, this is {1}. {1}, this is {0}", "Alice", "Bob");
+```
+
+#### 名前で指定
+
+名前での指定も可能。
+
+```rust
+println!("{subject} {verb} {object}",
+    object="the lazy dog",
+    subject="the quick brown fox",
+    verb="jumps over"); 
+``` 
+
+####     : によるフォーマット
+    
+(コロン): の後にフォーマット文字を指定して、異なるフォーマットにする。
+
+```rust
+println!("Base 10:               {}",   69420); // 69420
+println!("Base 2 (binary):       {:b}", 69420); // 10000111100101100
+println!("Base 8 (octal):        {:o}", 69420); // 207454
+println!("Base 16 (hexadecimal): {:x}", 69420); // 10f2c
+```
+
+右寄せ
+
+```rust
+println!("{number:>5}", number=1); // 右寄せ5文字幅
+```
+
+0埋め
+
+```rust
+// 右寄せで0埋め
+println!("{number:0>5}", number=1); // 00001
+// 左寄せで0埋め
+println!("{number:0<5}", number=1); // 10000
+```
+
+名前付き引数
+
+```rust
+// $をつけることで名前付き引数を利用できる
+println!("{number:0>width$}", number=1, width=5);
+```
+
+---
+
 ## 構造体 <a id="struct" data-name="構造体"></a>
 
 構造体は複数の値に名前を付けて(フィールド)保持するための型で、定義とインスタンスの生成を別々に行う。
@@ -1798,6 +1939,32 @@ where
 }
     ```
 
+---
+
+## アトリビュート <a id="attribute" data-name="アトリビュート"></a>
+
+アトリビュートはモジュール、クレート、要素に対すメタデータで、
+
+- コンパイル時の条件分岐
+- クレート名、バージョン、種類(バイナリか、ライブラリか)の設定
+- リントの無効化
+- コンパイラ付属の機能(マクロ、グロブ、インポートなど)の使用
+- 外部ライブラリへのリンク
+- ユニットテスト用の関数を明示
+- ベンチマーク用の関数を明示
+
+の用途がある。
+
+アトリビュートがクレート全体に適用される場合は `#![crate_attribute]` という書き方になり<br>
+モジュールや要素に適用される場合は `#[item_attribute]` となる。
+
+---
+
+## マクロ <a id="macro" data-name="マクロ"></a>
+
+文字列のフォーマット系マクロは <a href="#string-formatting">こちら </a>を参照。
+
+
 ### fmt::Debug
 
 主に開発用の機能で、構造体やenum定義の前に以下のようにアトリビュート追加するだけで
@@ -1827,7 +1994,6 @@ println!("{:#?}", rect);
 // }
 ```
 
-
 ### fmt::Display
 
 エンドユーザー(アプリ利用者)のための機能で、自由に表示形式を定義できる。
@@ -1856,170 +2022,6 @@ let u = User {
 };
 println!("{u}"); // User: Alice
 ```
-
-文字列のフォーマットは <a href="#string-formatting">こちら </a>を参照。
-
----
-
-## マクロ <a id="macro" data-name="マクロ"></a>
-
-### 出力・フォーマット 
-
-出力、フォーマット用に以下のようなマクロが提供されている。
-
-| マクロ | 説明 |
-| --- | --- |
-| format! | フォーマットしたテキストを String にして返す |
-| write! | すでにある場所にフォーマットしたテキストを書き込む |
-| print! | format! と同様だが、標準出力 (io::stdout) にそのテキストを出力する |
-| println! | print! と同様だが、改行が付け加えられる |
-| eprint! | format! と同様だが、標準エラー出力 (io::stderr) にそのテキストを出力する |
-| eprintln! | eprint! と同様だが、改行が付け加えられる |
-| dbg! | 所有権を奪ってデバッグ情報を出力し、所有権を返す |
-
-#### format!
-
-<a href="#string-formatting">文字列をフォーマット </a>してヒープに確保して String として返す。
-
-```rust
-fn main() {
-    let name = "Rust";
-    let version = 1.75;
-    let s = format!("Hello, {} {}!", name, version);
-
-    println!("{}", s); // "Hello, Rust 1.75!"
-}
-```
-
-#### write!
-
-文字列のフォーマットは を参照。
-既にある場所(StringかI/O)に <a href="#string-formatting">文字列をフォーマット</a> して書き込む。<br>
-書き込みに失敗する可能性があるので、戻り値は io::Result<()>。
-書き込み先に応じて use する。
-
-| --- | --- |
-| 文字列 | use std::fmt::Write |
-| 入出力 | use std::io::Write |
-
-```rust
-use std::io::{self, Write};
-
-fn main() -> io::Result<()> {
-    let mut stdout = io::stdout();
-
-    // 標準出力に直接書き込む(println!に近いが、より低レイヤー)
-    write!(&mut stdout, "Direct output to stdout\n")?;
-
-    Ok(())
-}
-```
-
-ループなどで毎回 String を生成するとアロケートに時間がかかる場合があるが、ひとつの String を使いまわせば、処理速度が向上する可能性がある。<br>
-また書き込み先がファイルでも String でもネットワークでも、同じマクロで扱える。
-
-#### dbg!
-
-標準エラー出力 (stderr) に、ファイル名、行番号、式そのものを出力する。<br>
-Debugトレイトを実装している必要がある。<br>
-所有権を奪ってそのまま返すので処理の流れを壊さない。ヒープの値は参照 (&) を渡すのが一般的。
-
-```rust
-// 1+2 の結果と 3+4 の結果がそれぞれ表示されつつ、合計は正しく計算される
-let total = dbg!(1 + 2) + dbg!(3 + 4);
-```
-
-<pre><code class="tips">引数なしで dbg!() とだけ書くと、「ここを通過した」というマーカーになる。</code></pre>
-
-## 文字列のフォーマット <a id="string-formatting" data-name="文字列のフォーマット"></a>
-
-#### 変数を引数に取る
-
-Rust 1.58以降では周囲の変数から直接引数に取ることができる。
-
-```rust
-let number: f64 = 1.0;
-println!("number is {number}");
-```
-
-#### {} による置き換え
-
-{} は様々な引数を自動的に置き換える。
-
-```rust
-println!("{} days", 31);
-```
-
-#### 位置引数
-
-{} で整数を指定することで、どの位置引数で置換されるか決まる。
-
-```rust
-println!("{0}, this is {1}. {1}, this is {0}", "Alice", "Bob");
-```
-
-#### 名前で指定
-
-名前での指定も可能。
-
-```rust
-println!("{subject} {verb} {object}",
-    object="the lazy dog",
-    subject="the quick brown fox",
-    verb="jumps over");
-```
-
-#### : によるフォーマット
-
-(コロン): の後にフォーマット文字を指定して、異なるフォーマットにする。
-
-```rust
-println!("Base 10:               {}",   69420); // 69420
-println!("Base 2 (binary):       {:b}", 69420); // 10000111100101100
-println!("Base 8 (octal):        {:o}", 69420); // 207454
-println!("Base 16 (hexadecimal): {:x}", 69420); // 10f2c
-```
-
-右寄せ
-
-```rust
-println!("{number:>5}", number=1); // 右寄せ5文字幅
-```
-
-0埋め
-
-```rust
-// 右寄せで0埋め
-println!("{number:0>5}", number=1); // 00001
-// 左寄せで0埋め
-println!("{number:0<5}", number=1); // 10000
-```
-
-名前付き引数
-
-```rust
-// $をつけることで名前付き引数を利用できる
-println!("{number:0>width$}", number=1, width=5);
-```
-
----
-
-## アトリビュート <a id="attribute" data-name="アトリビュート"></a>
-
-アトリビュートはモジュール、クレート、要素に対すメタデータで、
-
-- コンパイル時の条件分岐
-- クレート名、バージョン、種類(バイナリか、ライブラリか)の設定
-- リントの無効化
-- コンパイラ付属の機能(マクロ、グロブ、インポートなど)の使用
-- 外部ライブラリへのリンク
-- ユニットテスト用の関数を明示
-- ベンチマーク用の関数を明示
-
-の用途がある。
-
-アトリビュートがクレート全体に適用される場合は `#![crate_attribute]` という書き方になり<br>
-モジュールや要素に適用される場合は `#[item_attribute]` となる。
 
 ---
 
