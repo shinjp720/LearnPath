@@ -32,103 +32,239 @@ cargo add clap@4.5 --features derive, env
 
 ## 基本 <a id="basic" data-name="基本"></a>
 
+clapには builder パターンと derive の二つの実装方法があり、
+
+builder は
+- 動的にCLIを変えたい
+- 条件分岐したい
+- プラグイン的構造
+
+derive は
+- 普通のCLI
+- 型安全に書きたい
+- コードを短くしたい
+
+という用途に向いている。
+
+| 意味 | builder | derive |
+| --- | --- | --- |
+| コマンド | Command | struct |
+| サブコマンド | subcommand | enum |
+| 引数 | Arg | フィールド |
+| 必須オプション | required(true) | Optionかどうか |
+| 入力の取得 | get_matches() | parse() |
+
+このような対応関係になっている。
+
+---
+
+## 実装 <a id="implement" data-name="実装"></a>
+
+### Command(ルート)
+
+#### builder
+
+```rust
+Command::new("app")
+    .version("1.0")
+    .about("説明")
+```
+
+#### derive
+
 ```rust
 use clap::Parser;
 
-#[derive(Parser, Debug)]
-struct Args {
-    /// 名前
-    #[arg(short, long)]
-    name: String,
-
-    /// デバッグモード
-    #[arg(long)]
-    debug: bool,
-
-    /// 入力ファイル
-    input: String,
-}
-
-fn main() {
-    let args = Args::parse();
-
-    println!("{:?}", args);
+#[derive(Parser)]
+#[command(
+    name = "app",
+    version = "1.0",
+    about = "説明"
+)]
+struct Cli {
 }
 ```
 
-### `///`
+### subcommand
 
-この文字列が help で表示される。
+#### builder
 
-### `#[derive(Parser)]`
+```rust
+.subcommand(Command::new("add"))
+.subcommand(Command::new("remove"))
+```
 
-この構造体を引数として使う。
+#### derive
 
-### `#[arg(...)]`
+```rust
+#[derive(Parser)]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+}
 
-よく使うオプション。
+#[derive(clap::Subcommand)]
+enum Commands {
+    Add,
+    Remove,
+}
+```
 
-| 書き方 | 意味 |
-| --- | --- |
-| short | `-n` |
-| long | `--name` |
-| default_value = "xxx" | デフォルト値 |
-| required = true | 必須 |
-| help = "説明" | ヘルプ文 |
+### Arg(引数・オプション)
 
-<pre><code class="example">#[arg(short, long, default_value = "guest")]
-name: String,</code></pre>
+#### builder
 
-### 省略可能オプション
+```rust
+#[derive(Parser)]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+}
 
-オプションの指定だけで引数を省略可能にする場合は Option にする。
+#[derive(clap::Subcommand)]
+enum Commands {
+    Add,
+    Remove,
+}
+```
+
+#### derive
+
+```rust
+#[arg(short, long)]
+name: String,
+```
+
+### フラグ(bool)
+
+#### builder
+
+```rust
+Arg::new("force")
+    .long("force")
+    .action(ArgAction::SetTrue)
+```
+
+#### derive
 
 ```rust
 #[arg(long)]
-name: Option<String>,
+force: bool,
 ```
 
-### 複数受け取る
+bool は自動でフラグ扱いで、引数として渡されなければ false となる。
 
-同じオプションを複数受け取れる様にするなら Vec にする。
+### デフォルト値
+
+#### builder
 
 ```rust
-#[arg(long)]
-files: Vec<String>,
+.default_value("foo")
 ```
 
-<pre><code class="example">--files a --files b</code></pre>
+#### derive
+
+```rust
+#[arg(default_value = "foo")]
+name: String,
+```
+
+### 値を制限
+
+#### builder
+
+```rust
+.value_parser(["a", "b"])
+```
+
+#### derive
+
+```rust
+#[arg(value_parser = ["a", "b"])]
+mode: String,
+```
+
+### help
+
+#### builder
+
+```rust
+.help("説明")
+```
+
+#### derive
+
+```rust
+#[arg(help = "説明")]
+```
+
+またはフィールドコメント(///)
+
+### サブコマンドごとの引数
+
+#### builder
+
+```rust
+Command::new("add")
+    .arg(Arg::new("name"))
+```
+
+#### derive
+
+```rust
+#[derive(clap::Subcommand)]
+enum Commands {
+    Add {
+        #[arg(long)]
+        name: String,
+    },
+}
+```
+
+### サブコマンドの必須引数
+
+#### builder
+
+```rust
+.subcommand_required(true)
+```
+
+#### derive
+
+```rust
+#[command(subcommand_required = true)]
+```
+
+### 引数の取得
+
+#### builder
+
+```rust
+let matches = cmd.get_matches();
+```
+
+#### derive
+
+```rust
+let cli = Cli::parse();
+```
 
 ---
 
-## 実行例 <a id="execute" data-name="実行例"></a>
+## サンプル <a id="sample" data-name="サンプル"></a>
 
-cargo run で実行する場合
+### builder
 
-```bash
-# cargo への引数と分けるため -- を置く
-cargo run -- -n shin --debug input.txt
-```
+<pre><code class="example">Command::new("app")
+    .subcommand(
+        Command::new("add")
+            .arg(Arg::new("name").long("name").required(true))
+            .arg(Arg::new("force").long("force").action(ArgAction::SetTrue))
+    )</code></pre>
 
-コンパイル後に実行する場合
+### derive
 
-```bash
-./target/debug/myapp -n shin --debug input.txt
-```
-
----
-
-## サブコマンド <a id="sub-command" data-name="サブコマンド"></a>
-
-```bash
-git add
-git commit
-```
-
-このような構造のサブコマンドの書き方。
-
-```rust
-use clap::{Parser, Subcommand};
+<pre><code class="example">use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
 struct Cli {
@@ -139,10 +275,10 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     Add {
-        file: String,
+        #[arg(long)]
+        name: String,
+
+        #[arg(long)]
+        force: bool,
     },
-    Commit {
-        message: String,
-    },
-}
-```
+}</code></pre>

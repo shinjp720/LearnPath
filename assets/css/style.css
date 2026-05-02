@@ -244,10 +244,9 @@ pre code {
 /* サブタイトル */
 .subtitle {
     display: block;
-    color: #98c5f9;
+    color: #f5bdbd;
     font-weight: 600;
     font-size: 1.2rem;
-    padding: 1rem 0;
 }
 
 /* 戻り値 */
