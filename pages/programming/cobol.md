@@ -239,13 +239,13 @@ MOVE A TO B
 
 めちゃ効きます👇
 
-| COBOL  | SQL     |
+| COBOL  | SQL    |
 | ------ | ------- |
 | READ   | SELECT  |
-| IF     | WHERE   |
+| IF    | WHERE   |
 | MOVE   | SELECT列 |
 | GO TO  | LOOP    |
-| AT END | EOF     |
+| AT END | EOF    |
 
 ---
 
@@ -312,9 +312,9 @@ WHERE key BETWEEN A AND B
 
 ```cobol
 SELECT QJN010LS ASSIGN TO ...
-       ORGANIZATION IS INDEXED
-       ACCESS MODE IS ...
-       RECORD KEY IS SSCD
+      ORGANIZATION IS INDEXED
+      ACCESS MODE IS ...
+      RECORD KEY IS SSCD
 ```
 
 👉 これが出てきたら勝ち
@@ -675,7 +675,7 @@ EXIT
 READ-010.
     READ FILE-A AT END ...
     IF 条件
-        GO TO READ-010
+       GO TO READ-010
 ```
 
 👉 whileループ
@@ -707,7 +707,7 @@ WRITE REC-B
 | READ    | SELECT |
 | WRITE   | INSERT |
 | REWRITE | UPDATE |
-| IF      | WHERE  |
+| IF     | WHERE  |
 | MOVE    | カラム代入  |
 | GO TO   | ループ    |
 
@@ -813,7 +813,7 @@ PROD.DB.QJN010
 
 👉 よくある👇
 
-| COBOL    | DB       |
+| COBOL    | DB      |
 | -------- | -------- |
 | QJN010LS | QJN010   |
 | CUSTMST  | CUSTOMER |
@@ -867,13 +867,13 @@ COPY QJN010S1
 ```text
 COBOL
   QJN010LS
-     ↓
+    ↓
 JCL
   PROD.DB.QJN010
-     ↓
+    ↓
 DB
   table: QJN010
-     ↓
+    ↓
 COPY
   SSCD, AMT → カラム
 ```
@@ -905,3 +905,120 @@ COPY
 👉 **「COBOLだけじゃ無理、周辺（JCLなど）を見て特定する」**
 
 ---
+
+## キーワード <a id="keyword" data-name="キーワード"></a>
+
+- ACCESS MODE<br>
+    プログラムがファイルのレコードをどのような方法で読み書きするかを指定する。<br>
+    以下は主要な3つのアクセスモード。
+    - SEQUENTIAL：先頭から順番に1件ずつ処理する。
+    - RANDOM：主キーや相対キーを指定して、特定のレコードに直接アクセスする。
+    - DYNAMIC：プログラム内で順次処理と直接アクセスを切り替えられる。
+- ADD<br>
+    加算
+- ACCEPT<br>
+    プログラムの外部(OSやファイル、キーボードなど)からデータを受け取る。
+    - ACCEPT PARAM-DATA FROM SYSIN.
+    - ACCEPT W-SYOYMD FROM DATE.
+- AFTER<br>
+    改行を表し、 WRITE ... AFTER の場合、改行をしてから書き込みを行う。<br>
+    AFTER のみで改行、 AFTER n で n だけ改行、 AFTER PAGE で改ページ。<br>
+    正しくは AFTER ADVANCING と書くが、省略可能。
+- AT END<br>
+    読み込むデータが空になり、データがなかった場合の処理を書く。
+- ASSIGN<br>
+    SELECT で名前と物理を紐づける。
+- CALL<br>
+    別のプログラムとしてコンパイルされているものを実行する。引数も渡せる。<br>
+    PERFORM は同じプログラム内の別の段落やセクションを実行する。
+    - CALL "PROG".
+- COMPUTE<br>
+    算術式計算。
+- COPY<br>
+    COPY 句により外部のファイルなどを挿入する。
+- DISPLAY<br>
+    標準出力への出力。
+- DIVIDE<br>
+    除算。
+- EVALUATE<br>
+    EVALUATE 評価式 として、 switch文のように値を評価する。
+- FILLER<br>
+    変数名を持たず、詰め物として使う値。
+- GIVING<br>
+    計算結果を変数に代入するときに使う。
+    - ADD A TO B GIVING C.
+- HIGH-VALUE<br>
+    データのバイト列を全て1にする。
+- INVALID<br>
+    INVALID句はデータの妥当性を検査する。<br>
+    READ で読み込めなかった、 WRITE で書き込めなかった等。
+    - INVALID KEY
+- INITIALIZE<br>
+    変数の初期化を行い、数字項目には0文字列項目にはスペースが代入される。
+    - INITIALIZE TOP-LEVEL.
+- JOINING<br>
+    PREFIX または SUFFIX によって、接頭辞または接尾辞を-(ハイフン)を区切り文字として付加する。
+    - JOINING HAI AS PREFIX.
+- KEY<br>
+    SELECT句で定義してある RECORD KEY IS 項目名. と紐づけられる。
+- MOVE<br>
+    代入。
+- USING<br>
+    PROCEDURE DIVISION の冒頭で、 USING 構造体名として、 LINKAGESECTION で宣言された構造体へのポインタを呼出元から引数として受け取る。
+    - PROCEDURE DIVISION USING LNK-AREA.
+- LOW-VALUE<br>
+    データのバイト列を全て0にする。
+- LINAGE<br>
+    FD句の中に記述し、印刷時の論理的なページ構成をシステムに伝える。
+    - LINAGE WK-LINES LINES.
+- LINKAGE SECTION<br>
+    呼ばれる側のプログラムでCALLを通じて引数を渡すために記述する。<br>
+    このセクションにどんなデータが届くのかを定義して、 PROCEDURE DIVISION USING... に記述した順番で紐づけられる。<br>
+    データの参照になるので呼出元のデータを直接書き換える。
+- MULTIPLY<br>
+    乗算。
+- OPEN<br>
+    ファイルをオープンする。使用後は必ずクローズする。
+    - INPUT：入力用にオープン。データを読み込む (READ) ときに使う。
+    - OUTPUT：出力用にオープン。新しくファイルを作ってデータを書き込む (WRITE) ときに使う。上書き保存される。
+    - I-O：入出力用にオープン。必要に応じて読込、更新、削除を行う。
+    - EXTENDED：拡張用にオープン。既存ファイルの末尾にデータを追加する。
+- ON SIZE ERROR<br>
+    桁あふれが発生した時のエラー処理を記述する。
+- ORGANIZATION<br>
+    データがファイルの中でどのように構成・記録されるかを指定する。<br>
+    FILE-CONTROL 段落で記述して、一度ファイルを作成すると後から変更できない。<br>
+    以下は主な4つのファイル編成。
+    - SEQUENTIAL：レコードが書き込まれた順に並ぶ、基本的な形式
+    - LINE SEQUENTIAL：テキスト形式のファイルとして扱われ、エディタ等でも閲覧が可能。
+    - RELATIVE：各レコードに番号(相対レコードキー)が割り当てられ、番号を指定して直接アクセス可能。
+    - INDEXED：レコード内の特定の項目(レコードキー)を索引としてもち、高速な検索・更新が可能。
+- OCCURS
+    配列を宣言する。
+    - 03  UK1-SCD  PIC X(2)  OCCURS 8 TIMES.
+- PERFORM<br>
+    サブルーチンを呼び出したり、 UNTIL(while) 、 VARYING(for) 、 TIMES で繰り返し処理を行う。
+- PIC<br>
+    変数のデータ型を指定する。
+- ROUNDED<br>
+    計算結果を四捨五入する。
+- REMAINDER<br>
+    DIVIDE文で余りを取得する。
+- SPACE<br>
+    スペースを表す予約語。
+- SPECIAL-NAMES<br>
+    システムのデバイスに独自の呼び名をつける。
+    - CONSOLE IS CSL.
+- SUBTRACT<br>
+    減算。
+- UNTIL<br>
+    UNTIL 条件式でまでずっと（while）。
+- UPON<br>
+    主に DISPLAY 文と一緒に使われ、データの出力先を指定するキーワード。
+- VALUE<br>
+    変数に初期値を割り当てるために使う。
+- VARYING<br>
+    他の言語で言うところのfor文。
+    - PERFORM VARYING  カウンタ  FROM  初期値  BY  変動値
+- ZERO<br>
+    0を表す予約語。
