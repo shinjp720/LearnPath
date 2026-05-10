@@ -185,7 +185,33 @@ sudo umount /dev/hdd1
 
 ### hdparm
 
-ディスクの状態を確認する。
+ディスクの状態を管理する。
+
+#### ディスクの休止を設定する
+
+設定ファイルを開く。
+
+```bash
+sudo vim /etc/hdparm.conf
+```
+
+一番下に追記する。
+
+```conf
+/dev/sdXX {
+    spindown_time = 120
+}
+```
+
+<pre><code class="tips">UUIDなどでマウントされているのであれば、
+/dev/sdXX ではなく /dev/disk/by-id や /dev/disk/by-uuid で指定するほうが安全。</code></pre>
+
+
+| --- | --- |
+| 0 | 無効 (休止しない) |
+| 1 ~ 240 | 5秒単位 (120 なら 120*5=600秒 (10分)) |
+| 241 ~ 251 | 30分単位 (241 なら 30分、242なら1時間) |
+
 
 #### sudo hdparm -C /dev/sd??
 
