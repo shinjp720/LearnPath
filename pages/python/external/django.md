@@ -29,6 +29,8 @@ pip install django
 django-admin startproject djangoproject .
 ```
 
+<pre><code class="tips">最後に .(ドット) を入れることにより .venv と同じディレクトリにプロジェクトを作成できる。</code></pre>
+
 ### サーバーの起動
 
 この時点で起動が可能。

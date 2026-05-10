@@ -77,11 +77,9 @@ code {
 #navi ul {
     list-style: none;
     margin: 0;
-    padding-left: 1.0rem;
 }
 
 #navi ul li {
-    /* padding: 0.6rem 0; */
     transition: all 0.2s ease;
 }
 
@@ -104,12 +102,8 @@ code {
 /* tocのリスト */
 #toc ul {
     margin: 0;
+    padding-left: 0.5rem;
     list-style: none;
-}
-
-#toc ul li {
-    /* padding: 0.6rem 0; */
-    transition: all 0.2s ease;
 }
 
 #toc ul li:hover {
@@ -308,7 +302,7 @@ pre code {
     flex: 1;
     overflow-y: auto;
     max-height: 100vh;
-    padding: 2rem 3rem;
+    padding: 2rem;
 }
 
 /* ナビ・目次 */
@@ -319,7 +313,7 @@ pre code {
     color: #c9d1d9;
     background-color: #0b0b0b;
     max-height: 100vh;
-    padding: 2rem 1rem;
+    padding: 1rem;
 }
 
 #navi {
