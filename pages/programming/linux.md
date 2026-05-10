@@ -145,6 +145,8 @@ updateでインデックスを更新して、upgradeで実際にインストー�
 ### free
 ### uname
 
+## ディスク管理 <a id="disc-management" data-name="ディスク管理"></a>
+
 ### mount, umount
 
 mount は外付けのハードディスクなどをマウントする。
@@ -181,7 +183,13 @@ mount は外付けのハードディスクなどをマウントする。
 sudo umount /dev/hdd1
 ```
 
+### hdparm
 
+ディスクの状態を確認する。
+
+#### sudo hdparm -C /dev/sd??
+
+マウント済みの /dev/ 配下のディスクのパワーモードを表示。
 
 
 
