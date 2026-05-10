@@ -76,11 +76,12 @@ code {
 /* naviのリスト */
 #navi ul {
     list-style: none;
+    margin: 0;
     padding-left: 1.0rem;
 }
 
 #navi ul li {
-    padding: 0.6rem 0;
+    /* padding: 0.6rem 0; */
     transition: all 0.2s ease;
 }
 
@@ -102,11 +103,12 @@ code {
 
 /* tocのリスト */
 #toc ul {
+    margin: 0;
     list-style: none;
 }
 
 #toc ul li {
-    padding: 0.6rem 0;
+    /* padding: 0.6rem 0; */
     transition: all 0.2s ease;
 }
 
