@@ -264,18 +264,15 @@ a | b   # {1,2,3,4,5}
 # または
 a.union(b)
 
-
 # 積集合(AND)
 a & b   # {3}
 # または
 a.intersection(b)
 
-
 # 差集合
 a - b   # {1,2}
 # または
 a.difference(b)
-
 
 # 対象差
 a ^ b   # {1,2,4,5}

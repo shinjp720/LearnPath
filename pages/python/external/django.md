@@ -37,21 +37,7 @@ cd djangoproject
 python manage.py runserver
 ```
 
-コードを書く
-: こんちわ
-: おおおおおおおおお。
-: - aaaa
-: - aaaa
-> **プロジェクトの作成**
-> `django-admin startproject prc`
-> 
-> ここに複数行の説明を書けます。
-> 改行しても、空行を挟んでも「一つの塊」として表示されます。
+---
 
-> **データベースのマイグレーション**
-> `python manage.py migrate`
-> 
-> 1. モデルの変更を検知
-> 2. データベースに反映
-> 
-> のようなリストを中に入れることも可能です。
+
+
