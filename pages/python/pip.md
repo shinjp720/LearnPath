@@ -9,10 +9,17 @@ layout: default
 
 ---
 
+## pipのインストール
+
+```bash
+sudo apt update
+sudo apt install python3-pip
+```
+
 ## pip自体のアップグレード
 
 ```python
-python -m pip install --upgrade pip
+python3 -m pip install --upgrade pip
 ```
 
 ---
