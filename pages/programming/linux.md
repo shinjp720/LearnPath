@@ -104,7 +104,7 @@ updateでインデックスを更新して、upgradeで実際にインストー�
 
 ---
 
-## プロセス管理
+## プロセス管理 <a id="" data-name=""></a>
 
 ### ps
 ### top
@@ -144,6 +144,46 @@ updateでインデックスを更新して、upgradeで実際にインストー�
 ### du
 ### free
 ### uname
+
+### mount, umount
+
+mount は外付けのハードディスクなどをマウントする。
+
+#### HDD をマウント
+
+1. HDD の UUID を確認する。
+    ```bash
+    sudo blkid
+    ```
+2. ディレクトリを作成
+    ```bash
+    sudo mkdir -p /mnt/hdd1
+    sudo mkdir -p /mnt/hdd2
+    ```
+3. 自動マウント設定を追記
+    ```bash
+    sudo vim /etc/fstab
+    ```
+    ```bash
+    UUID=確認したUUID1  /mnt/hdd1  ext4  defaults  0  2
+    UUID=確認したUUID2  /mnt/hdd2  ext4  defaults  0  2
+    ```
+    <pre><code class="tips">フォーマットが NTFS(Windows形式) の場合は ext4 を ntfs-3g に書き換える。</code></pre>
+4. 反映させる
+    ```bash
+    sudo mount -a
+    ```
+    <pre><code class="caution">ファイルの記述が間違っていた場合、起動に失敗する可能性があるため、必ずこのコマンドを実行して、成功してから再起動する。</code></pre>
+
+#### マウントを解除
+
+```bash
+sudo umount /dev/hdd1
+```
+
+
+
+
 
 ---
 
