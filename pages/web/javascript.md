@@ -484,7 +484,7 @@ users.sort((a, b) => {
 
 #### slice
 
-一部切り出し。
+一部切り出し。指定した範囲 (start, end) をコピーして返す。
 
 ```javascript
 const first3 = items.slice(0, 3)
