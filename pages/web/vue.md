@@ -70,7 +70,7 @@ npm run dev
 ### マスタッシュ
 
 {% raw %}
-```vue
+```javascript
 <span>Message: {{ msg }}</span>
 ```
 {% endraw %}
@@ -85,7 +85,7 @@ Vue のテンプレートでは以下の場所で JavaScript の式を使用す�
 - 任意の Vueディレクティブ(v- で始まる特殊な属性)の属性値の中身
 
 {% raw %}
-```vue
+```javascript
 {{ number + 1 }}
 
 {{ ok ? 'YES' : 'NO' }}
@@ -111,7 +111,7 @@ v-on:submit.prevent="onSubmit"
 
 ディレクティブの引数を指す部分は各括弧([])で囲んだ式を用いることもできる。
 
-```vue
+```javascript
 <a :[attributeName]="url"> ... </a>
 <a @[eventName]="doSomething"> ... </a>
 ```
@@ -122,7 +122,7 @@ v-on:submit.prevent="onSubmit"
 
 ドット(.)で示される接頭辞で、ディレクティブと何らかの操作を紐づける。
 
-```vue
+```javascript
 <form @submit.prevent="onSubmit">...</form>
 ```
 
@@ -138,7 +138,7 @@ v-bind には省略記法がある。
 
 次のような複数の属性を持つ JavaScriptオブジェクトがあるとして、
 
-```vue
+```javascript
 const objectOfAttrs = {
     id: 'container',
     class: 'wrapper',
@@ -148,7 +148,7 @@ const objectOfAttrs = {
 
 引数なしで v-bind を指定すると、これらの属性を1つの要素にバインドできる。
 
-```vue
+```javascript
 <div v-bind="objectOfAttrs"></div>
 ```
 
@@ -156,13 +156,13 @@ const objectOfAttrs = {
 
 class と style には複数のプロパティを持てるので、特別な拡張がある。
 
-```vue
+```javascript
 <div :class="{ active: isActive }"></div>
 ```
 
 上記の例は isActive がの真偽によって active というクラスを持つかが決まる。
 
-```vue
+```javascript
 <script setup>
 const isActive = ref(true)
 const hasError = ref(false)
@@ -175,7 +175,7 @@ const hasError = ref(false)
 
 レンダリングはこうなる。
 
-```vue
+```javascript
 <div class="static active"></div>
 ```
 
@@ -192,7 +192,7 @@ v-on には省略記法がある。
 v-bindとv-onを一緒に使うことで input要素に双方向バインディングを作成できる。
 
 {% raw %}
-```vue
+```javascript
 <script setup>
   import { ref } from 'vue'
 
@@ -212,7 +212,7 @@ v-bindとv-onを一緒に使うことで input要素に双方向バインディ�
 
 この構文を v-model により簡潔に記述できる。
 
-```vue
+```javascript
 <script setup>
   import { ref } from 'vue'
 
@@ -228,7 +228,7 @@ v-bindとv-onを一緒に使うことで input要素に双方向バインディ�
 #### チェックボックス
 
 {% raw %}
-```vue
+```javascript
 <input type="checkbox" id="checkbox" v-model="checked" />
 <label for="checkbox">{{ checked }}</label>
 ```
@@ -237,7 +237,7 @@ v-bindとv-onを一緒に使うことで input要素に双方向バインディ�
 #### 複数のチェックボックス
 
 {% raw %}
-```vue
+```javascript
 const checkedNames = ref([])
 
 <div>Checked names: {{ checkedNames }}</div>
@@ -256,7 +256,7 @@ const checkedNames = ref([])
 #### ラジオボタン
 
 {% raw %}
-```vue
+```javascript
 <div>Picked: {{ picked }}</div>
 
 <input type="radio" id="one" value="One" v-model="picked" />
@@ -270,7 +270,7 @@ const checkedNames = ref([])
 #### セレクト
 
 {% raw %}
-```vue
+```javascript
 <div>Selected: {{ selected }}</div>
 
 <select v-model="selected">
@@ -288,7 +288,7 @@ const checkedNames = ref([])
 
 #### v-if
 
-```vue
+```javascript
 <h1 v-if="awesome">Vue is awesome!</h1>
 ```
 
@@ -300,7 +300,7 @@ v-if 系でコンポーネントを切り替えると、そのコンポーネン
 
 他の条件分岐を示すために v-else や v-else-if もある。
 
-```vue
+```javascript
 <h1 v-if="awesome">Vue is awesome!</h1>
 <h1 v-else>Oh no 😢</h1>
 ```
@@ -310,7 +310,7 @@ v-if 系でコンポーネントを切り替えると、そのコンポーネン
 v-for ディレクティブを使用すると、配列を基にした要素のリストをレンダリングできる。
 
 {% raw %}
-```vue
+```javascript
 <ul>
   <li v-for="todo in todos" :key="todo.id">{{ todo.text }}</li>
 </ul>
@@ -322,7 +322,7 @@ v-for ディレクティブを使用すると、配列を基にした要素の�
 v-for では以下のように現在の項目のインデックスを指す、2つ目の省略可能なエイリアスもある。
 
 {% raw %}
-```vue
+```javascript
 <li v-for="(item, index) in items">Message: - {{ index }} - {{ item.message }}</li>
 ```
 {% endraw %}
@@ -332,7 +332,7 @@ v-for では以下のように現在の項目のインデックスを指す、2�
 オブジェクトの各プロパティを反復処理するのにも使える。
 
 {% raw %}
-```vue
+```javascript
 const myObject = reactive({ title: 'How to do lists in Vue', author: 'Jane Doe', publishedAt:
 '2016-04-10' })
 
@@ -345,7 +345,7 @@ const myObject = reactive({ title: 'How to do lists in Vue', author: 'Jane Doe',
 キーとバリューにアンパッキングすることもできる。
 
 {% raw %}
-```vue
+```javascript
 <li v-for="(value, key) in myObject">{{ key }}: {{ value }}</li>
 ```
 {% endraw %}
@@ -353,7 +353,7 @@ const myObject = reactive({ title: 'How to do lists in Vue', author: 'Jane Doe',
 さらにエイリアスを追加するとインデックスも取り出せる。
 
 {% raw %}
-```vue
+```javascript
 <li v-for="(value, key, index) in myObject">{{ index }}. {{ key }}: {{ value }}</li>
 ```
 {% endraw %}
@@ -363,14 +363,14 @@ const myObject = reactive({ title: 'How to do lists in Vue', author: 'Jane Doe',
 整数を取り範囲指定もできる。1から始まることに注意。
 
 {% raw %}
-```vue
+```javascript
 <span v-for="n in 10">{{ n }}</span>
 ```
 {% endraw %}
 
 ### v-show
 
-```vue
+```javascript
 <h1 v-show="ok">Hello!</h1>
 ```
 
@@ -382,7 +382,7 @@ v-if と同じく値が truthy であれば描画されるが、 v-show によ�
 XSS の危険があるため、ユーザーからの入力には使用しない。
 
 {% raw %}
-```vue
+```javascript
 <p>Using text interpolation: {{ rawHtml }}</p>
 <p>Using v-html directive: <span v-html="rawHtml"></span></p>
 ```
@@ -395,7 +395,7 @@ XSS の危険があるため、ユーザーからの入力には使用しない�
 ref() は引数を受け取り、それを .value プロパティを持つ ref オブジェクトにラップして返す。<br>
 こうすることにより、 Vue はその値の変更を検出し、それに応じて DOM を更新する。
 
-```vue
+```javascript
 import { ref } from 'vue' const count = ref(0)
 ```
 
@@ -409,7 +409,7 @@ reactive() はオブジェクト、もしくは配列をラップして、まと
 
 watch は直接 ref を監視することができ、count の値が変化するたびにコールバックが発生する。
 
-```vue
+```javascript
 import { ref, watch } from 'vue'
 const count = ref(0)
 watch(count, (newCount) => {
@@ -419,7 +419,7 @@ watch(count, (newCount) => {
 
 また、コールバックに第2引数を指定すると変更前の値のエイリアスとなる。
 
-```vue
+```javascript
 watch(todoId, (newVal, oldVal) => {
     console.log(`IDが ${oldVal} から ${newVal} に変わりました！`)
 })
@@ -430,7 +430,7 @@ watch(todoId, (newVal, oldVal) => {
 computed関数は、getter関数が渡されることを想定しており、戻り値は算出された ref となる。<br>
 またcomputedはリアクティブな依存関係にもとづきキャッシュされており、依存関係が更新されたときのみ再評価されgetter関数が実行されるためコストが下がる。
 
-```vue
+```javascript
 const publishedBooksMessage = computed(() => {
     return author.books.length > 0 ? 'Yes' : 'No' 
 })
@@ -444,7 +444,7 @@ const publishedBooksMessage = computed(() => {
 
 コンポーネントが最初のレンダリングを終了し、 DOM ノードを生成した後にコードを実行する。
 
-```vue
+```javascript
 <script setup>
 import { onMounted } from 'vue'
 
@@ -475,7 +475,7 @@ onMounted(() => {
 - 子コンポーネント側: defineProps で受け取る名前を宣言します。
 
 {% raw %}
-```vue
+```javascript
 <!-- Child.vue -->
 <script setup>
 // 受け取るデータの名前と型を定義
@@ -497,7 +497,7 @@ defineProps({
 
 - 親コンポーネント側: タグの属性としてデータを渡します。
 
-```vue
+```javascript
 <!-- Parent.vue -->
 <template>
   <!-- titleとpriceを渡す。動的な値（変数）なら : をつける -->
@@ -511,7 +511,7 @@ defineProps({
 
 - 子コンポーネント側: defineEmits でイベント名を登録し、実行します。
 
-```vue
+```javascript
 <!-- Child.vue -->
 <script setup>
 const emit = defineEmits(['answer']) // イベント名を登録
@@ -529,7 +529,7 @@ const sendOld = () => {
 
 - 親コンポーネント側: @イベント名 で子の報告を待ち構えます。
 
-```vue
+```javascript
 <!-- Parent.vue -->
 <script setup>
 const handleAnswer = (msg) => {
@@ -560,7 +560,7 @@ Vue3 Composition API `<script setup>` における、コンポーネント間で
 子コンポーネントでは、マクロ関数である defineProps と defineEmits を使用します。これらは import なしでそのまま使えます。
 
 {% raw %}
-```vue
+```javascript
 <script setup>
 // 1. 親から受け取るデータ（props）の定義
 defineProps({
@@ -613,7 +613,7 @@ button { margin-right: 5px; }
 
 親コンポーネントでは、子コンポーネントの属性（:）に対してデータを渡し、子コンポーネントのイベント（@）に対して関数を紐づけます。
 
-```vue
+```javascript
 <script setup>
 import { ref } from 'vue'
 // 子コンポーネントをインポート
@@ -685,7 +685,7 @@ defineEmits(['celebrate', 'delete-user']) のように配列で文字列を並�
 もしプロジェクトで TypeScript（counter.ts などの話があった環境）を使用している場合、配列ではなく TypeScriptの型定義（ジェネリクス） を使って、完全に enum や型安全なオブジェクトに近い形で定義するのが主流です。
 型を使って書くと、「イベント名」だけでなく「一緒に送るデータの型」までガチガチに固定できます。
 
-```vue
+```javascript
 <script setup lang="ts">// 配列ではなく、型定義 <{ ... }> を使って定義するconst emit = defineEmits<{
   // イベント名: [送るデータの型]
   celebrate: []                      // データは何も送らない
@@ -723,7 +723,7 @@ Composition API（TypeScript対応）での具体的な実装例です
 子は defineProps を使って、受け取るデータが「オブジェクト（Object）」または「配列（Array）」であることを定義します。
 
 {% raw %}
-```vue
+```javascript
 <script setup lang="ts">
 // 受け取るJSONデータの型を定義（TypeScriptの場合）
 interface UserInfo {
@@ -764,7 +764,7 @@ defineProps<{
 
 親側では、前の手順で学した fetch などを使い、リアクティブな変数（ref）にJSONデータを格納して子にバインドします。
 
-```vue
+```javascript
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import UserDetail from './UserDetail.vue'
@@ -826,7 +826,7 @@ Vue 3（Composition API）で、あらかじめHTMLで枠組み（テーブル�
 テーブルのヘッダー`<thead>`を固定で作成しておき、データが入るボディ`<tbody>`の部分に v-for を使ってJSONデータを流し込みます。
 
 {% raw %}
-```vue
+```javascript
 <script setup lang="ts">
 // 1. JSONデータの1件分の型を定義
 interface Member {
@@ -914,7 +914,7 @@ tr:hover {
 
 親はデータを fetch し、空配列 [] で初期化しておくことで、読み込み中であってもテーブルの枠組み（ヘッダー）だけは画面に最初から表示させておくことができます。
 
-```vue
+```javascript
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import DataTable from './DataTable.vue'
@@ -980,7 +980,7 @@ props の値を監視する場合、Composition API（<script setup>）では「
 子コンポーネント側で、親から渡される userId という props が変わった瞬間に、APIから新しいデータを再取得する（fetch）ようなケースを想定したコードです。
 
 {% raw %}
-```vue
+```javascript
 <script setup lang="ts">
 import { watch } from 'vue'
 
@@ -1029,7 +1029,7 @@ const fetchUserData = async (id: number) => {
 
 デフォルトの watch は、「値が『変化』したとき」にしか動きません。画面が開いた初期値のタイミングでも同じ処理を動かしたい場合は、第三引数に { immediate: true } というオプションを追加します。
 
-```vue
+```javascript
 watch(
 () => props.userId,
 (newId) => {
@@ -1037,6 +1037,7 @@ fetchUserData(newId)
 },
 { immediate: true } // 💡 画面が開いた瞬間（初期化時）も即座に実行する
 )
+```
 
 これで、親側のデータ変更と完全に同期して動く子コンポーネントが作れるようになります。
 この watch の書き方について、監視したいデータが複数ある場合の書き方や、その他に気になった部分はありますか？
@@ -1057,7 +1058,7 @@ fetchUserData(newId)
   - 親からデータ（props.users）が流れてくるまでは、自動的に「データがありません」の行が表示されます。
 
 {% raw %}
-```vue
+```javascript
 <script setup lang="ts">
 // データの構造体（設計図）
 interface User {
@@ -1127,7 +1128,7 @@ th { background-color: #eee; }
   - 子から通知（@request-data）が来たら、loadData（非同期のアロー関数）が発火します。
   - await を使って通信が完了した瞬間、箱の中身（.value）が上書きされ、それが瞬時に子コンポーネントのテーブルに書き込まれます。
 
-```vue
+```javascript
 <script setup lang="ts">
 import { ref } from 'vue'
 import UserTable from './UserTable.vue'
@@ -1208,7 +1209,7 @@ Composition APIでの具体的な実装例です。
   - members[i - 1] を使って、配列から1つずつデータを取り出してセルに書き込みます。データがない行（後半の行など）は、自動的に空欄になります。
 
 {% raw %}
-```vue
+```javascript
 <script setup lang="ts">
 // データの構造体
 interface Member {
@@ -1283,7 +1284,7 @@ th { background-color: #f5f5f5; }
 親側は全体のデータ（例えば30件）を持っており、ユーザーがボタンを押すたびにページ番号を切り替えて、「次の10件」の配列を子に新しくバインドします。
 
 {% raw %}
-```vue
+```javascript
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import FixedTable from './FixedTable.vue'
@@ -1369,7 +1370,7 @@ const goToNextPage = () => {
 「データがいつ届くか」を意識して待つコードを書くのではなく、「データが届いたら自動的に連動して計算してね」という仕組みを作っておく方法です。
 Vue 2まではデータを待つために複雑な処理が必要でしたが、Vue 3のComposition APIでは、computed の中で props を使うだけで、Vueのリアクティブシステムが裏側で自動的にデータの到着を待ち構えてくれます。
 
-```vue
+```javascript
 <script setup lang="ts">
 import { computed } from 'vue'
 
@@ -1391,7 +1392,7 @@ const activeMembers = computed(() => {
 
 データが届いた「その瞬間」をトリガーにして、何か別のJavaScriptの関数（例: ログを仕込む、別のAPIを叩くなど）を実行したい場合は、以前に登場した watch を使って到着を待ち伏せします。
 
-```vue
+```javascript
 <script setup lang="ts">
 import { watch } from 'vue'
 
@@ -1418,7 +1419,7 @@ watch(
 子コンポーネント側で「データが届くまで待つ」のが面倒な場合、親コンポーネントの段階でデータが届くまで子コンポーネントの描画自体を完全にストップさせておくという豪快かつ非常に安全な方法です。
 前々回のコード例で紹介した v-if による制御がこれに当たります。
 
-```vue
+```javascript
 <!-- 【親コンポーネントのHTML】 -->
 <template>
   <!-- 💡 memberList.length が 0 より大きくなる（データが届く）まで、この子コンポーネントは生まれません -->
@@ -1456,7 +1457,7 @@ computed で作成した算出プロパティは、基本的には `<template>`�
 親から渡されたデータを computed で並び替えて、それをテーブルに書き込む例です。
 
 {% raw %}
-```vue
+```javascript
 <script setup lang="ts">
 import { computed } from 'vue'
 
@@ -1505,7 +1506,7 @@ const sortedMembers = computed(() => {
 
 もしHTML側ではなく、JavaScriptの処理の中で computed の結果を使いたい場合は、ref の時と全く同じように .value を付けて呼び出します。
 
-```vue
+```javascript
 // JS側で computed の結果をログに出したり、別の計算に使いたいとき
 console.log(sortedMembers.value) // 💡「.value」をつける
 ```
@@ -1531,7 +1532,7 @@ console.log(sortedMembers.value) // 💡「.value」をつける
 ### コンポーネントB（テーブル）の実装コード
 
 {% raw %}
-```vue
+```javascript
 <script setup lang="ts">
 import { computed } from 'vue'
 

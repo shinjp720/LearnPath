@@ -126,6 +126,28 @@ layout: default
 | `...` | レスト構文(まとめる)<br>分割代入で使う例     | `const [first, ...rest] = [10, 20, 30, 40];`<br>`rest;`                                | `[20, 30, 40]`           |
 | `+`   | 文字列結合                                   | `"a" + "b"`または<br><code>\`a${b}\`</code>                                            |                          |
 
+### オプショナルチェイニング
+
+`左側の値?.` と書くと、左側の値が null または undefined だった場合、続きを読まずに undefined を返す。
+
+```javascript
+user?.profile?.name
+
+const name = response.data?.user?.name // 無ければ undefined が入る
+
+arr?.[0] // 配列でも
+
+callback?.() // 関数でも使える。あれば実行
+```
+
+### null 合体演算子
+
+`左側の値 ?? '値がない'` と書くと、左側の値が null または undefined だった場合 右側の値を採用する。
+
+```javascript
+props.dataList?.[i]?.clientCode ?? ''
+```
+
 ---
 
 ## エスケープシーケンス <a id="escape-sequences" data-name="エスケープシーケンス"></a>
@@ -439,6 +461,235 @@ try {
 } catch (例外識別子) {
     例外が発生したときの処理;
 }
+```
+
+---
+
+## メソッド <a id="methods" data-name="メソッド"></a>
+
+### 配列系
+
+#### sort
+
+```javascript
+const users = [
+  { name: "B" },
+  { name: "A" }
+]
+
+users.sort((a, b) => {
+  return a.name.localeCompare(b.name)
+})
+```
+
+#### slice
+
+一部切り出し。
+
+```javascript
+const first3 = items.slice(0, 3)
+```
+
+#### flatMap
+
+map + flatten。
+
+```javascript
+const result = users.flatMap(
+  user => user.tags
+)
+```
+
+#### map
+
+配列を変換する。
+
+```javascript
+const nums = [1, 2, 3]
+
+const doubled = nums.map(n => n * 2)
+
+console.log(doubled) // [2, 4, 6]
+```
+
+Vue の検索 UI での使用例。
+
+```javascript
+const filtered = users.value.filter(
+  u => u.name.includes(keyword.value)
+)
+```
+
+#### find
+
+最初の1件だけ取得。
+
+```javascript
+const user = users.find(u => u.id === 10)
+```
+
+#### some
+
+1件でも条件を満たすか。
+
+```javascript
+const hasAdmin = users.some(u => u.role === "admin")
+```
+
+#### every
+
+全部条件を満たすか。
+
+```javascript
+const allChecked = items.every(i => i.checked)
+```
+
+#### reduce
+
+集計。
+
+```javascript
+const total = prices.reduce(
+  (sum, price) => sum + price,
+  0
+)
+```
+
+### 文字列系
+
+#### includes
+
+含まれているか。
+
+```javascript
+"hello".includes("ell")
+```
+
+#### startsWith, endsWith
+
+特定の文字か文字列で始まるか、終わるか。
+
+```javascript
+const str = "Hello World";
+console.log(str.startsWith("Hello")); // true
+console.log(str.startsWith("World")); // false
+
+console.log(str.endsWith("World")); // true
+console.log(str.endsWith("Hello")); // false
+```
+
+#### trim
+
+前後の空白を除去。
+
+ ```javascript
+ input.trim()
+ ```
+
+#### join
+
+指定したデリミタ(区切り文字)で要素を連結して返す Arrayインスタンスのメソッド。<br>
+引数を省略するとカンマ(,)で区切られる。
+
+```javascript
+const fruits = ['りんご', 'みかん', 'バナナ'];
+console.log(fruits.join()); // 出力: "りんご,みかん,バナナ"
+
+const words = ['J', 'A', 'V', 'A'];
+console.log(words.join('')); // 空文字指定でくっつく
+// 出力: "JAVA"
+
+const array = ['A', null, 'B', undefined, 'C'];
+console.log(array.join('-')); // null, undefinedは無視される
+// 出力: "A--B--C"
+
+const lines = ['一行目', '二行目'];
+console.log(lines.join('\n')); // 改行で区切る
+```
+
+#### split
+
+指定したデリミタ(区切り文字)で文字列を分割して、配列として返す。<br>
+引数を省略すると分割されずに返る。
+
+```javascript
+const text = 'こんにちは';
+console.log(text.split()); 
+// 出力: ["こんにちは"]
+
+const text = 'HTML';
+console.log(text.split('')); // 空文字指定で1文字ずつ
+// 出力: ["H", "T", "M", "L"]
+
+const date = '2026/05/14';
+console.log(date.split('/')); 
+// 出力: ["2026", "05", "14"]
+```
+
+第2引数に整数を渡すと受け取る配列の最大要素数を制限できる。
+
+```javascript
+const text = 'りんご,みかん,バナナ,ぶどう';
+console.log(text.split(',', 2)); 
+// 出力: ["りんご", "みかん"] （3つ目以降は無視される）
+```
+
+### オブジェクト系
+
+#### Object.keys
+
+key一覧。
+
+```javascript
+const obj = {
+  a: 1,
+  b: 2
+}
+
+Object.keys(obj) // ["a", "b"]
+```
+
+#### Object.values
+
+value一覧。
+
+```javascript
+Object.values(obj) // [1, 2]
+```
+
+#### Object.entries
+
+Vue で便利。
+
+```javascript
+const object = {
+  a: "some string",
+  b: 42,
+};
+
+for (const [key, value] of Object.entries(object)) {
+  console.log(`${key}: ${value}`);
+}
+// "a: some string"
+// "b: 42"
+```
+
+### JSON系
+
+#### JSON.stringify
+
+オブジェクト -> JSON文字列へ。
+
+```javascript
+const json = JSON.stringify(user)
+```
+
+#### JSON.parse
+
+JSON文字列 -> オブジェクトへ。
+
+```javascript
+const obj = JSON.parse(json)
 ```
 
 ---
