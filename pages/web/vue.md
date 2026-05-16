@@ -254,6 +254,13 @@ v-on には省略記法がある。
 <input type="text" @keyup.page-down="onPageDown" />
 ```
 
+##### よく使うシステムキー
+
+- .enter
+- .tab
+- .delete(DeleteとBackspace)
+- .esc
+- .space
 #### カスタムイベント
 
 emitにより子から親へ発火を伝えることができる。
@@ -262,14 +269,6 @@ emitにより子から親へ発火を伝えることができる。
 <!-- 子コンポーネントが独自に発火させる「close-modal」というイベントをキャッチする -->
 <MyModal @close-modal="isOpen = false" />
 ```
-
-##### よく使うシステムキー
-
-- .enter
-- .tab
-- .delete(DeleteとBackspace)
-- .esc
-- .space
 
 ---
 
