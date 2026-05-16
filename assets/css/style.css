@@ -72,6 +72,16 @@ code {
     font-weight: 500;
 }
 
+/* リスト */
+ul {
+    margin: 0;
+}
+
+li {
+    margin: 0;
+}
+
+
 
 /* naviのリスト */
 #navi ul {
@@ -259,10 +269,10 @@ pre code {
     display: inline-block;
     color: #f0f6fc;
     background-color: #6e7681;
-    padding: 0.4rem 0.8rem;
     border-radius: 6px;
     font-weight: 600;
-    font-size: 1.8rem;
+    font-size: 1.2rem;
+    padding: 0 20px;
 }
 
 /* 警告 */

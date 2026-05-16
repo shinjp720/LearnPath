@@ -18,9 +18,7 @@ layout: default
 
 ---
 
-<a id="variable" data-name="変数"></a>
-
-## 変数
+## 変数 <a id="variable" data-name="変数"></a>
 
 変数の宣言は`キーワード 変数名 = 初期値;`キーワードは以下の通り
 
@@ -34,9 +32,7 @@ layout: default
 
 ---
 
-<a id="operator" data-name="演算子"></a>
-
-## 演算子
+## 演算子 <a id="operator" data-name="演算子"></a>
 
 ### 算術演算子
 
@@ -170,8 +166,6 @@ props.dataList?.[i]?.clientCode ?? ''
 
 ---
 
-
-
 ## データ型 <a id="data-types" data-name="データ型"></a>
 
 | データ型  | 値           | 説明                                                                    |
@@ -195,8 +189,74 @@ props.dataList?.[i]?.clientCode ?? ''
 | `String(値)`  | 文字列へ変換する   | `String(1)`<br>`String(true)`                                           | `"1"`<br>`"true"`          |
 | `BigInt(値)`  | BigInt型へ変換する | `BigInt("20)`<br>`BitInt(true)`                                         | `20n`<br>`1n`              |
 
+### as <span class="label">TS</span>
+
+これも TS の型変換。
+
+```javascript
+const el = document.querySelector('#app') as HTMLDivElement
+```
+
+### type <span class="label">TS</span>
+
+型定義で何でも表現できる。実態はない。interface はオブジェクト向き。
+
+```javascript
+interface User {
+  name: string
+}
+
+type ID = string | number
+
+type Point = [number, number]
+```
+
+### interface <span class="label">TS</span>
+
+こういう形のオブジェクトだという型定義。実態はない。
+
+```javascript
+interface User {
+  name: string
+  age: number
+}
+```
+
+### enum <span class="label">TS</span>
+
+列挙型。
+
+```typescript
+enum Direction {
+  Up,
+  Down,
+  Left,
+  Right
+}
+```
+
+ただし最近は定数が好まれがち。
+
+```typescript
+const DIRECTIONS = {
+  UP: 'up',
+  DOWN: 'down'
+} as const
+```
+
+### declare <span class="label">TS</span>
+
+存在することにする定義で、実際はどこかにある前提。
+
+```typescript
+declare const VERSION: string
+```
 
 ### 文字列(String)
+
+
+
+
 
 
 
@@ -254,11 +314,74 @@ Name = "name";
 person[Name]; // 変数による動的なアクセスもできる
 person["phone-no"] // 記号などプロパティ名で指定できないものを含む場合はブラケット記法で記述する</code></pre>
 
+### extends
+
+クラス継承 (JS)
+
+```javascript
+class Animal {}
+class Dog extends Animal {}
+```
+
+interface 拡張 (TS)
+
+```typescript
+interface Animal {
+  name: string
+}
+
+interface Dog extends Animal {
+  bark(): void
+}
+```
+
+
 ---
 
-<a id="function" data-name="関数"></a>
+## import <a id="import" data-name="import"></a>
 
-## 関数
+import は外部からオブジェクトなどを取り込む仕組み。
+
+### import
+
+```javascript
+// 特定のオブジェクトを import する場合は {} が必要
+import { name, hello } from './file'
+
+// default export だったり、単独の要素は {} は不要
+import App from './App'
+```
+
+### export
+
+モジュールの中の変数や関数、クラスやオブジェクトなどを外部のファイルからでも使えるように公開する仕組み。
+
+```javascript
+// 名前付き export
+export const pi = 3.14;
+export function add(a, b) {
+  return a + b;
+}
+
+// デフォルトエクスポート (メインとなる部品を1つだけ公開)
+export default class User {
+  constructor(name) {
+    this.name = name;
+  }
+}
+```
+
+### type <span class="label">TS</span>
+
+型だけを読み込む仕組み。実行時には含まれない。
+
+```javascript
+import type { User } from './types'
+```
+
+---
+
+## 関数 <a id="function" data-name="関数"></a>
 
 ### 関数の定義
 
@@ -282,9 +405,9 @@ const 関数名 = function() {}
 
 ---
 
-<a id="async" data-name="非同期処理"></a>
+<a id="async" data-name="非同期"></a>
 
-## 非同期処理
+## 非同期
 
 - コールバック関数
 
@@ -355,9 +478,9 @@ func();
 
 ---
 
-<a id="control-syntax" data-name="制御構文"></a>
 
-## 制御構文
+
+## 制御構文 <a id="control-syntax" data-name="制御構文"></a>
 
 ### if文
 
@@ -437,9 +560,7 @@ switch (条件式) {
 
 ---
 
-<a id="error-handling" data-name="例外処理"></a>
-
-## 例外処理
+## 例外処理 <a id="error-handling" data-name="例外処理"></a>
 
 - 基本構文
 
@@ -911,7 +1032,7 @@ testButton.addEventListener("contextmenu", (event) => {
 
 ## example <a id="example" data-name="example"></a>
 
-#### よくあるforumの例
+#### よくあるformの例
 
 <pre><code class="example">&lt;form id="login-form"&gt;
   &lt;input name="user"&gt;

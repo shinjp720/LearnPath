@@ -126,6 +126,8 @@ v-on:submit.prevent="onSubmit"
 <form @submit.prevent="onSubmit">...</form>
 ```
 
+---
+
 ### v-bind
 
 動的な値を属性にバインドする。
@@ -179,6 +181,8 @@ const hasError = ref(false)
 <div class="static active"></div>
 ```
 
+---
+
 ### v-on
 
 DOMイベントを購読する。<br>
@@ -186,6 +190,8 @@ v-on には省略記法がある。
 
 - v-on:click=""
 - @click=""
+
+---
 
 ### v-model による双方向バインディング
 
@@ -358,7 +364,7 @@ const myObject = reactive({ title: 'How to do lists in Vue', author: 'Jane Doe',
 ```
 {% endraw %}
 
-###### 範囲指定
+##### 範囲指定
 
 整数を取り範囲指定もできる。1から始まることに注意。
 
@@ -367,6 +373,40 @@ const myObject = reactive({ title: 'How to do lists in Vue', author: 'Jane Doe',
 <span v-for="n in 10">{{ n }}</span>
 ```
 {% endraw %}
+
+<pre><code class="caution">:key 属性が無い状態で v-for の中で動的に値を削除したりすると、インプレースパッチ戦略という仕様のせいでバグが発生する恐れがあるため、:key 属性の指定が推奨とされており、一意の値を :key とする必要がある。</code></pre>
+
+<pre><code class="tips">追加・削除・並び替えが発生しない場合。
+<ul>
+  <li>index を取得して :key="index"</li>
+  <li>&lt;tr v-for="n in 10" :key="n"&gt;</li>
+</ul></code></pre>
+
+<pre><code class="tips">&lt;!--複合キーを :key とする(重複がない場合)。--&gt;
+&lt;ul&gt;
+  &lt;!-- nameとageを組み合わせて「taro-25」のような一意の文字列を作る --&gt;
+  &lt;li v-for="user in users" :key="`${user.name}-${user.age}`"&gt;
+    &lcub;&lcub; user.name &rcub;&rcub; - &lcub;&lcub; user.age &rcub;&rcub;才
+  &lt;/li&gt;
+&lt;/ul&gt;</code></pre>
+
+<pre><code class="tips">// IDを付与する(確実な方法)。
+const rawData = [
+  { name: '田中' },
+  { name: '鈴木' },
+  { name: '佐藤' }
+];
+
+// 画面に表示する用のデータに変換（一意のIDを付与）
+const users = rawData.map((item, index) => {
+  return {
+    ...item,
+    id: `user-unique-${index}-${Date.now()}` // 完全に一意なIDを作る
+  };
+});
+</code></pre>
+
+---
 
 ### v-show
 
