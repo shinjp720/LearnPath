@@ -47,7 +47,7 @@ python manage.py runserver
 
 | --- | --- |
 | manage.py | Django のコマンドを使うためのモジュール |
-| __init__.py | 他のファイルから読み込むためのファイル |
+| `__init__.py` | 他のファイルからモジュールを読み込むためのファイル |
 | urls.py | ルーティングを記述するためのモジュール |
 | settings.py | プロジェクト全体の設定情報を記述するモジュール |
 | wsgi.py | WSGIサーバー用のモジュール |
@@ -60,19 +60,19 @@ python manage.py runserver
 manage.py があるディレクトリ内で次のコマンドを入力。
 
 ```bash
-python manage.py startup myapp
+python manage.py startapp myapp
 ```
 
 ### 生成されるファイル
 
-| --- |
-| __init__.py |
-| admin.py |
-| apps.py |
-| models.py |
-| tests.py |
-| views.py |
-| migrationsディレクトリ |
+| --- | --- |
+| `__init__.py` | 他のファイルからモジュールを読み込むためのファイル |
+| admin.py |  |
+| apps.py |  |
+| models.py |  |
+| tests.py |  |
+| views.py |  |
+| migrationsディレクトリ |  |
 
 ---
 

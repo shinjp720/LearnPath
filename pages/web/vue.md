@@ -128,7 +128,7 @@ v-on:submit.prevent="onSubmit"
 
 ---
 
-### v-bind
+### v-bind <a id="v-bind" data-name="v-bind"></a>
 
 動的な値を属性にバインドする。
 v-bind には省略記法がある。
@@ -183,7 +183,7 @@ const hasError = ref(false)
 
 ---
 
-### v-on
+### v-on <a id="v-on" data-name="v-on"></a>
 
 DOMイベントを登録する。<br>
 v-on には省略記法がある。
@@ -261,6 +261,7 @@ v-on には省略記法がある。
 - .delete(DeleteとBackspace)
 - .esc
 - .space
+
 #### カスタムイベント
 
 emitにより子から親へ発火を伝えることができる。
@@ -272,7 +273,7 @@ emitにより子から親へ発火を伝えることができる。
 
 ---
 
-### v-model による双方向バインディング
+### v-model による双方向バインディング <a id="v-model" data-name="v-model"></a>
 
 v-bindとv-onを一緒に使うことで input要素に双方向バインディングを作成できる。
 
@@ -369,7 +370,118 @@ const checkedNames = ref([])
 
 ---
 
-### 条件付きレンダリング
+### slot <a id="v-slot" data-name="slot"></a>
+
+slot の基本は、子の `<slot />` 部分に親から要素を注入する仕組み。
+
+`<slot>` デフォルト内容 `</slot>`<br>
+とすると、親から slot に何も渡されなかった時の内容となる。
+
+#### 基本形
+
+子コンポーネント
+```vue
+// Card.vue
+<template>
+  <div class="card">
+    <slot />
+  </div>
+</template>
+```
+
+親コンポーネント
+```vue
+<MyCard>
+  <!-- 画像、見出し、ボタンが混ざったHTMLを丸ごと注入 -->
+  <img src="avatar.png" alt="ユーザー">
+  <h3>山田 太郎</h3>
+  <p>フロントエンドエンジニアです。</p>
+  <button>フォロー</button>
+</MyCard>
+```
+
+#### 名前付き slot
+
+子コンポーネント
+```vue
+// MyDialog.vue
+<template>
+  <div class="dialog">
+    <header>
+      <slot name="header" />
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer>
+      <slot name="footer" />
+    </footer>
+  </div>
+</template>
+```
+
+親コンポーネント
+```vue
+<template>
+  <MyDialog>
+    <template #header>
+      <h1>タイトル</h1>
+    </template>
+
+    本文です
+
+    <template #footer>
+      <button>閉じる</button>
+    </template>
+  </MyDialog>
+</template>
+```
+
+- 正式には v-slot:header
+- #header は省略形
+
+#### スコープ付き slot
+
+子コンポーネント
+```vue
+// UserList.vue
+<script setup>
+const users = [
+  { id: 1, name: '田中', role: '管理者' },
+  { id: 2, name: '佐藤', role: '一般' }
+]
+</script>
+
+<template>
+  <ul>
+    <li v-for="user in users" :key="user.id">
+      <!-- userデータを props として親に送る -->
+      <slot :user="user">
+        {{ user.name }} <!-- バックアップ表示 -->
+      </slot>
+    </li>
+  </ul>
+</template>
+```
+
+親コンポーネント
+```vue
+<template>
+  <UserList>
+    <!-- 子から送られてきたデータを slotProps という名前で受け取る -->
+    <template #default="slotProps">
+      <strong>{{ slotProps.user.name }}</strong> 
+      <span>（権限: {{ slotProps.user.role }}）</span>
+    </template>
+  </UserList>
+</template>
+```
+
+---
+
+### 条件付きレンダリング <a id="conditional-rendering" data-name="条件付きレンダリング"></a>
 
 #### v-if
 
