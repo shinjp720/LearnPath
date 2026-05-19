@@ -601,7 +601,7 @@ const users = rawData.map((item, index) => {
 
 ### v-show
 
-```javascript
+```vue
 <h1 v-show="ok">Hello!</h1>
 ```
 
@@ -613,7 +613,7 @@ v-if と同じく値が truthy であれば描画されるが、 v-show によ�
 XSS の危険があるため、ユーザーからの入力には使用しない。
 
 {% raw %}
-```javascript
+```vue
 <p>Using text interpolation: {{ rawHtml }}</p>
 <p>Using v-html directive: <span v-html="rawHtml"></span></p>
 ```
@@ -624,10 +624,11 @@ XSS の危険があるため、ユーザーからの入力には使用しない�
 ### ref()
 
 ref() は引数を受け取り、それを .value プロパティを持つ ref オブジェクトにラップして返す。<br>
-こうすることにより、 Vue はその値の変更を検出し、それに応じて DOM を更新する。
+ref でラップすることにより、 Vue はその値の変更を検出し、それに応じて DOM を更新する。
 
-```javascript
-import { ref } from 'vue' const count = ref(0)
+```vue
+import { ref } from 'vue'
+const count = ref(0)
 ```
 
 ### reactive()
@@ -638,38 +639,84 @@ reactive() はオブジェクト、もしくは配列をラップして、まと
 
 ### watch()
 
-watch は直接 ref を監視することができ、count の値が変化するたびにコールバックが発生する。
+watch は直接 ref を監視することができ、count の値が変化するたびにコールバックが発生する。<br>
+変更後の値と変更前の値を受け取ることも省略することもできる。
 
-```javascript
-import { ref, watch } from 'vue'
+- 基本形
+  ```vue
+  import { ref, watch } from 'vue'
+
+  const currentPage = ref(1)
+
+  // 【書式】 watch( 監視対象, (新しい値, 古い値) => { 行いたい処理 } )
+  watch(currentPage, (newPage, oldPage) => {
+    console.log(`ページが ${oldPage} から ${newPage} に変わりました`)
+    // ここにAPI通信などの処理を書く（returnは不要）
+  })
+  ```
+
+- 応用形
+  ```vue
+  const page = ref(1)
+  const keyword = ref('')
+
+  // 配列で渡すと、新旧の値も配列で返ってくる
+  watch([page, keyword], ([newPage, newKeyword], [oldPage, oldKeyword]) => {
+    console.log('ページかキーワードのどちらかが変わりました')
+  })
+  ```
+
+<pre><code class="example">import { ref, watch } from 'vue'
 const count = ref(0)
 watch(count, (newCount) => {
     console.log(`new count is: ${newCount}`)
-})
-```
-
-また、コールバックに第2引数を指定すると変更前の値のエイリアスとなる。
-
-```javascript
-watch(todoId, (newVal, oldVal) => {
-    console.log(`IDが ${oldVal} から ${newVal} に変わりました！`)
-})
-```
+})</code></pre>
 
 ### computed()
 
-computed関数は、getter関数が渡されることを想定しており、戻り値は算出された ref となる。<br>
-またcomputedはリアクティブな依存関係にもとづきキャッシュされており、依存関係が更新されたときのみ再評価されgetter関数が実行されるためコストが下がる。
+computed関数は、getter関数が渡されることを想定しており、戻り値は算出された値となる。<br>
+computed関数に含まれたリアクティブな値が変化したことにより発火し、必ず戻り値を返す必要がある。
 
-```javascript
-const publishedBooksMessage = computed(() => {
-    return author.books.length > 0 ? 'Yes' : 'No' 
+computed はリアクティブな依存関係にもとづきキャッシュされており、依存関係が更新されたときのみ再評価されるため、実行コストが下がる。
+
+```vue
+import { ref, computed } from 'vue'
+
+const count = ref(1)
+
+// 【書式】 computed(() => { return 加工した値 })
+const doubleCount = computed(() => {
+  return count.value * 2
 })
+
+// 使うときは .value をつける（テンプレート上では doubleCount のままでOK）
+console.log(doubleCount.value) // 2
 ```
+
+<pre><code class="example">const publishedBooksMessage = computed(() => {
+    return author.books.length > 0 ? 'Yes' : 'No' 
+})</code></pre>
+
+<pre><code class="example">const allDataList = ref&lt;myData[]&gt;([])
+
+// 2. 現在のページ番号を ref で保持（1ページ目からスタート）
+const currentPage = ref(1)
+// ページあたりの表示件数を定数で定義
+const ITEMS_PER_PAGE = 10
+
+// 3. 【重要】現在のページに応じた10件のみを自動で切り出す computed
+const displayedDataList = computed(() => {
+  // 例: 1ページ目なら 0, 2ページ目なら 10 が開始位置になる
+  const start = (currentPage.value - 1) * ITEMS_PER_PAGE
+  const end = start + ITEMS_PER_PAGE
+
+  // JavaScriptの .slice(開始, 終了) を使って10件だけを切り出す
+  return allDataList.value.slice(start, end)
+})</code></pre>
 
 ## ライフサイクルフック <a id="lifecycle-hook" data-name="ライフサイクルフック"></a>
 
-各 VUe コンポーネントインスタンスは、生成時に一連の初期化を行いますが、特定のタイミングで独自のコードを追加することができる。
+各 Vue コンポーネントインスタンスは、生成時に一連の初期化を行うが、特定のタイミングで独自のコードを追加することができる。
 
 ### onMounted
 
@@ -911,13 +958,14 @@ const handleDelete = () => {
 defineEmits(['celebrate', 'delete-user']) のように配列で文字列を並べることで、Vueに対して「この2つのイベント名だけを正式なイベントとして認めます」と宣言しています。
 もし開発者が間違えて、配列に登録していないイベント名（例: emit('invalid-event')）を実行しようとすると、Vueがブラウザのコンソールで警告（Warning）を出してミスを教えてくれます。
 
-### 2. 本物のTypeScriptを使ってさらに安全にする書き方
+### 2. TypeScriptを使ってさらに安全にする書き方
 
 もしプロジェクトで TypeScript（counter.ts などの話があった環境）を使用している場合、配列ではなく TypeScriptの型定義（ジェネリクス） を使って、完全に enum や型安全なオブジェクトに近い形で定義するのが主流です。
 型を使って書くと、「イベント名」だけでなく「一緒に送るデータの型」までガチガチに固定できます。
 
 ```javascript
-<script setup lang="ts">// 配列ではなく、型定義 <{ ... }> を使って定義するconst emit = defineEmits<{
+<script setup lang="ts">// 配列ではなく、型定義 <{ ... }> を使って定義する
+const emit = defineEmits<{
   // イベント名: [送るデータの型]
   celebrate: []                      // データは何も送らない
   'delete-user': []                  // データは何も送らない
