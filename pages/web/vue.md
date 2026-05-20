@@ -311,7 +311,42 @@ v-bindとv-onを一緒に使うことで input要素に双方向バインディ�
 </template>
 ```
 
-#### チェックボックス
+#### 子コンポーネントに対して v-model を使う
+
+自作のコンポーネントに対して v-model を使う場合は defineModel() マクロを使うのが推奨されている。
+
+親コンポーネント側
+
+```vue
+<script setup>
+import { ref } from 'vue'
+import CustomInput from './CustomInput.vue' // 子コンポーネントを読み込み
+
+const message = ref('こんにちは')
+</script>
+
+<template>
+  <!-- 子コンポーネントにv-modelを渡す -->
+  <CustomInput v-model="message" />
+</template>
+```
+
+子コンポーネント側
+
+```vue
+<!-- CustomInput.vue -->
+<script setup>
+// defineModelを呼び出すだけで、親のv-modelと同期する変数（Ref）が作られる
+const model = defineModel()
+</script>
+
+<template>
+  <!-- inputの値をmodelにバインドすれば、親のデータも一緒に更新される -->
+  <input v-model="model" />
+</template>
+```
+
+#### チェックボックスの実装例
 
 {% raw %}
 ```javascript
@@ -320,7 +355,7 @@ v-bindとv-onを一緒に使うことで input要素に双方向バインディ�
 ```
 {% endraw %}
 
-#### 複数のチェックボックス
+#### 複数のチェックボックスの実装例
 
 {% raw %}
 ```javascript
@@ -339,7 +374,7 @@ const checkedNames = ref([])
 ```
 {% endraw %}
 
-#### ラジオボタン
+#### ラジオボタンの実装例
 
 {% raw %}
 ```javascript
@@ -353,7 +388,7 @@ const checkedNames = ref([])
 ```
 {% endraw %}
 
-#### セレクト
+#### セレクトの実装例
 
 {% raw %}
 ```javascript

@@ -385,16 +385,44 @@ import type { User } from './types'
 
 ### 関数の定義
 
-- 関数宣言
-
-```javascript
-function 関数名 () {}
-```
-
 - アロー式
 
 ```javascript
 () => {}
+```
+
+ES6でサポートされた比較的モダンな書き方で this の扱いが function と異なり、
+
+- function は誰が読んだか (呼び出し方) で this が決まる (動的)
+- アロー関数はどこに書いたか (定義場所) で this が決まる (静的)
+
+```javascript
+// 一般的な書き方
+(arg1, arg2) => { return arg1 + arg2; }
+
+// { } を省略すると return 文とみなす
+(arg1, arg2) => arg1 + arg2
+
+// { } 省略でオブジェクトを返却する場合は () でくくる
+(arg1, arg2) => ({"x": arg1, "y": arg2})
+
+// 引数が1個の場合は ( ) を省略可能
+arg1 => { return arg1 * 2; }
+
+// 引数が0個の場合は ( ) が必要
+() => { return 10; }
+
+// 可変引数をサポート
+(x, y, z, ...rest) => { ... }
+
+// デフォルト引数をサポート
+(file, mode = "r") => { ... }
+```
+
+- 関数宣言
+
+```javascript
+function 関数名 () {}
 ```
 
 - 関数式
