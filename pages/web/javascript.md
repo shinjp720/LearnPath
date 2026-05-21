@@ -252,7 +252,140 @@ const DIRECTIONS = {
 declare const VERSION: string
 ```
 
-### 文字列(String)
+### 文字列(String) <a id="string" data-name="文字列"></a>
+
+
+### 配列 <a id="array" data-name="配列"></a>
+
+#### 生成
+
+##### Array.from(arrayLike[, mapFunc, [thisArg]])
+
+String, Set, Mapなどの配列ライクなオブジェクトや反復可能オブジェクトから新しい配列を生成する。
+
+```javascript
+const str = "ABC";
+const arr1 = Array.from(str);
+console.log(arr1);                  // ['A', 'B', 'C']
+
+const set = new Set([123, "ABC"]);
+const arr2 = Array.from(set);
+console.log(arr2);                  // [123, 'ABC']
+
+const map = new Map([[1, 2], [2, 4], [4, 8]]);
+const arr3 = Array.from(map);
+console.log(arr3);                  // [[1, 2], [2, 4], [4, 8]]
+```
+
+mapFunc は、配列を作成する際に各要素に対して実行されるマップ関数。<br>
+thisArg にはマップ関数で this で参照される値を指定する。
+
+```javascript
+const arr = Array.from([1, 2, 3], (x) => x * 2);
+console.log(arr); // [2, 4, 6]
+```
+
+##### new
+
+new は古い書き方で、今ではあまり使われない。
+
+```javascript
+const arr1 = new Array();     // 要素が0個の配列を作成
+const arr2 = new Array(3);    // 要素が3個の空配列を作成
+const arr3 = new Array("Red", "Green", "Blue"); // const arr3 = ["Red", "Green", "Blue"]と等価
+```
+
+##### Array.fromAsync()
+
+ES2026 で追加された、非同期反復可能オブジェクトを配列に変化するメソッド。
+
+```javascript
+ async function* myRange(n) {
+  for (let i = 0; i < n; i++) {
+    yield i * 2;
+  }
+}
+const arr = await Array.fromAsync(myRange(4));
+console.log(arr); // [0, 2, 4, 6]
+```
+
+#### 配列の長さ
+
+```javascript
+const arr = ["Red", "Green", "Blue"];
+console.log(arr.length); // 3
+```
+
+#### 配列のループ
+
+配列に対して for in とすると、添え字 (index) が取得できる。
+
+```javascript
+const colors = ["Red", "Green", "Blue"];
+for (let i = 0; i < arr.length; i++) { // i は index
+  console.log(colors[i]); // => "Red", "Green", "Blue"
+}
+```
+
+for ob とすると、要素を取得できる。
+
+```javascript
+const colors = ["Red", "Green", "Blue"];
+for (let color of colors) {
+  console.log(color); // => "Red", "Green", "Blue"
+}
+```
+
+#### array.forEach(callback[, this])
+
+配列の各要素を引数にして callback を実行する。<br>
+callback の引数には、要素値 (value) 、 インデックス (index) 、 配列自体 (array) が渡される。引数は順不同だが省略は可能。
+
+```javascript
+const arr = ["Red", "Green", "Blue"];
+arr.forEach((value, index, array) => {
+  console.log(value);
+});
+```
+
+#### entries(), keys(), values()
+
+配列に対して、entries() は key と value からなるイテレータ、keys() は key のみからなるイテレータ、values() は value のみからなるイテレータを返す。
+
+```javascript
+const arr = ["Red", "Green", "Blue"];
+for (let elem of arr.entries()) {
+  console.log(elem[0] + ":" + elem[1]); // "0:Red", "1:Green", "2:Blue"
+}
+for (let key of arr.keys()) {
+  console.log(key); // 0, 1, 2
+}
+for (let value of arr.values()) {
+  console.log(value); // "Red", "Green", "Blue"
+```
+
+#### array.map(callback[, this])
+
+配列の各要素に対して callback を実行し、callback の戻り値からなる配列を返す。
+
+```javascript
+const arr1 = [2, 4, 6]
+const arr2 = arr1.map((value, index, key) => value * 2);
+console.log(arr2) // [4, 8, 12]
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
