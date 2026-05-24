@@ -542,7 +542,7 @@ const arr = new Array(3).fill(undefined);
 ES2026 で追加された、非同期反復可能オブジェクトを配列に変換するメソッド。
 
 ```javascript
- async function* myRange(n) {
+async function myRange(n) {
   for (let i = 0; i < n; i++) {
     yield i * 2;
   }
@@ -568,8 +568,12 @@ console.log(arr[2][3]); // 2003
 
 ```javascript
 // 3行 × 4列 の2次元配列を 0 で初期化する
+const arr = Array.from({ length: 3 }, () => Array.from({ length: 4}).fill(0))
+
 const arr = Array.from({ length: 3 }, () => new Array(4).fill(0));
 ```
+
+---
 
 ### 配列の長さ
 
@@ -578,6 +582,8 @@ const arr = ["Red", "Green", "Blue"];
 console.log(arr.length); // 3
 ```
 
+---
+
 ### 配列のループ
 
 for of とすると、要素を取得できる。
@@ -585,11 +591,11 @@ for of とすると、要素を取得できる。
 ```javascript
 const colors = ["Red", "Green", "Blue"];
 for (let color of colors) {
-  console.log(color); // => "Red", "Green", "Blue"
+  console.log(color); // "Red", "Green", "Blue"
 }
 ```
 
-### array.forEach(callback[, this])
+#### array.forEach(callback[, this])
 
 配列の各要素を引数にして callback を実行する。<br>
 callback の引数には、要素値 (value) 、 インデックス (index) 、 配列自体 (array) が渡される。引数は順不同だが省略は可能。
@@ -601,22 +607,30 @@ arr.forEach((value, index, array) => {
 });
 ```
 
-### entries(), keys(), values()
+#### entries(), keys(), values()
 
 配列に対して、entries() は key と value からなるイテレータ、keys() は key のみからなるイテレータ、values() は value のみからなるイテレータを返す。
 
 ```javascript
 const arr = ["Red", "Green", "Blue"];
+for (let [index, value] of arr.entries()) {
+  console.log(index + ":" + value);     // "0:Red", "1:Green", "2:Blue"
+}
+
 for (let elem of arr.entries()) {
   console.log(elem[0] + ":" + elem[1]); // "0:Red", "1:Green", "2:Blue"
 }
+
 for (let key of arr.keys()) {
   console.log(key); // 0, 1, 2
 }
+
 for (let value of arr.values()) {
   console.log(value); // "Red", "Green", "Blue"
 }
 ```
+
+---
 
 ### 配列の走査
 
@@ -737,6 +751,8 @@ console.log(index);  // 2
 
 findLast と findLastIndex は配列を末尾から検索する。
 
+---
+
 ### 配列の連結
 
 #### array.concat(array2, ...)
@@ -760,6 +776,8 @@ const arr = ["2000", "12", "31"];
 const str = arr.join("/");
 console.log(str);  // "2000/12/31"
 ```
+
+---
 
 ### 配列要素の取り出しと追加と削除
 
@@ -846,6 +864,8 @@ console.log(arr[1]);   // undefined
 console.log(arr[2]);   // "Blue"
 ```
 
+---
+
 ### 配列の並べ替え
 
 #### array.sort([func])
@@ -891,6 +911,8 @@ array 自体も書き換えられる。
 array を逆順で並べ替えて、結果の配列を返す。
 array は変化しない。<br>
 
+---
+
 ### 配列から文字列への変換
 
 #### array.toString()
@@ -912,6 +934,8 @@ const str = arr.toLocaleString('ja', {timeZone: "Asia/Tokyo"});
 console.log(str);   // "1,A,1999/12/31 23:59:59"
 arr.toString();
 ```
+
+---
 
 ### 配列要素の変更
 
