@@ -316,6 +316,82 @@ props.dataList?.[i]?.clientCode ?? ''
 | object | オブジェクト | キーと値を対で格納する入れ物 |
 | class  | クラス  | インスタンス化して使用するための設計図 |
 
+### 数値(Number)
+
+| 名称 | 表現形式 | JavaScriptでの表記例 |
+| --- | --- | --- |
+| 10進数 | 0~9の10種類の数字で数値を表現 | 1234, 0.5, .5 |
+| 2進数 | 0, 1の2種類の数字で数値を表現 | 0b11, 0B11 |
+| 8進数 | 0~7の8種類の数字で数値を表現 | 0o111, 0O11, 011 |
+| 16進数 | 0~9の10種類の数字とA~Fの6種類のアルファベットで数値を表現 | 0xF2, 0XF2 |
+
+### オブジェクト(Object)
+
+```javascript
+const obj = {
+    strProp: "文字列", // キーと値はコロン(:)で区切る
+    intProp: 123, // キーと値のペア同士はカンマ(,)で区切る
+    objectProp: {
+        subProp1: "値", // オブジェクトはオブジェクトやメソッドを内包できる
+        subProp2: "値"
+    },
+    intProp: 456, // キーが重複した場合はあとに定義したもので上書きされる
+    boolProp: false, // 最後のカンマは省略可能
+};
+```
+
+- オブジェクトのメソッド定義
+
+```javascript
+let person = {
+    hello: function() { console.log("こんにちは"); }
+};
+// または、ES6より記述できる記法
+let person = {
+    hello() { console.log("こんにちは"); }
+};
+```
+
+- オブジェクトの静的メソッド
+
+| メソッド | 説明 |
+| --- | --- |
+| `Object.keys(object)` | objectのキーを配列で返す |
+| `Object.values(object)` | objectの値を配列で返す |
+| `Object.entries(object)` | objectのキーと値を`[[キー1, 値1], [キー2, 値2],...]`の形で返す |
+
+### クラス(class)
+<pre><code class="tips">// オブジェクトやクラスのプロパティ、メソッドなどへのアクセスは、ドット記法またはブラケット記法を使う。
+person.name; // ドット記法の場合、プロパティ名を直接指定する必要がある
+person["name"]; // ブラケット記法はプロパティ名を文字列で指定する
+
+Name = "name";
+person[Name]; // 変数による動的なアクセスもできる
+person["phone-no"] // 記号などプロパティ名で指定できないものを含む場合はブラケット記法で記述する</code></pre>
+
+### extends
+
+クラス継承 (JS)
+
+```javascript
+class Animal {}
+class Dog extends Animal {}
+```
+
+interface 拡張 (TS)
+
+```typescript
+interface Animal {
+  name: string
+}
+
+interface Dog extends Animal {
+  bark(): void
+}
+```
+
+---
+
 ### 明示的型変換
 
 | 関数 | 用途 | 例 | 結果 |
@@ -413,8 +489,31 @@ const arr3 = Array.from(map);
 console.log(arr3);                  // [[1, 2], [2, 4], [4, 8]]
 ```
 
-mapFunc は、配列を作成する際に各要素に対して実行されるマップ関数。<br>
-thisArg にはマップ関数で this で参照される値を指定する。
+##### 要素数を指定して配列を生成する
+
+```javascript
+// [0, 1, 2, 3, 4] を作る
+const zeroToFour = Array.from({ length: 5 }, (_, i) => i);
+
+// [1, 2, 3, 4, 5] を作る（1から始めたい場合）
+const oneToFive = Array.from({ length: 5 }, (_, i) => i + 1);
+```
+
+または詰め物を入れて初期化。
+
+```javascript
+const list = Array.from({length: 100}).fill(0);
+const list = new Array(100).fill(0);
+```
+
+<pre><code class="caution">fill で初期化する場合に参照オブジェクトを指定すると、値への参照が共有されるので注意。
+プリミティブ型は共有されない。</code></pre>
+
+##### マップ関数を渡して生成する
+
+mapFunc には、配列を作成する際に各要素に対して実行されるマップ関数を渡す。<br>
+マップ関数の引数には、要素値 (value) 、インデックス (index) が渡される。引数は順不同だが省略は可能。<br>
+thisArg にはマップ関数で this で参照される値を指定する (アロー関数なら不要)。
 
 ```javascript
 const arr = Array.from([1, 2, 3], (x) => x * 2);
@@ -427,13 +526,18 @@ new は古い書き方で、今ではあまり使われない。
 
 ```javascript
 const arr1 = new Array();     // 要素が0個の配列を作成
-const arr2 = new Array(3);    // 要素が3個の空配列を作成
-const arr3 = new Array("Red", "Green", "Blue"); // const arr3 = ["Red", "Green", "Blue"]と等価
+const arr2 = new Array("Red", "Green", "Blue"); // const arr3 = ["Red", "Green", "Blue"]と等価
 ```
+
+<pre><code class="caution">const arr = new Array(3);
+このような初期化をした場合は意図しない挙動となることがあるため注意。
+const arr = Array.from({ length: 3 });
+こう書くと undefined が入るため安全。
+</code></pre>
 
 #### Array.fromAsync()
 
-ES2026 で追加された、非同期反復可能オブジェクトを配列に変化するメソッド。
+ES2026 で追加された、非同期反復可能オブジェクトを配列に変換するメソッド。
 
 ```javascript
  async function* myRange(n) {
@@ -457,7 +561,12 @@ for (let i = 0; i < 3; i++) {
     arr[i][j] = i * 1000 + j;
   }
 }
-console.log(arr[2][3]);            // => 2003
+console.log(arr[2][3]); // 2003
+```
+
+```javascript
+// 3行 × 4列 の2次元配列を 0 で初期化する
+const arr = Array.from({ length: 3 }, () => new Array(4).fill(0));
 ```
 
 ### 配列の長さ
@@ -469,16 +578,7 @@ console.log(arr.length); // 3
 
 ### 配列のループ
 
-配列に対して for in とすると、添え字 (index) が取得できる。
-
-```javascript
-const colors = ["Red", "Green", "Blue"];
-for (let i = 0; i < arr.length; i++) { // i は index
-  console.log(colors[i]); // => "Red", "Green", "Blue"
-}
-```
-
-for ob とすると、要素を取得できる。
+for of とすると、要素を取得できる。
 
 ```javascript
 const colors = ["Red", "Green", "Blue"];
@@ -516,9 +616,12 @@ for (let value of arr.values()) {
 }
 ```
 
+### 配列の走査
+
 ### array.map(callback[, this])
 
 配列の各要素に対して callback を実行し、callback の戻り値からなる配列を返す。
+callback の引数には、要素値 (value) 、インデックス (index) 、配列自体 (array) が渡される。
 
 ```javascript
 const arr1 = [2, 4, 6]
@@ -526,7 +629,18 @@ const arr2 = arr1.map((value, index, key) => value * 2);
 console.log(arr2) // [4, 8, 12]
 ```
 
-### 配列の走査
+### array.filter(callback[, this])
+
+配列の各要素に対して callback を実行し、callback の戻り値が真となる要素からなる配列を返す。
+callback の引数には、要素値 (value) 、インデックス (index) 、配列自体 (array) が渡される。
+
+```javascript
+const arr1 = [89, 87, 93, 65, 88];
+const arr2 = arr1.filter(function(value, index, array) {
+  return (value >= 80);
+});
+console.log(arr2); // [89, 87, 93, 88]
+```
 
 #### array.includes(elm)
 
@@ -559,94 +673,302 @@ const arr = [3, 5, 8, 5, 1];
 console.log(arr.lastIndexOf(5));     // 3
 ```
 
+#### Array.isArray(value)
 
-
-
-
-
-
-
-
-
-
-
-
-
-### 数値(Number)
-
-| 名称 | 表現形式 | JavaScriptでの表記例 |
-| --- | --- | --- |
-| 10進数 | 0~9の10種類の数字で数値を表現 | 1234, 0.5, .5 |
-| 2進数 | 0, 1の2種類の数字で数値を表現 | 0b11, 0B11 |
-| 8進数 | 0~7の8種類の数字で数値を表現 | 0o111, 0O11, 011 |
-| 16進数 | 0~9の10種類の数字とA~Fの6種類のアルファベットで数値を表現 | 0xF2, 0XF2 |
-
-### オブジェクト(Object)
+value が配列かどうかを true/false で返す。ES5.1 で追加。
 
 ```javascript
-const obj = {
-    strProp: "文字列", // キーと値はコロン(:)で区切る
-    intProp: 123, // キーと値のペア同士はカンマ(,)で区切る
-    objectProp: {
-        subProp1: "値", // オブジェクトはオブジェクトやメソッドを内包できる
-        subProp2: "値"
-    },
-    intProp: 456, // キーが重複した場合はあとに定義したもので上書きされる
-    boolProp: false, // 最後のカンマは省略可能
-};
+console.log(Array.isArray("ABC"));            // false
+console.log(Array.isArray(["A", "B", "C"]));  // true
 ```
 
-- オブジェクトのメソッド定義
+#### index in array
+
+指定した index に該当する要素があるかどうかを true/false で返す。
 
 ```javascript
-let person = {
-    hello: function() { console.log("こんにちは"); }
-};
-// または、ES6より記述できる記法
-let person = {
-    hello() { console.log("こんにちは"); }
-};
+const arr = ["Red", "Green", "Blue"];
+console.log(2 in arr); // => true
+console.log(3 in arr); // => false
 ```
 
-- オブジェクトの静的メソッド
+#### array.every(callback[, this]),<br>array.some(callback[, this])
 
-| メソッド | 説明 |
-| --- | --- |
-| `Object.keys(object)` | objectのキーを配列で返す |
-| `Object.values(object)` | objectの値を配列で返す |
-| `Object.entries(object)` | objectのキーと値を`[[キー1, 値1], [キー2, 値2],...]`の形で返す |
-
-
-### クラス(class)
-<pre><code class="tips">// オブジェクトやクラスのプロパティ、メソッドなどへのアクセスは、ドット記法またはブラケット記法を使う。
-person.name; // ドット記法の場合、プロパティ名を直接指定する必要がある
-person["name"]; // ブラケット記法はプロパティ名を文字列で指定する
-
-Name = "name";
-person[Name]; // 変数による動的なアクセスもできる
-person["phone-no"] // 記号などプロパティ名で指定できないものを含む場合はブラケット記法で記述する</code></pre>
-
-### extends
-
-クラス継承 (JS)
+配列の各要素に対して callback を実行して、every は callback の戻り値がすべて真なら真を返し、some は callback の戻り値が1つでも真なら真を返す。
+callback の引数には、要素値 (value) 、インデックス (index) 、配列自体 (array) が渡される。
 
 ```javascript
-class Animal {}
-class Dog extends Animal {}
+const arr = [89, 87, 93, 65, 88];
+const bool = arr.every(function(value, index, array) {
+  return (value >= 80);
+});
+console.log(bool);  // false
+
+const bool = arr.some(function(value, index, array) {
+  return (value >= 90);
+});
+console.log(bool);  // true
 ```
 
-interface 拡張 (TS)
+#### array.find(callback[, this]),<br>array.findLast(callback[, this]),<br>array.findIndex(callback[, this]),<br>array.findLastIndex(callback[, this])
 
-```typescript
-interface Animal {
-  name: string
+find は、配列の各要素に対して callback を実行して、callback の戻り値が最初に真となった要素の値を返す。<br>
+callback の引数には、要素値 (value) 、インデックス (index) 、配列自体 (array) が渡される。
+
+```javascript
+const arr = [89, 87, 93, 92, 88];
+const value = arr.find((value, index, array) => {
+  return value >= 90;
+});
+console.log(value);  // 93
+```
+
+findIndex は、見つかった要素のインデックスを返す。
+
+```javascript
+const arr = [89, 87, 93, 92, 88];
+const index = arr.findIndex((value, index, array) => {
+  return value >= 90;
+});
+console.log(index);  // 2
+```
+
+findLast と findLastIndex は配列を末尾から検索する。
+
+### 配列の連結
+
+#### array.concat(array2, ...)
+
+array と array2 を連結した配列を返す。array は変更されない。引数は複数指定可能。
+
+```javascript
+const arr1 = ["Red", "Green"];
+const arr2 = ["Blue", "Yellow"];
+const arr3 = arr1.concat(arr2);
+console.log(arr3);  // ["Red", "Green", "Blue", "Yellow"]
+```
+
+#### array.join([separator])
+
+array の各要素の値を separator で連結した文字列を返す。<br>
+separator を省略した場合はカンマ(,)で連結されるが、バージョンによって動作が異なる恐れがあるので省略しない。
+
+```javascript
+const arr = ["2000", "12", "31"];
+const str = arr.join("/");
+console.log(str);  // "2000/12/31"
+```
+
+### 配列要素の取り出しと追加と削除
+
+#### array.at(n)
+
+配列の n 番目の要素を取り出す。ES2022 以降では負数を指定すると最後からかぞえて n 番目の要素を取り出す。<br>
+array は変化しない。
+
+```javascript
+const arr = ["Red", "Blue", "Green"];
+console.log(arr.at(0));  // "red"
+console.log(arr.at(1));  // "Blue"
+console.log(arr.at(-1)); // "Green"
+```
+
+#### array.unshift(e1, e2, ...),<br>array.push(e1, e2, ...)
+
+unshift は array の先頭に e1, e2, ... の要素を追加する。<br>
+push は array の末尾に要素を追加する。<br>
+戻り値は JavaScript のバージョンによって異なる。
+
+```javascript
+const arr = ["Green"];
+arr.unshift("Red");  // ["Red", "Green"]
+arr.push("Blue");    // ["Red", "Green", "Blue"]
+```
+
+#### array.shift(), <br>array.pop()
+
+shift は最初の値を削除して戻り値として返す。<br>
+pop は最後の値を削除して戻り値として返す。
+
+```javascript
+const arr = ["Red", "Green", "Blue"];
+arr.shift(); // ["Green", "Blue"]
+arr.pop();   // ["Green"]
+```
+
+#### array.splice(start, n, e1, e2, ...)
+
+0 から数えて、start から n 個の要素を削除して、その位置に e1, e2, ... を要素として埋め込み、削除した要素を配列で返す。<br>
+array 自体を書き換える。
+
+```javascript
+const arr1 = ["A", "B", "C", "D", "E", "F", "G"];
+const arr2 = arr1.splice(2, 3, "X", "Y");
+console.log(arr1);   // ['A', 'B', 'X', 'Y', 'F', 'G']
+console.log(arr2);   // ['C', 'D', 'E']
+```
+
+#### array.toSpliced(start, n, e1, e2, ...)
+
+0 から数えて、start から n 個の要素を削除して、その位置に e1, e2, ... を要素として埋め込んだものを返す。<br>
+array は変化しない。
+
+```javascript
+const arr1 = ["A", "B", "C", "D", "E", "F", "G"];
+const arr2 = arr1.toSpliced(2, 3, "X", "Y", "Z");
+console.log(arr1);  // ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+console.log(arr2);  // ['A', 'B', 'X', 'Y', 'Z', 'F', 'G']
+```
+
+#### array.slice(start [, end])
+
+0 から数えて、start からend-1 番目までの要素を配列で返す。<br>
+end を省略した場合は start から最後までの要素を返す。<br>
+array は変化しない。
+
+```javascript
+const arr = ["A", "B", "C", "D", "E", "F", "G"];
+console.log(arr.slice(2, 4));  // ["C", "D"]
+```
+
+#### delete array[n]
+
+要素を削除する。削除したインデックスの値が undefined となるため、配列要素削除するには array.splice を用いるのが一般的。
+
+```javascript
+const arr = ["Red", "Green", "Blue"];
+delete arr[1];
+console.log(arr);      // ["Red", empty, "Blue"]
+console.log(arr[0]);   // "Red"
+console.log(arr[1]);   // undefined
+console.log(arr[2]);   // "Blue"
+```
+
+### 配列の並べ替え
+
+#### array.sort([func])
+
+array を並べ替えて、結果の配列を返す。<br>
+array 自体も書き換えられる。
+
+```javascript
+const arr = [3, 7, 8, 1];
+arr.sort();
+console.log(arr);  // [1, 3, 7, 8]
+```
+
+ソート関数を指定することもでき、ソート関数は等しければ 0 を、小さければ負の値を、大きければ正の値を返す。
+
+```javascript
+function comparison(a, b) {
+  const str1 = a.toUpperCase();
+  const str2 = b.toUpperCase();
+  if (str1 == str2) { return 0; }
+  if (str1 > str2) { return -1; }
+  if (str1 < str2) { return 1; }
 }
 
-interface Dog extends Animal {
-  bark(): void
-}
+const arr = ["a", "x", "B", "y", "c", "Z"];
+arr.sort(comparison);
+console.log(arr);  // ["a", "B", "c", "x", "y", "Z"]
 ```
 
+#### array.toSorted([func])
+
+array をソートして、結果の配列を返す。<br>
+array は変化しない。<br>
+他の機能は sort と同じ。
+
+#### array.reverse()
+
+array を逆順で並べ替えて、結果の配列を返す。
+array 自体も書き換えられる。
+
+#### array.toReverse()
+
+array を逆順で並べ替えて、結果の配列を返す。
+array は変化しない。<br>
+
+### 配列から文字列への変換
+
+#### array.toString()
+
+配列を文字列に変換する。
+
+```javascript
+const arr = [1, 2, 3, "A", "B", "C"];
+arr.toString(); // "1,2,3,A,B,C"
+```
+
+#### array.toLocaleString([locales[, options]])
+
+配列をロケールに応じた文字列に変換する。
+
+```javascript
+const arr = [1, 'A', new Date('31 Dec 1999 14:59:59 UTC')];
+const str = arr.toLocaleString('ja', {timeZone: "Asia/Tokyo"});
+console.log(str);   // "1,A,1999/12/31 23:59:59"
+arr.toString();
+```
+
+### 配列要素の変更
+
+#### array.fill(value[, start[, end]])
+
+0 から数えて、start からend-1 番目までの要素の値を value に変換する。<br>
+array 自体を書き換える。<br>
+start が省略された場合は最初から、end が省略された場合は最後までを置換する。
+
+```javascript
+const arr = ["0", "1", "2", "3", "4", "5"];
+arr.fill("A", 2, 5);
+console.log(arr);  // ["0", "1", "A", "A", "A", "5"]
+```
+
+<pre><code class="caution">value に参照オブジェクトを指定すると、値への参照が共有されるので注意。
+プリミティブ型は共有されない。</code></pre>
+
+#### array.with(index, value)
+
+0 から数えて index 番目の要素を value に置換したものを返す。
+array は変化しない。
+
+```javascript
+const arr1 = ["0", "1", "2", "3", "4", "5"];
+const arr2 = arr1.with(3, "X");
+console.log(arr1);   // ['0', '1', '2', '3', '4', '5']
+console.log(arr2);   // ['0', '1', '2', 'X', '4', '5']
+```
+
+#### array.copyWithin(target[, start[, end]])
+
+0 から数えて、start からend-1 番目の要素をコピーして target 番目から上書きする。<br>
+array 自体を書き換える。<br>
+end が省略された場合は最後までをコピーする。
+
+```javascript
+const arr = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+arr.copyWithin(2, 8, 10);
+console.log(arr); // ["0", "1", "8", "9", "4", "5", "6", "7", "8", "9"]
+```
+
+#### array.flat(depth)
+
+多次元配列を低次元の配列にフラット化する。depth には何次元までの配列をフラット化するかを指定する。
+
+```javascript
+const arr = [[[1, 2], [3, 4]], [5, 6]];
+console.log(arr.flat(2)); // [1, 2, 3, 4, 5, 6]
+```
+
+#### array.flatMap(callback)
+
+配列に対して map() を行い、結果の多次元配列をフラット化する。
+
+```javascript
+const arr = ["Blue Green", "Red Yellow"];
+console.log(arr.flatMap(x => x.split(" "))); // ["Blue", "Green", "Red", "Yellow"]
+```
 
 ---
 
