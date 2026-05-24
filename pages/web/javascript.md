@@ -533,6 +533,8 @@ const arr2 = new Array("Red", "Green", "Blue"); // const arr3 = ["Red", "Green",
 このような初期化をした場合は意図しない挙動となることがあるため注意。
 const arr = Array.from({ length: 3 });
 こう書くと undefined が入るため安全。
+const arr = new Array(undefined);
+こういう手もある。
 </code></pre>
 
 #### Array.fromAsync()
