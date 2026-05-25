@@ -282,26 +282,6 @@ props.dataList?.[i]?.clientCode ?? ''
 
 ---
 
-## エスケープシーケンス <a id="escape-sequences" data-name="エスケープシーケンス"></a>
-
-| エスケープシーケンス | 意味 |
-| --- | --- |
-| `\b` | バックスペース |
-| `\t` | 水平タブ |
-| `\v` | 垂直タブ |
-| `\n` | 改行 |
-| `\r` | 復帰 |
-| `\f` | 改ページ  |
-| `\"` | ダブルクォート |
-| `\'` | シングルクォート |
-| `\\` | バックスラッシュ |
-| `\0` | NULL文字 |
-| `\xXX` | 2桁の16進数が表すLatin-1文字  |
-| `\uXXXX` | 4桁の16進数が表すUnicode文字  |
-| `\u{XXXXXX}` | 16進数のコードポイントが表すUnicode文字 |
-
----
-
 ## データ型 <a id="data-types" data-name="データ型"></a>
 
 | データ型 | 値 | 説明 |
@@ -466,6 +446,171 @@ declare const VERSION: string
 
 ## 文字列(String) <a id="string" data-name="文字列"></a>
 
+文字列はダブルクォーテーション (") 、または シングルクォーテーション (') で囲んで表す。
+
+### エスケープ文字
+
+| エスケープシーケンス | 意味 |
+| --- | --- |
+| `\b` | バックスペース |
+| `\t` | 水平タブ |
+| `\v` | 垂直タブ |
+| `\n` | 改行 |
+| `\r` | 復帰 |
+| `\f` | 改ページ  |
+| `\"` | ダブルクォート |
+| `\'` | シングルクォート |
+| `\\` | バックスラッシュ |
+| `\0` | NULL文字 |
+| `\xXX` | 2桁の16進数が表すLatin-1文字  |
+| `\uXXXX` | 4桁の16進数が表すUnicode文字  |
+| `\u{XXXXXX}` | 16進数のコードポイントが表すUnicode文字 |
+
+## マルチライン
+
+"..." や '...' や ``...`` の行末にバックスラッシュ `(\)` を付けると、マルチライン文字列を記述できる。
+
+```javascript
+const str = "ERROR: 404\n\
+File not found.";       
+```
+
+### テンプレートリテラル
+
+ES6 から文字列の中で変数を展開可能なテンプレートリテラルがサポートされた。<br>
+バッククォート (`) で文字列を囲み、${...} の中には JavaScript 構文を記述可能。
+
+```javascript
+const name = "Yamada";
+console.log(`ようこそ ${name} さん`);
+```
+
+#### String.raw
+
+テンプレートリテラルに String.raw を付けると、\n 等のエスケープ文字がエスケープされなくなるので、Windows のパスや正規表現のようにバックスラッシュ `(\)` を多用する場合に便利。
+
+### 文字列への変換
+
+value を文字列に変換する。
+
+```javascript
+const str = String(123);
+```
+
+### 文字列の長さ
+
+現在のブラウザでは、言語にかかわらず1文字を 1 と数えるが、サロゲートペア領域の文字は1文字を 2 と数える。
+
+```javascript
+str = "あいうえお";
+console.log(str.length); // 5
+```
+
+### 文字列の部分取り出し
+
+#### string.charAt(n)
+
+string の n 番目の文字を返す。
+
+```javascript
+str = "あいうえお"
+str.charAt(2) // 'う'
+```
+
+#### string.at(n)
+
+charAt() とほぼ同様だが、負数を指定すると末尾からのインデックスになる点と、範囲外のインデックスを指定した場合に charAt() は空文字を返すのに対して at() は undefined を返す。
+
+#### string.substring(from [, to])
+
+string の from 文字目から to - 1 文字目の文字列を返す。<br>
+to を省略すると残り全て。
+
+```javascript
+console.log("ABCDEFG".substring(2, 4));  // "CD"
+console.log("ABCDEFG".substring(2));     // "CDEFG"
+```
+
+#### string.slice(from [, to])
+
+string の from 文字目から to - 1 文字目の文字列を返す。<br>
+不の値を指定すると後ろから数える点が substring と異なる。<br>
+to を省略すると残り全て。
+
+```javascript
+console.log("ABCDEFG".substring(-3, 6));  // "ABCDEF"
+console.log("ABCDEFG".slice(-3, 6));      // "EF"
+```
+
+#### string.trim()
+
+string の前後のホワイトスペースを取り除いた文字列を返す。
+
+#### string.trimStart()<br>string.trimEnd()
+
+trimStart() は文字列の前方の、trimEnd() は後方のホワイトスペースを取り除いた文字列を返す。
+
+### 文字列の分割と連結
+
+#### string.split([sep [, limit]])
+
+sep を区切り文字として string を分割し、その配列を返す。<br>
+limit は配列の要素数を制限して、sep を省略すると string 全体をひとつの要素とする配列を返す。
+
+```javascript
+const t = "23:59:59".split(":");
+console.log(`${t[0]}時${t[1]}分${t[2]}秒`); // "23時59分59秒"
+```
+
+```javascript
+str = 'Hello'
+
+str.split()   // ['Hello']
+str.split('') // ['H', 'e', 'l', 'l', 'o']
+```
+
+#### string.concat(str2, str3, ...)
+
+string に str2, str3, ... を連結した文字列を返す。
+
+```javascript
+console.log("ABC".concat("DEF", "GHI"));         // => "ABCDEFGHI"
+```
+
+#### string.repeat(n)
+
+string を n 回繰り返した文字列をかえす。
+
+```javascript
+console.log("ABC".repeat(3));      // => "ABCABCABC"
+```
+
+### 文字列の置換
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---
 
 ## 配列 <a id="array" data-name="配列"></a>
 
@@ -534,8 +679,7 @@ const arr2 = new Array("Red", "Green", "Blue"); // const arr3 = ["Red", "Green",
 const arr = Array.from({ length: 3 });
 こう書くと undefined が入るため安全。
 const arr = new Array(3).fill(undefined);
-こういう手もある。
-</code></pre>
+こういう手もある。</code></pre>
 
 #### Array.fromAsync()
 
@@ -613,6 +757,7 @@ arr.forEach((value, index, array) => {
 
 ```javascript
 const arr = ["Red", "Green", "Blue"];
+
 for (let [index, value] of arr.entries()) {
   console.log(index + ":" + value);     // "0:Red", "1:Green", "2:Blue"
 }
@@ -636,7 +781,7 @@ for (let value of arr.values()) {
 
 ### array.map(callback[, this])
 
-配列の各要素に対して callback を実行し、callback の戻り値からなる配列を返す。
+配列の各要素に対して callback を実行し、callback の戻り値からなる配列を返す。<br>
 callback の引数には、要素値 (value) 、インデックス (index) 、配列自体 (array) が渡される。
 
 ```javascript
@@ -647,7 +792,7 @@ console.log(arr2) // [4, 8, 12]
 
 ### array.filter(callback[, this])
 
-配列の各要素に対して callback を実行し、callback の戻り値が真となる要素からなる配列を返す。
+配列の各要素に対して callback を実行し、callback の戻り値が真となる要素からなる配列を返す。<br>
 callback の引数には、要素値 (value) 、インデックス (index) 、配列自体 (array) が渡される。
 
 ```javascript
@@ -710,7 +855,7 @@ console.log(3 in arr); // => false
 
 #### array.every(callback[, this]),<br>array.some(callback[, this])
 
-配列の各要素に対して callback を実行して、every は callback の戻り値がすべて真なら真を返し、some は callback の戻り値が1つでも真なら真を返す。
+配列の各要素に対して callback を実行して、every は callback の戻り値がすべて真なら真を返し、some は callback の戻り値が1つでも真なら真を返す。<br>
 callback の引数には、要素値 (value) 、インデックス (index) 、配列自体 (array) が渡される。
 
 ```javascript
@@ -903,13 +1048,13 @@ array は変化しない。<br>
 
 #### array.reverse()
 
-array を逆順で並べ替えて、結果の配列を返す。
+array を逆順で並べ替えて、結果の配列を返す。<br>
 array 自体も書き換えられる。
 
 #### array.toReverse()
 
-array を逆順で並べ替えて、結果の配列を返す。
-array は変化しない。<br>
+array を逆順で並べ替えて、結果の配列を返す。<br>
+array は変化しない。
 
 ---
 
@@ -956,7 +1101,7 @@ console.log(arr);  // ["0", "1", "A", "A", "A", "5"]
 
 #### array.with(index, value)
 
-0 から数えて index 番目の要素を value に置換したものを返す。
+0 から数えて index 番目の要素を value に置換したものを返す。<br>
 array は変化しない。
 
 ```javascript
