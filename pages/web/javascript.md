@@ -466,19 +466,23 @@ declare const VERSION: string
 | `\uXXXX` | 4桁の16進数が表すUnicode文字  |
 | `\u{XXXXXX}` | 16進数のコードポイントが表すUnicode文字 |
 
-## マルチライン
+---
 
-"..." や '...' や ``...`` の行末にバックスラッシュ `(\)` を付けると、マルチライン文字列を記述できる。
+### マルチライン
+
+"..." や '...' や <code>`...`</code> の行末にバックスラッシュ`(\)` を付けると、マルチライン文字列を記述できる。
 
 ```javascript
 const str = "ERROR: 404\n\
 File not found.";       
 ```
 
+---
+
 ### テンプレートリテラル
 
 ES6 から文字列の中で変数を展開可能なテンプレートリテラルがサポートされた。<br>
-バッククォート (`) で文字列を囲み、${...} の中には JavaScript 構文を記述可能。
+バッククォート(\`) で文字列を囲み、`${...}` の中には変数や JavaScript 構文を記述可能。
 
 ```javascript
 const name = "Yamada";
@@ -487,15 +491,38 @@ console.log(`ようこそ ${name} さん`);
 
 #### String.raw
 
-テンプレートリテラルに String.raw を付けると、\n 等のエスケープ文字がエスケープされなくなるので、Windows のパスや正規表現のようにバックスラッシュ `(\)` を多用する場合に便利。
+テンプレートリテラルに String.raw を付けると、`\n` 等のエスケープ文字がエスケープされなくなるので、Windows のパスや正規表現のようにバックスラッシュ`(\)` を多用する場合に便利。
 
-### 文字列への変換
+```javascript
+// 普通に書くと \\ と書かないとエラーや意図しない挙動になる
+const path1 = "C:\\Users\\Desktop\\Project";
+
+// String.raw なら、エクスプローラーからコピペしたまま
+const path2 = String.raw`C:\Users\Desktop\Project`;
+```
+
+埋め込み変数は展開される。
+
+```javascript
+const name = "太郎";
+
+// 変数は展開され \n はそのまま文字になる
+const message = String.raw`こんにちは、${name}さん！\nいらっしゃいませ。`;
+```
+
+文字列の最後をバックスラッシュ`(\)` にすると、後ろの文字をエスケープしてしまうので `\\` と書く必要がある。
+
+---
+
+### String(value)
 
 value を文字列に変換する。
 
 ```javascript
 const str = String(123);
 ```
+
+---
 
 ### 文字列の長さ
 
@@ -505,6 +532,8 @@ const str = String(123);
 str = "あいうえお";
 console.log(str.length); // 5
 ```
+
+---
 
 ### 文字列の部分取り出し
 
@@ -523,7 +552,7 @@ charAt() とほぼ同様だが、負数を指定すると末尾からのイン�
 
 #### string.substring(from [, to])
 
-string の from 文字目から to - 1 文字目の文字列を返す。<br>
+string の from 文字目から to-1 文字目の文字列を返す。<br>
 to を省略すると残り全て。
 
 ```javascript
@@ -550,6 +579,8 @@ string の前後のホワイトスペースを取り除いた文字列を返す�
 
 trimStart() は文字列の前方の、trimEnd() は後方のホワイトスペースを取り除いた文字列を返す。
 
+---
+
 ### 文字列の分割と連結
 
 #### string.split([sep [, limit]])
@@ -574,7 +605,7 @@ str.split('') // ['H', 'e', 'l', 'l', 'o']
 string に str2, str3, ... を連結した文字列を返す。
 
 ```javascript
-console.log("ABC".concat("DEF", "GHI"));         // => "ABCDEFGHI"
+console.log("ABC".concat("DEF", "GHI"));  // "ABCDEFGHI"
 ```
 
 #### string.repeat(n)
@@ -582,11 +613,166 @@ console.log("ABC".concat("DEF", "GHI"));         // => "ABCDEFGHI"
 string を n 回繰り返した文字列をかえす。
 
 ```javascript
-console.log("ABC".repeat(3));      // => "ABCABCABC"
+console.log("ABC".repeat(3));  // "ABCABCABC"
 ```
+
+---
 
 ### 文字列の置換
 
+#### string.replace(regexp, newString)
+
+string の regexp で指定した正規表現 (または文字列) にマッチする部分文字列を newString に置き換えたものを返す。<br>
+regexp に文字列を指定した場合はマッチした最初の1件のみ置換する。<br>
+regexp に正規表現を指定した場合は<a href="#regex">フラグ</a>によって置換範囲を制御できる。
+
+```javascript
+console.log("This is a pen.".replace("pen", "book")); // "This is a book."
+```
+
+newString には $ で始まる特殊文字を使用することがでる。
+
+- $& はマッチした文字列全体
+- $1~$100 は正規表現中の (グループ) に対応する部分文字列
+- $&#96; はマッチ部分より前の文字列 (アロー関数内で string.slice(0, offset) と同じ)
+- $' はマッチ部分より後ろの文字列 (アロー関数内で string.slice(offset + match.length) と同じ)
+- $$ は 記号としての $
+
+```javascript
+console.log("[23:59:59]".replace(/(\d+):(\d+):(\d+)/, "$1時$2分$3秒")); // "[23時59分59秒]"
+// $&="23:59:59"  $1="23"  $2="59"  $3="59"
+// $`="["  $'="]"  $$="$"
+```
+
+#### string.replace(regexp, function)
+
+replace() の第2引数に関数を渡すこともでき、その際の関数に渡る引数は以下の通り。
+
+- match: マッチした文字列の全体
+- p1: 1つ目の (グループ) にマッチした文字列
+- p2: 2つ目の (グループ) にマッチした文字列
+- (グループ) が増えれば後ろに追加される
+- offset: マッチした場所が全体の何文字目かのインデックス
+- string: 検索をかけた文字列全対
+
+```javascript
+const date = "2026-05-25";
+
+// カッコが2つなので引数は5つになる (後ろの引数が不要な場合は省略可能)
+date.replace(/(\d{2})-(\d{2})$/, (match, p1, p2, offset, string) => {
+  console.log(`全体: ${match}`);  // "05-25"
+  console.log(`p1: ${p1}`);      // "05" （1つ目のカッコ）
+  console.log(`p2: ${p2}`);      // "25" （2つ目のカッコ）
+  console.log(`位置: ${offset}`); // 5  （"05-25" が始まる位置）
+  return `${p1}月${p2}日`;
+});
+```
+
+#### string.replaceAll(regexp, newString)
+
+regexp に文字列を指定した場合、replaceAll() は全て置換する。<br>
+regexp に正規表現を指定した場合、グローバルオプション (/.../g) の指定が必須となる。
+
+```javascript
+console.log("AAA".replace(/A/g, "X"))      // XXX(全置換)
+console.log("AAA".replace(/A/, "X"));      // XAA(1件置換)
+console.log("AAA".replaceAll(/A/g, "X"))   // XXX(全置換)
+console.log("AAA".replaceAll(/A/, "X"));   // Error
+```
+
+#### string.toUpperCase()<br>string.toLowerCase()
+
+string を大文字・小文字に変換したものを返す。
+
+```javascript
+console.log("Japan".toUpperCase());   // "JAPAN"
+console.log("Japan".toLowerCase());   // "japan"
+```
+
+---
+
+### 文字列の検索
+
+#### string.indexOf(key [, from])
+
+string の from 番目から後方に検索し、最初に key が現れた index を返す。<br>
+見つからなかった場合は -1 を返す。
+
+```javascript
+console.log("ABCABC".indexOf("C"));    // 2
+console.log("ABCABC".indexOf("C", 3)); // 5
+```
+
+#### string.lastIndexOf(key [, from])
+
+string の from 番目から前方に検索し、最初に key が現れた index を返す。<br>
+見つからなかった場合は -1 を返す。
+
+```javascript
+const filename = "www.example.com.png";
+const n = filename.lastIndexOf(".");
+console.log(filename.substring(n)); // .png
+```
+
+#### string.startsWith(str)<br>string.endsWith(str)<br>string.includes(str)
+
+string の中に str を含んでいるかを判定する。<br>
+includes() は含んでいるか、startWith() は str で始まっているか、endWith() は str で終わっているかを判定して、true/false を返す。
+
+```javascript
+console.log("ABCDEFG".startsWith("ABC")); // true
+console.log("ABCDEFG".endsWith("EFG"));   // true
+console.log("ABCDEFG".includes("DEF"));   // true
+```
+
+---
+
+### 文字列のマッチング
+
+#### string.match(regexp)
+
+string から<a href="#regex">正規表現</a> regexp にマッチした文字列に関する情報を返す。<br>
+グローバルオプション (/.../g) がない場合は、最初にマッチした文字列の詳細を含む特殊な配列を返す。<br>
+グローバルオプション (/.../g) を付けた場合は単純な配列として返す。<br>
+見つからなかった場合は null を返す。
+
+```javascript
+const res1 = "23:59:59".match(/[\d+]+/g);
+console.log(res1);                      // ['23', '59', '59']
+const res2 = "23:59:59".match(/(?<y>\d+):(?<m>\d+):(?<d>\d+)/);
+console.log(res2[0]);                   // '23:59:59' (マッチした全体文字列)
+console.log(res2[1], res2[2], res2[3]); // '23' '59' '59' (括弧に対応する部分文字列)
+console.log(res2.index);                // 0 (マッチした位置)
+console.log(res2.input);                // '23:59:59' (入力文字列)
+console.log(res2.groups);               // {y:'23', m:'59', d:'59'} (名前付きキャプチャの結果)
+```
+
+#### string.matchAll(regexp)
+
+matchAll() はグローバルオプション (/.../g) が必須で、マッチした文字列に関数情報のイテレータを返す。
+
+```javascript
+"Date: 2026-12-31".matchAll(/(?<y>\d+)-(?<m>\d+)-(?<d>\d+)/g).forEach((e) => {
+  console.log(e[0]);                       // '2026-12-31'
+  console.log(`${e[1]}/${e[2]}/${e[3]}`);  // '2026/12/31'
+  console.log(e.index);                    // 6
+  console.log(e.input);                    // 'Date: 2026-12-31'
+  console.log(e.groups);                   // {y:'2026', m:'12', d:'31'}
+});
+```
+
+#### string.search(regexp)
+
+string から 正規表現 regexp にマッチした部分の位置を返す。<br>
+マッチしなかった場合は -1 を返す。
+
+```javascript
+console.log("ABCDEFG".search(/def/i)); // 3
+```
+
+---
+
+### 文字と文字コードの変換
 
 
 
@@ -606,8 +792,9 @@ console.log("ABC".repeat(3));      // => "ABCABCABC"
 
 
 
+---
 
-
+## 正規表現 <a id="regex" data-name="正規表現"></a>
 
 
 ---
@@ -711,7 +898,7 @@ console.log(arr[2][3]); // 2003
 ```
 
 ```javascript
-// 3行 × 4列 の2次元配列を 0 で初期化する
+// 3行×4列の2次元配列を 0 で初期化する
 const arr = Array.from({ length: 3 }, () => Array.from({ length: 4}).fill(0))
 
 const arr = Array.from({ length: 3 }, () => new Array(4).fill(0));
@@ -738,6 +925,8 @@ for (let color of colors) {
   console.log(color); // "Red", "Green", "Blue"
 }
 ```
+<pre><code class="caution">配列に対して for if を使うと index が取れるが、中身は文字列でありバグの元なので配列には for in は使わない。</code></pre>
+
 
 #### array.forEach(callback[, this])
 
@@ -753,7 +942,7 @@ arr.forEach((value, index, array) => {
 
 #### entries(), keys(), values()
 
-配列に対して、entries() は key と value からなるイテレータ、keys() は key のみからなるイテレータ、values() は value のみからなるイテレータを返す。
+配列に対してentries() は key と value からなるイテレータ、keys() は key のみからなるイテレータ、values() は value のみからなるイテレータを返す。
 
 ```javascript
 const arr = ["Red", "Green", "Blue"];
@@ -779,7 +968,7 @@ for (let value of arr.values()) {
 
 ### 配列の走査
 
-### array.map(callback[, this])
+#### array.map(callback[, this])
 
 配列の各要素に対して callback を実行し、callback の戻り値からなる配列を返す。<br>
 callback の引数には、要素値 (value) 、インデックス (index) 、配列自体 (array) が渡される。
@@ -790,7 +979,7 @@ const arr2 = arr1.map((value, index, key) => value * 2);
 console.log(arr2) // [4, 8, 12]
 ```
 
-### array.filter(callback[, this])
+#### array.filter(callback[, this])
 
 配列の各要素に対して callback を実行し、callback の戻り値が真となる要素からなる配列を返す。<br>
 callback の引数には、要素値 (value) 、インデックス (index) 、配列自体 (array) が渡される。
@@ -831,7 +1020,7 @@ console.log(arr.indexOf("Yellow"));    // -1
 
 ```javascript
 const arr = [3, 5, 8, 5, 1];
-console.log(arr.lastIndexOf(5));     // 3
+console.log(arr.lastIndexOf(5));  // 3
 ```
 
 #### Array.isArray(value)
@@ -849,13 +1038,13 @@ console.log(Array.isArray(["A", "B", "C"]));  // true
 
 ```javascript
 const arr = ["Red", "Green", "Blue"];
-console.log(2 in arr); // => true
-console.log(3 in arr); // => false
+console.log(2 in arr); // true
+console.log(3 in arr); // false
 ```
 
 #### array.every(callback[, this]),<br>array.some(callback[, this])
 
-配列の各要素に対して callback を実行して、every は callback の戻り値がすべて真なら真を返し、some は callback の戻り値が1つでも真なら真を返す。<br>
+配列の各要素に対して callback を実行して、every() は callback の戻り値がすべて真なら真を返し、some() は callback の戻り値が1つでも真なら真を返す。<br>
 callback の引数には、要素値 (value) 、インデックス (index) 、配列自体 (array) が渡される。
 
 ```javascript
@@ -873,7 +1062,7 @@ console.log(bool);  // true
 
 #### array.find(callback[, this]),<br>array.findLast(callback[, this]),<br>array.findIndex(callback[, this]),<br>array.findLastIndex(callback[, this])
 
-find は、配列の各要素に対して callback を実行して、callback の戻り値が最初に真となった要素の値を返す。<br>
+find() は、配列の各要素に対して callback を実行して、callback の戻り値が最初に真となった要素の値を返す。<br>
 callback の引数には、要素値 (value) 、インデックス (index) 、配列自体 (array) が渡される。
 
 ```javascript
@@ -884,7 +1073,7 @@ const value = arr.find((value, index, array) => {
 console.log(value);  // 93
 ```
 
-findIndex は、見つかった要素のインデックスを返す。
+findIndex() は、見つかった要素のインデックスを返す。
 
 ```javascript
 const arr = [89, 87, 93, 92, 88];
@@ -894,7 +1083,7 @@ const index = arr.findIndex((value, index, array) => {
 console.log(index);  // 2
 ```
 
-findLast と findLastIndex は配列を末尾から検索する。
+findLast() と findLastIndex() は配列を末尾から検索する。
 
 ---
 
@@ -998,7 +1187,7 @@ console.log(arr.slice(2, 4));  // ["C", "D"]
 
 #### delete array[n]
 
-要素を削除する。削除したインデックスの値が undefined となるため、配列要素削除するには array.splice を用いるのが一般的。
+要素を削除する。削除したインデックスの値が undefined となるため、配列要素削除するには splice() を用いるのが一般的。
 
 ```javascript
 const arr = ["Red", "Green", "Blue"];
@@ -1044,7 +1233,7 @@ console.log(arr);  // ["a", "B", "c", "x", "y", "Z"]
 
 array をソートして、結果の配列を返す。<br>
 array は変化しない。<br>
-他の機能は sort と同じ。
+他の機能は sort() と同じ。
 
 #### array.reverse()
 
@@ -1586,17 +1775,17 @@ locationインターフェイスは、関連付けられたオブジェクトの
 
 <span class="code-like">(例)https://example.org:8080/foo/bar?q=baz#bang</span>
 
-| プロパティ | 説明                                                                    | 例の値                     |
-| ---------- | ----------------------------------------------------------------------- | -------------------------- |
-| href       | URL全体を含めた文字列。この値を変更すると新しいページへ移動する。       | 全体                       |
-| host       | URLのホスト(ホスト名:ポート番号)。                                      | `example.org:8080`         |
-| protocol   | 末尾の:を含むURLのプロトコルスキーム。                                  | `https:`                   |
-| hostname   | URLのドメイン。                                                         | `example.org`              |
-| port       | URLのポート番号。                                                       | `8080`                     |
-| pathname   | 先頭の/に続いてパス部分が入ったもので、クエリやフラグメントを含めない。 | `/foo/bar`                 |
-| search     | ?とそれに続く引数などのクエリ文字列。                                   | `?q=baz`                   |
-| hash       | #とそれに続くフラグメント識別子。                                       | `#bang`                    |
-| origin     | 特定の位置のオリジンの正規形(読み取り専用)。                            | `https://example.org:8080` |
+| プロパティ | 説明 | 例の値 |
+| --- | --- | --- |
+| href | URL全体を含めた文字列。この値を変更すると新しいページへ移動する。 | 全体 |
+| host | URLのホスト(ホスト名:ポート番号)。 | `example.org:8080` |
+| protocol | 末尾の:を含むURLのプロトコルスキーム。 | `https:` |
+| hostname | URLのドメイン。 | `example.org` |
+| port | URLのポート番号。 | `8080` |
+| pathname 先頭の/に続いてパス部分が入ったもので、クエリやフラグメントを含めない。 | `/foo/bar` |
+| search | ?とそれに続く引数などのクエリ文字列。 | `?q=baz` |
+| hash | #とそれに続くフラグメント識別子。 | `#bang` |
+| origin | 特定の位置のオリジンの正規形(読み取り専用)。 | `https://example.org:8080` |
 
 #### メソッド
 
