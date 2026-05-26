@@ -246,7 +246,7 @@ console.log(age);  // 25
 
 | 記号 | 説明 | 例 | 結果 |
 | --- | --- | --- | --- |
-| `condition ? expr1 : expr2` | 条件式 | `(1 === 1) ? result = true : result = false` | `true` |
+| `condition ? expr1 : expr2` | 条件式 ? 真の時 : 偽の時 | `(1 === 1) ? true : false` | `true` |
 
 ### 展開・結合・スプレッド系(ES6以降)
 
@@ -448,37 +448,6 @@ declare const VERSION: string
 
 文字列はダブルクォーテーション (") 、または シングルクォーテーション (') で囲んで表す。
 
-### エスケープ文字
-
-| エスケープシーケンス | 意味 |
-| --- | --- |
-| `\b` | バックスペース |
-| `\t` | 水平タブ |
-| `\v` | 垂直タブ |
-| `\n` | 改行 |
-| `\r` | 復帰 |
-| `\f` | 改ページ  |
-| `\"` | ダブルクォート |
-| `\'` | シングルクォート |
-| `\\` | バックスラッシュ |
-| `\0` | NULL文字 |
-| `\xXX` | 2桁の16進数が表すLatin-1文字  |
-| `\uXXXX` | 4桁の16進数が表すUnicode文字  |
-| `\u{XXXXXX}` | 16進数のコードポイントが表すUnicode文字 |
-
----
-
-### マルチライン
-
-"..." や '...' や <code>`...`</code> の行末にバックスラッシュ`(\)` を付けると、マルチライン文字列を記述できる。
-
-```javascript
-const str = "ERROR: 404\n\
-File not found.";       
-```
-
----
-
 ### テンプレートリテラル
 
 ES6 から文字列の中で変数を展開可能なテンプレートリテラルがサポートされた。<br>
@@ -497,7 +466,7 @@ console.log(`ようこそ ${name} さん`);
 // 普通に書くと \\ と書かないとエラーや意図しない挙動になる
 const path1 = "C:\\Users\\Desktop\\Project";
 
-// String.raw なら、エクスプローラーからコピペしたまま
+// エクスプローラーからコピペしたまま書ける
 const path2 = String.raw`C:\Users\Desktop\Project`;
 ```
 
@@ -514,7 +483,20 @@ const message = String.raw`こんにちは、${name}さん！\nいらっしゃ�
 
 ---
 
-### String(value)
+### マルチライン
+
+"..." や '...' や <code>`...`</code> の行末にバックスラッシュ`(\)` を付けると、マルチライン文字列を記述できる。
+
+```javascript
+const str = "ERROR: 404\n\
+File not found.";       
+```
+
+---
+
+### 文字列に変換
+
+#### String(value)
 
 value を文字列に変換する。
 
@@ -525,6 +507,8 @@ const str = String(123);
 ---
 
 ### 文字列の長さ
+
+#### str.length
 
 現在のブラウザでは、言語にかかわらず1文字を 1 と数えるが、サロゲートペア領域の文字は1文字を 2 と数える。
 
@@ -550,16 +534,6 @@ str.charAt(2) // 'う'
 
 charAt() とほぼ同様だが、負数を指定すると末尾からのインデックスになる点と、範囲外のインデックスを指定した場合に charAt() は空文字を返すのに対して at() は undefined を返す。
 
-#### string.substring(from [, to])
-
-string の from 文字目から to-1 文字目の文字列を返す。<br>
-to を省略すると残り全て。
-
-```javascript
-console.log("ABCDEFG".substring(2, 4));  // "CD"
-console.log("ABCDEFG".substring(2));     // "CDEFG"
-```
-
 #### string.slice(from [, to])
 
 string の from 文字目から to - 1 文字目の文字列を返す。<br>
@@ -571,17 +545,19 @@ console.log("ABCDEFG".substring(-3, 6));  // "ABCDEF"
 console.log("ABCDEFG".slice(-3, 6));      // "EF"
 ```
 
-#### string.trim()
+#### string.substring(from [, to])
 
-string の前後のホワイトスペースを取り除いた文字列を返す。
+string の from 文字目から to-1 文字目の文字列を返す。<br>
+to を省略すると残り全て。
 
-#### string.trimStart()<br>string.trimEnd()
-
-trimStart() は文字列の前方の、trimEnd() は後方のホワイトスペースを取り除いた文字列を返す。
+```javascript
+console.log("ABCDEFG".substring(2, 4));  // "CD"
+console.log("ABCDEFG".substring(2));     // "CDEFG"
+```
 
 ---
 
-### 文字列の分割と連結
+### 文字列の加工
 
 #### string.split([sep [, limit]])
 
@@ -614,6 +590,35 @@ string を n 回繰り返した文字列をかえす。
 
 ```javascript
 console.log("ABC".repeat(3));  // "ABCABCABC"
+```
+
+#### string.trim()
+
+string の前後のホワイトスペースを取り除いた文字列を返す。
+
+#### string.trimStart()<br>string.trimEnd()
+
+trimStart() は文字列の前方の、trimEnd() は後方のホワイトスペースを取り除いた文字列を返す。
+
+#### string.toUpperCase()<br>string.toLowerCase()
+
+string を大文字・小文字に変換したものを返す。
+
+```javascript
+console.log("Japan".toUpperCase());   // "JAPAN"
+console.log("Japan".toLowerCase());   // "japan"
+```
+
+#### string.padStart(length[, str])<br>string.padEnd(length[, str])
+
+padStart() は文字列の前方に、padEnd() は文字列の後方に詰め物を入れる。<br>
+length にはパディング後の全体の長さ、str にはパディングする文字を指定する。<br>
+str を省略すると半角スペースでパディングする。string が length よりも長い場合は何も行わない。
+
+```javascript
+const str = "123";
+console.log(str.padStart(5, "0"));      // => "00123"
+console.log(str.padEnd(5, "_"));        // => "123__"
 ```
 
 ---
@@ -680,20 +685,14 @@ console.log("AAA".replaceAll(/A/g, "X"))   // XXX(全置換)
 console.log("AAA".replaceAll(/A/, "X"));   // Error
 ```
 
-#### string.toUpperCase()<br>string.toLowerCase()
-
-string を大文字・小文字に変換したものを返す。
-
-```javascript
-console.log("Japan".toUpperCase());   // "JAPAN"
-console.log("Japan".toLowerCase());   // "japan"
-```
-
 ---
 
 ### 文字列の検索
 
+文字列の検索には正規表現の <a href="#matching">マッチング</a>もある。
+
 #### string.indexOf(key [, from])
+
 
 string の from 番目から後方に検索し、最初に key が現れた index を返す。<br>
 見つからなかった場合は -1 を返す。
@@ -717,7 +716,7 @@ console.log(filename.substring(n)); // .png
 #### string.startsWith(str)<br>string.endsWith(str)<br>string.includes(str)
 
 string の中に str を含んでいるかを判定する。<br>
-includes() は含んでいるか、startWith() は str で始まっているか、endWith() は str で終わっているかを判定して、true/false を返す。
+includes() は含んでいるか、startWith() は str で始まっているか、endWith() は str で終わっているかを判定して、真偽値を返す。
 
 ```javascript
 console.log("ABCDEFG".startsWith("ABC")); // true
@@ -727,13 +726,96 @@ console.log("ABCDEFG".includes("DEF"));   // true
 
 ---
 
+#### JSON.parse(str)<br>JSON.stringify(obj)
+
+parse() は JSON文字列をオブジェクトに変化する。<br>
+stringify() はオブジェクトを JSON文字列に変化する。メソッドは無視される。
+
+```javascript
+const str1 = '{"width":160, "height":120}';
+const obj = JSON.parse(str1);
+console.log(obj);  // {width: 160, height: 120}
+const str2 = JSON.stringify(obj);
+console.log(str2); // {"width":160,"height":120}
+```
+
+### 文字列のタグ付け
+
+#### string.bold()<br>string.italics()<br>string.fixed()<br>string.big()<br>string.small()<br>string.blink()<br>string.strike()<br>string.sup()<br>string.sub()<br>string.fontcolor(color)<br>string.fontsize(size)<br>string.anchor(name)<br>string.link(name)
+
+それぞれのタグで囲んだ文字列を返す。
+
+```javascript
+console.log("ABC".bold());             // <b>ABC</b>
+console.log("ABC".italics());          // <i>ABC</i>
+console.log("ABC".fixed());            // <tt>ABC</tt>
+console.log("ABC".big());              // <big>ABC</big>
+console.log("ABC".small());            // <small>ABC</small>
+console.log("ABC".blink());            // <blink>ABC</blink>
+console.log("ABC".strike());           // <strike>ABC</strike>
+console.log("ABC".sup());              // <sup>ABC</sup>
+console.log("ABC".sub());              // <sub>ABC</sub>
+console.log("ABC".fontcolor("red"));   // <font color="red">ABC</font>
+console.log("ABC".fontsize(7));        // <font size="7">ABC</font>
+console.log("ABC".anchor("xxx"));      // <a name="xxx">ABC</a>
+console.log("ABC".link("index.html")); // <a href="index.html">ABC</a>
+```
+
+---
+
+### エスケープ文字
+
+| エスケープシーケンス | 意味 |
+| --- | --- |
+| `\b` | バックスペース |
+| `\t` | 水平タブ |
+| `\v` | 垂直タブ |
+| `\n` | 改行 |
+| `\r` | 復帰 |
+| `\f` | 改ページ  |
+| `\"` | ダブルクォート |
+| `\'` | シングルクォート |
+| `\\` | バックスラッシュ |
+| `\0` | NULL文字 |
+| `\xXX` | 2桁の16進数が表すLatin-1文字  |
+| `\uXXXX` | 4桁の16進数が表すUnicode文字  |
+| `\u{XXXXXX}` | 16進数のコードポイントが表すUnicode文字 |
+
+---
+
+## 正規表現 <a id="regex" data-name="正規表現"></a>
+
+### 正規表現オブジェクト
+
+#### regexp = new RegExp(pattern[, flags])
+
+正規表現オブジェクトを生成する。flags の詳細は<a href="#flags">flags</a>を参照。
+
+```javascript
+const str = "This is Japan.";
+const re = new RegExp("Japan", "ig");
+console.log(re.test(str)); // true
+```
+
+#### regexp = /pattern/flags
+
+new RegExp() の代わりに、次のように生成することもできる。
+
+```javascript
+const str = "This is Japan.";
+const re = /Japan/ig; // ignoreCase + global (順序は関係ない)
+console.log(re.test(str)); // true
+```
+
+### マッチング <a id="matching"></a>
+
 ### 文字列のマッチング
 
 #### string.match(regexp)
 
-string から<a href="#regex">正規表現</a> regexp にマッチした文字列に関する情報を返す。<br>
-グローバルオプション (/.../g) がない場合は、最初にマッチした文字列の詳細を含む特殊な配列を返す。<br>
-グローバルオプション (/.../g) を付けた場合は単純な配列として返す。<br>
+string から正規表現 regexp にマッチした文字列に関する情報を返す。<br>
+グローバルフラグ (/.../g) がない場合は、最初にマッチした文字列の詳細を含む特殊な配列を返す。<br>
+グローバルフラグ (/.../g) を付けた場合は単純な配列として返す。<br>
 見つからなかった場合は null を返す。
 
 ```javascript
@@ -749,7 +831,8 @@ console.log(res2.groups);               // {y:'23', m:'59', d:'59'} (名前付�
 
 #### string.matchAll(regexp)
 
-matchAll() はグローバルオプション (/.../g) が必須で、マッチした文字列に関数情報のイテレータを返す。
+matchAll() はグローバルフラグ (/.../g) が必須で、マッチした文字列に関する情報のイテレータを返す。<br>
+ES2020 以降。
 
 ```javascript
 "Date: 2026-12-31".matchAll(/(?<y>\d+)-(?<m>\d+)-(?<d>\d+)/g).forEach((e) => {
@@ -761,41 +844,77 @@ matchAll() はグローバルオプション (/.../g) が必須で、マッチ�
 });
 ```
 
+#### regexp.exec(str)
+
+srt に対して正規表現 regexp でマッチングを行い結果を返す。マッチしなければ null を返す。<br>
+グローバルフラグ (/.../g) がない場合は match() と同じ挙動。<br>
+グローバルフラグ (/.../g) がある場合は 結果をひとつずつ返すが、文字列の詳細な情報を含む特殊な配列 (match() と同じ) を返す。
+繰り返し exec() を呼ぶことで str 全体を走査することができる。
+
+```javascript
+const str = "りんご: 100円, みかん: 200円";
+const regexp = /(\S+): (\d+)円/g; // カッコでグループ化
+
+let match;
+while ((match = regexp.exec(str)) !== null) {
+  console.log(`果物: ${match[1]}, 価格: ${match[2]}`);
+}
+// "果物: りんご, 価格: 100"
+// "果物: みかん, 価格: 200"
+```
+
+ES2020 以降なら matchAll() が優秀。
+
+```javascript
+// for...of で綺麗に回せる
+for (const match of str.matchAll(regexp)) {
+  console.log(`果物: ${match[1]}, 価格: ${match[2]}`);
+}
+```
+
 #### string.search(regexp)
 
-string から 正規表現 regexp にマッチした部分の位置を返す。<br>
+string から 正規表現 regexp にマッチした部分のインデックスうを返す。<br>
 マッチしなかった場合は -1 を返す。
 
 ```javascript
 console.log("ABCDEFG".search(/def/i)); // 3
 ```
 
----
+#### regexp.test(str)
 
-### 文字と文字コードの変換
+str にマッチングを行い、結果を真偽値で返す。
 
+```javascript
+const re = /[0-9]+/;
+console.log(re.test("abc123")); // true
+```
 
+### 名前付きキャプチャグループ
 
+正規表現で (?<name>pattern) のように記述して名前を付けると、マッチングした戻り値の groups.name でアクセスできる。
+ES2018 で追加。
 
+```javascript
+const str = "2019年12月31日";
+const result = str.match(/(?<year>\d+)年(?<month>\d+)月(?<day>\d+)日/);
+console.log(result.groups.year);  // 2019
+console.log(result.groups.month); // 12
+console.log(result.groups.day);   // 31
+```
 
+### flags <a id="flags"></a>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
----
-
-## 正規表現 <a id="regex" data-name="正規表現"></a>
-
+| フラグ | フラグ名 | 意味 |
+| --- | --- | --- |
+| g | global | 2番目、3番目... にマッチする部分も検索する |
+| i | ignoreCase | 大文字・小文字を区別しない |
+| m | multiline | 複数行に対して検索する |
+| s | dotAll | ピリオド(.) が CR, LF, U+2028, U+2029 を含め、すべての文字にマッチする (ES2018～) |
+| y | sticky | lastIndex で指定した位置からのみ検索する |
+| d | hasIndices | マッチ文字列の先頭・終了インデックスを返却する (ES2022～) |
+| u | unicode | Unicode のサロゲートペア領域の文字も1文字として扱う (ES2015～) |
+| v | unicode | Unicodeの結合文字も1文字として扱う (ES2024～) |
 
 ---
 
@@ -994,7 +1113,7 @@ console.log(arr2); // [89, 87, 93, 88]
 
 #### array.includes(elm)
 
-elm がマッチする要素の有無を true/false で返す。ES2016(ES7) で追加。
+elm がマッチする要素の有無を 真偽値で返す。ES2016(ES7) で追加。
 
 ```javascript
 const arr = ["Red", "Green", "Blue"];
@@ -1025,7 +1144,7 @@ console.log(arr.lastIndexOf(5));  // 3
 
 #### Array.isArray(value)
 
-value が配列かどうかを true/false で返す。ES5.1 で追加。
+value が配列かどうかを 真偽値で返す。ES5.1 で追加。
 
 ```javascript
 console.log(Array.isArray("ABC"));            // false
@@ -1034,7 +1153,7 @@ console.log(Array.isArray(["A", "B", "C"]));  // true
 
 #### index in array
 
-指定した index に該当する要素があるかどうかを true/false で返す。
+指定した index に該当する要素があるかどうかを 真偽値で返す。
 
 ```javascript
 const arr = ["Red", "Green", "Blue"];
