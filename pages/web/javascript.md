@@ -40,7 +40,7 @@ if (条件式) {
 if (条件式) {
     // ifブロック
 } else if (条件式) {
-    // elseifブロック
+    // else ifブロック
 }
 ```
 
@@ -64,7 +64,7 @@ for (const key in object) {
 }
 ```
 
-<pre><code class="caution">配列に対して使うと意図しない挙動になることがあるため、使わない。
+<pre><code class="caution">配列に対して for in を使うと意図しない挙動になることがあるため、使わない。
 index が欲しい場合は entries を使う。</code></pre>
 
 #### for...of文
@@ -165,6 +165,17 @@ const { name, age } = user;
 
 console.log(name); // 'Taro'
 console.log(age);  // 25
+```
+
+```javascript
+const users = [
+  { id: 1, name: "太郎" },
+  { id: 2, name: "花子" }
+];
+
+for (const { id, name } of users) {
+  console.log(`ID: ${id}, 名前: ${name}`);
+}
 ```
 
 ---
