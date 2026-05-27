@@ -267,7 +267,7 @@ for (const { id, name } of users) {
 | `...` | スプレッド構文(展開)<br>オブジェクトに使う例 | `const user = {name:"Alice", age:25};`<br>`const updated = {...user, age:30};` | `{name:"Alice", age:30}` |
 | `...` | レスト構文(まとめる)<br>関数の引数で使う例 | `function f(...args) {return args;}`<br>`f(1, 2, 3 ,4);` | `[1, 2, 3, 4]` |
 | `...` | レスト構文(まとめる)<br>分割代入で使う例 | `const [first, ...rest] = [10, 20, 30, 40];`<br>`rest;` | `[20, 30, 40]` |
-| `+` | 文字列結合 | `"a" + "b"`または<br><code>\`a${b}\`</code> | |
+| `+` | 文字列結合 | `"a" + "b"`または<br><code>`\a${b}\`</code> | |
 
 ### オプショナルチェイニング
 
