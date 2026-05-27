@@ -267,7 +267,7 @@ for (const { id, name } of users) {
 | `...` | スプレッド構文(展開)<br>オブジェクトに使う例 | `const user = {name:"Alice", age:25};`<br>`const updated = {...user, age:30};` | `{name:"Alice", age:30}` |
 | `...` | レスト構文(まとめる)<br>関数の引数で使う例 | `function f(...args) {return args;}`<br>`f(1, 2, 3 ,4);` | `[1, 2, 3, 4]` |
 | `...` | レスト構文(まとめる)<br>分割代入で使う例 | `const [first, ...rest] = [10, 20, 30, 40];`<br>`rest;` | `[20, 30, 40]` |
-| `+` | 文字列結合 | `"a" + "b"`または<br><code>`\a${b}\`</code> | |
+| `+` | 文字列結合 | `"a" + "b"` | 'ab' |
 
 ### オプショナルチェイニング
 
@@ -471,7 +471,7 @@ console.log(`ようこそ ${name} さん`);
 
 #### String.raw
 
-テンプレートリテラルに String.raw を付けると、`\n` 等のエスケープ文字がエスケープされなくなるので、Windows のパスや正規表現のようにバックスラッシュ`(\)` を多用する場合に便利。
+テンプレートリテラルに String.raw を付けると、&#92;n 等のエスケープ文字がエスケープされなくなるので、Windows のパスや正規表現のようにバックスラッシュ(&#92;) を多用する場合に便利。
 
 ```javascript
 // 普通に書くと \\ と書かないとエラーや意図しない挙動になる
@@ -490,13 +490,13 @@ const name = "太郎";
 const message = String.raw`こんにちは、${name}さん！\nいらっしゃいませ。`;
 ```
 
-文字列の最後をバックスラッシュ`(\)` にすると、後ろの文字をエスケープしてしまうので `\\` と書く必要がある。
+文字列の最後をバックスラッシュ(&#92;) にすると、後ろの文字をエスケープしてしまうので &#92;&#92; と書く必要がある。
 
 ---
 
 ### マルチライン
 
-"..." や '...' や <code>`...`</code> の行末にバックスラッシュ`(\)` を付けると、マルチライン文字列を記述できる。
+"..." や '...' や <code>`...`</code> の行末にバックスラッシュ(&#92;) を付けると、マルチライン文字列を記述できる。
 
 ```javascript
 const str = "ERROR: 404\n\
@@ -778,19 +778,19 @@ console.log("ABC".link("index.html")); // <a href="index.html">ABC</a>
 
 | エスケープシーケンス | 意味 |
 | --- | --- |
-| `\b` | バックスペース |
-| `\t` | 水平タブ |
-| `\v` | 垂直タブ |
-| `\n` | 改行 |
-| `\r` | 復帰 |
-| `\f` | 改ページ  |
-| `\"` | ダブルクォート |
-| `\'` | シングルクォート |
-| `\\` | バックスラッシュ |
-| `\0` | NULL文字 |
-| `\xXX` | 2桁の16進数が表すLatin-1文字  |
-| `\uXXXX` | 4桁の16進数が表すUnicode文字  |
-| `\u{XXXXXX}` | 16進数のコードポイントが表すUnicode文字 |
+| &#92;b | バックスペース |
+| &#92;t | 水平タブ |
+| &#92;v | 垂直タブ |
+| &#92;n | 改行 |
+| &#92;r | 復帰 |
+| &#92;f | 改ページ  |
+| &#92;" | ダブルクォート |
+| &#92;' | シングルクォート |
+| &#92;&#92; | バックスラッシュ |
+| &#92;0 | NULL文字 |
+| &#92;xXX | 2桁の16進数が表すLatin-1文字  |
+| &#92;uXXXX | 4桁の16進数が表すUnicode文字  |
+| &#92;u{XXXXXX} | 16進数のコードポイントが表すUnicode文字 |
 
 ---
 
@@ -1459,6 +1459,113 @@ console.log(arr.flat(2)); // [1, 2, 3, 4, 5, 6]
 const arr = ["Blue Green", "Red Yellow"];
 console.log(arr.flatMap(x => x.split(" "))); // ["Blue", "Green", "Red", "Yellow"]
 ```
+
+---
+
+## map <a id="map" data-name="Map"></a>
+
+ES2015
+でサポートされたオブジェクトで、キーとバリューのリストを保持する。<br>
+Object と似ているが、Map は、文字列や Symbol 以外の値もキーとして使える、
+リストの個数を size で取得できる、for of で簡単にループできる、
+頻繁な要素の追加や削除があるような大量のデータを扱うケースに最適化されているなどの利点がある。
+
+### map = new Map([iterable])
+
+コンストラクタにはキーとバリューの二次元配列を指定できる。
+
+```javascript
+const map = new Map([["width", 160], ["height", 120]]);
+```
+
+### map.set(key, value)<br>map.get(key)
+
+```javascript
+const map = new Map();
+map.set("width", 160);
+map.set("height", 120);
+map.get("width");   // 160
+map.get("height");  // 120
+```
+
+### map.size
+
+リストの個数を返す。
+
+```javascript
+const map = new Map();
+map.set("width", 160);
+map.set("height", 120);
+map.size;   // 2
+```
+
+### map.keys()<br>map.values()<br>map.entries()
+
+for of でキーとバリューを扱える。
+
+```javascript
+for (let [key, value] of map) {
+   console.log(key, ":", value);
+}
+for (let [key, value] of map.entries()) {
+   console.log(key, ":", value);
+}
+for (let key of map.keys()) {
+   console.log(key, ":", map.get(key));
+}
+for (let value of map.values()) {
+   console.log(value);
+}
+```
+
+### map.forEach(function[, this])
+
+
+
+
+
+
+### map.has(key)
+
+key で指定したマップが存在するかどうかを真偽値で返す。
+
+```javascript
+const map = new Map();
+map.set("width", 160);
+map.has("width"); // true
+```
+
+### map.delete(key)
+
+key で指定したマップを削除する。
+
+```javascript
+const map = new Map();
+map.set("width", 160);
+map.delete("width");
+```
+
+### map.clear()
+
+Map の中身をすべて削除する。
+
+### map.getOrInsert(key, value)
+
+マップに key が存在すればその値を返し、なければ key=value を追加してから
+value を返す。<br>
+
+### map.getOrInsertComputed(key, callback)
+
+
+
+
+
+### Map.groupBy(array, function)
+
+
+
+
+
 
 ---
 
