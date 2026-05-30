@@ -69,6 +69,7 @@ hr {
 
 /* code(インライン) */
 code {
+    font-family: inherit;
     font-weight: 500;
 }
 
@@ -80,8 +81,6 @@ ul {
 li {
     margin: 0;
 }
-
-
 
 /* naviのリスト */
 #navi ul {
@@ -255,12 +254,12 @@ pre code {
     font-size: 1.2rem;
 }
 
-/* 戻り値 */
-.return-value {
+/* サブタイトル2 */
+.subtitle2 {
     display: block;
     color: #bc8cff;
     font-weight: 600;
-    font-size: 1.2rem;
+    font-size: 1.0rem;
     padding: 1rem 0;
 }
 

@@ -710,14 +710,14 @@ concat(foo, bar); // foobarに置き換わる
 <pre><code class="example">printf("%*d\n", 5, 123); // 123
 printf("%*.*f\n"7, 2, 3.14159); // 3.14</code></pre>
 
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 成功なら出力した文字数、失敗なら負値。
 
 ---
 
 ### ファイルへの書式付出力<br>`int fprintf(FILE *stream, const char *format, ...);`
 streamにデータをformatで示す書式で出力する。formatに指定する書式文字列や引数の取り扱いはprintfと同じ。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 成功なら出力した文字数、失敗なら負値。
 
 ---
@@ -725,49 +725,49 @@ streamにデータをformatで示す書式で出力する。formatに指定す�
 ### 文字配列への書式付出力<br>`int sprintf(char *s, const char *format, ...);` <span class="warning">非推奨</span>
 formatで指定した書式で引数を文字列に変換し、文字配列sに出力する。文字列の最後に'\0'が付加される。文字配列に出力する以外はprintfと同じ。文字列処理を行うのに有用な関数である。sと実引数に指定する領域に重なりがある場合の動作は処理系依存。
 
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 成功なら出力した文字数('\0'は含まない)、失敗なら負値。
 
 ---
 
 ### 文字配列への書式付出力<br>`int snprintf(char *s, size_t size, const char *format, ...);`
 sizeにnull文字を含めたバッファサイズを指定する以外はsprintfと同じ。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 成功なら出力した文字数('\0'は含まない)、失敗なら負値。
 
 ---
 
 ### ファイルへの1文字出力<br>`int fputc(int c, FILE *stream);`
 streamに文字cをunsigned char型に変換して書き込む。ファイル位置指示子を次の書き込み位置に進める。streamが追加モードでオープンされている場合は常にファイルの終わりに書き込む。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 成功なら書き込んだ文字、書き込みエラーならエラー指示子をセットしてEOFを返す。
 
 ---
 
 ### ファイルへの1文字出力<br>`int putc(int c, FILE *stream);`
 fputcと同じ。fputcは関数で実現することを要求されているのに対し、putcはマクロでも関数でもよい。処理スピードを上げたいならputc(ただし関数なら同じ)、マクロの副作用の危険を避けるならfputcを使う。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 fputcと同じ。
 
 ---
 
 ### 標準出力への1文字出力<br>`int putchar(int c);`
 標準出力に1文字書き込むこと以外は、fputcと同じ。putchar(c)は、putc(c, stdout)と等価。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 fputcと同じ。
 
 ---
 
 ### 標準出力への文字列の出力<br>`int puts(const char *s);`
 標準出力に文字列sを書き込み、さらに改行文字を書き込む。'\0'は書き込まない。fputs(s, stdout)の場合は改行文字を書き込まない。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 成功なら正値、書き込みエラーならEOF。
 
 ---
 
 ### ファイルへの文字列出力<br>`int fputs(char *s, FILE *stream);`
 streamにsで示す文字列を書き込む。文字列の終了を示す'\0'は書き込まない。自動的に改行文字を書き込むことはしない。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 成功なら正値、書き込みエラーならEOF。
 
 ---
@@ -886,21 +886,21 @@ errnoに設定されているエラー番号の内容を標準エラー出力に
     </tr>
 </table>
 
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 変換が1つも行われないまま入力誤りが発生した場合(CTRL+Zなどによる入力終わりの通知があった場合)はEOF、その他の場合は正常に入力できた項目数。先頭データで書式に合わないデータが入力された時は0。
 
 ---
 
 ### ファイルからの書式付入力<br>`int fscanf(FILE *stream, const char *format, ...);`
 streamからformatに従った書式で、データを読み込む。formatに指定する書式文字列や引数の取り扱いはscanfと同じ。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 変換が１つも行われないまま入力誤りが発生した場合(CTRL+Zなどによる入力終わりの通知があった場合)はEOF、その他の場合は正常に入力できた項目数。先頭データで書式に合わないデータが入力された時は0。
 
 ---
 
 ### 文字配列からの書式付入力<br>`int sscanf(const char *s, const char *format, ...);`
 文字列sからformatに従った書式でデータを入力する。文字列から入力する以外はscanfと同じ。sと実引数に指定する領域に重なりがある場合の動作は処理系依存。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 変換が1つも行われないまま入力誤りが発生した場合(文字列の終わり)はEOF、その他の場合は正常に入力できた項目数。先頭データで書式に合わないデータが入力された時は0。
 
 ---
@@ -913,28 +913,28 @@ streamからformatに従った書式で、データを読み込む。formatに�
 
 ### ファイルからの文字列入力<br>`char *fgets(char *s, int n, FILE *stream);`
 streamから文字列を読み取りsに格納する。読み取りは改行文字に出会ったか、n-1個の文字を読み取るまで行われる。改行文字に出会った場合は、改行文字を含めてsに格納される。長さ制限を超えた場合はそこまでの文字がsに格納され、改行文字は付加されない。文字列の最後に`'\0'`が付加される。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 成功ならsへのポインタ、ファイルの終わりあるいはエラーならNULL。ファイルの終わりの場合はsの内容は前の読み取り内容が残るが、エラーの場合sの内容は不定。
 
 ---
 
 ### ファイルから1文字入力<br>`int fgetc(FILE *stream);`
 streamから1文字読み取る。文字はunsigned char型の1バイトとして読み、そのあとint型に変換して返す。ファイル現在位置を次の文字に進める。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 成功なら読み取った文字、読み取りエラーまたはファイルの終わりならEOF。読み取りエラーならエラー指示子を、ファイルの終わりならファイル終了指示子をセットしてEOFをセットする。結果がEOFの場合にそれがエラーなのか、ファイルの終わりなのかは各指示子を調べる。
 
 ---
 
 ### ファイルから1文字入力<br>`int getc(FILE *stream);`
 fgetcと同じ。fgetcは関数で実現することを要求されているのに対しgetcはマクロでも関数でもよい。処理スピードを上げたいならgetc(ただし関数なら同じ)、マクロの副作用の危険を避けるならfgetcを使う。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 fgetcと同じ。
 
 ---
 
 ### 標準入力から1文字の入力<br>`int getchar();`
 標準入力から1文字を読み込むこと以外はfgetcと同じ。getchar()はgetc(stdin)と等価。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 標準入力から1文字を読み込むこと以外はfgetcと同じ。
 
 ---
@@ -959,7 +959,7 @@ filenameで示すファイル名のファイルをmodeで示すオープンモ�
 - 入力の後に出力を行う場合、2つの処理の間にファイル位置付け関数(fseek, fsetpos, rewind)を呼び出さなければならない。
 
 オープンしたストリームがコンソール以外の場合はストリームをバッファリングモードで行う。ファイルオープン時に、エラー指示子、ファイル終了指示子はリセットされる。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 成功ならFILE構造体へのポインタ(ストリームへのポインタ)、失敗ならNULL。
 
 ---
@@ -967,21 +967,21 @@ filenameで示すファイル名のファイルをmodeで示すオープンモ�
 ### ファイルクローズ<br>`int fclose(FILE *stream);`
 streamが指すストリームをフラッシュし、ストリームに結合したファイルをクローズする。fcloseにより、出力バッファに残っているデータは書き出され、入力バッファに残っているデータは捨てられる。setbuf、setvbufで割り当てられているバッファをストリームから切り離し、自動的に生成されたバッファを解放する。
 オープンしたファイルはユーザの責任でファイルクローズしなければならない。特にライトモードでオープンしてある場合はfcloseしなければ結果は保証されない。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 成功なら0、失敗ならEOF。
 
 ---
 
 ### ファイルへのブロックライト<br>`size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream);`
 sizeバイトのデータブロックを、nmemb個文格納したPtrのデータをstreamに書き込む。ファイル現在位置は書き込みに成功した文字数分進む。エラーの場合のファイルの現在位置は不定。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 書き込んだブロックの個数。これがnmembに等しくなければエラーがあったことになる。sizeまたはnmembが0なら書き込みは行わずに0を返す。
 
 ---
 
 ### ファイルからのブロックリード<br>`size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);`
 streamからsizeバイトのデータブロックをnmemb個、ptrに読み取る。ファイル現在位置を読み取った文字数文進める。エラーの場合のファイル現在位置は不定。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 読み取ったブロックの個数。戻り値がnmembではない場合はファイルの終わりになったか、エラーの時である。sizeまたはnmembが0なら読み取りを行わずに0を返す。
 
 ---
@@ -1022,21 +1022,21 @@ streamがテキストストリームの場合は、次の移動のみを規定�
 </table>
 
 fseekが成功すると、もし直前にungetcが行われていればその動作を解除する。ファイル現在位置は新しい位置に設定される。更新モードのファイルにおいてはfseekの後の入出力動作はどちらも行える。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 失敗した場合はエラー指示子をセットし非0を返す。成功した場合の規定はなく処理系依存(通常0)。
 
 ---
 
 ### ファイル現在位置の取得<br>`long int ftell(FILE *stream);`
 streamのファイル現在位置を所得する。バイナリストリームの場合は先頭からファイル現在位置の直前までの文字数となる。テキストストリームの場合は処理系依存。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 成功ならファイル現在位置、失敗ならerrnoにエラー番号を設定し、-1Lを返す。ファイルを追加モードで開いた場合のファイル位置は直前読み書き位置であるが、1度も読み書きを行わない状態ならftellは0Lを返す。
 
 ---
 
 ### ファイルの終わりの検知<br>`int feof(FILE *stream);`
 streamがファイルの終わりにあるか調べる。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 ファイル終了指示子がセットされていれば非0。規格ではその他の場1合は規定されていないが通常0。
 
 ---
@@ -1049,7 +1049,7 @@ streamがファイルの終わりにあるか調べる。
 | "r"  | コマンドの標準出力を読み取る |
 | "w"  | コマンドの標準入力に書き込む |
 
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 成功した場合は接続されたパイプとのFILE構造体。失敗した場合はNULLが返る。
 <div class="subtitle">type = "r"</div>
 
@@ -1108,7 +1108,7 @@ int main() {
 
 ### 開かれたパイプを閉じる<br>`int pclose(FILE *fp);` <span class="label">POSIX</span>
 popenにより開かれたパイプを閉じる。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 子プロセスの終了ステータス。
 
 ---
@@ -1119,7 +1119,7 @@ popenにより開かれたパイプを閉じる。
 sizeバイトの要素を動的メモリに割り付ける。callocでは領域を0クリアするが、mallocは領域を0クリアしない。sizeに0を指定した時の動作は処理系依存(失敗としてNULLをかえすのか、0の領域を作ってそのポインタを返すのか)。<br>
 取得したメモリへのポインタは、取得したメモリの先頭アドレス(下位アドレス)を指す。取得したメモリはどのようなデータ型でも扱えるように境界調整(アラインメント)されている。取得したメモリの生存期間は、生成されてから解放されるまで。動的メモリ取得関数(malloc, calloc, realloc)を連続して呼び出した時に取得されるメモリの順序と、各ブロックが連続しているかは処理系依存。<br>
 動的メモリ取得関数で取得したメモリは不要になったらfreeで解放する。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 成功なら取得したメモリへのポインタ、失敗ならNULL。
 
 ---
@@ -1127,7 +1127,7 @@ sizeバイトの要素を動的メモリに割り付ける。callocでは領域�
 ### 配列領域の取得<br>`void *calloc(size_t nmemb, size_t size);`
 sizeバイトの要素をnmemb個、動的メモリに割り付ける。calloc(nmemb, size)はmalloc(nmemb*size)と同じだが取得領域の全てのビットを0で初期化する。<br>
 nmembまたはsizeに0を指定した時の、動作及びその他の扱いはmallocと同じ。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 成功なら取得したメモリへのポインタ、失敗ならNULL。
 
 ---
@@ -1135,7 +1135,7 @@ nmembまたはsizeに0を指定した時の、動作及びその他の扱いはm
 ### メモリ領域の再割り付け<br>`void *realloc(void *ptr, size_t size);`
 ptrで示す動的メモリを解放し、sizeバイトの新しい動的メモリを割り付ける。前のメモリの内容は、新しいメモリにコピーされる。前のメモリの方が大きい場合は、残った部分はコピーされない。新しいメモリほうが大きい場合は、拡張された部分の内容は不定。<br>
 ptrにNULLを指定するとmallocと同じ働きをする。ptrが動的メモリ割り付け関数で取得されたポインタでなかったり、ptrで示す領域がすでに解放されている場合の動作は処理系依存。再割り付けに失敗した場合は前のメモリは解放せずにそのまま残る。再割り付けで新しい領域を割り付けるのか前の領域を拡大・縮小するのかは処理系依存。その他の扱いはmallocに準ずる。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 成功なら新しいメモリへのポインタ、失敗ならNULL。
 
 ---
@@ -1155,7 +1155,7 @@ randで得る乱数系列の初期値(種)をseedで設定する。srand((unsign
 
 ### 整数乱数の発生<br>`int rand(void);`
 0～RAND_MAXの範囲の整数乱数を1つ得る。RAND_MAXは32767以上の値と規定されている。randはsrandで種(seed)を与えないと同じ乱数系列(srand(1)と同じ系列)を取る。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 0～RAND_MAXの整数乱数。
 
 ---
@@ -1164,7 +1164,7 @@ randで得る乱数系列の初期値(種)をseedで設定する。srand((unsign
 環境変数リストの中から、nameで示す環境変数の定義値を取得する。得られたポインタが指し示す内容を変更してはいけない。<br>
 環境変数は、OSが管理する環境テーブルの中に環境変数リストとして構成されている。<br>
 環境変数名の英大小文字が区別されるかは処理系依存。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 nameで示す環境変数が見つかれば、それを定義している文字列へのポインタ。見つからなければNULL。
 
 ---
@@ -1178,7 +1178,7 @@ nameで示す環境変数が見つかれば、それを定義している文字�
 #define abs(x) ((x) >= 0? (x): -(x))
 ```
 
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 整数値nの絶対値を返す。
 
 ---
@@ -1192,7 +1192,7 @@ atexitで設定されている関数でさらにexitを呼び出した場合に�
 
 ### プログラムの実行<br>`int system(const char *string);`
 この関数を呼び出したプロセスを一時停止し、stringで示す別の実行可能プログラムを実行する。実際にはstringはコマンドプロセッサに渡されその上で動作することになる。実行プログラムの終了で元のプロセスに戻り、systemは実行したプログラムが返す値を返す(処理系依存)。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 stringにNULLを指定した場合はコマンドプロセッサの存在を調べ、あれば0、なければ非0。その他の場合は処理系依存で例えば、stringで示すプログラムが実行できなかった場合は1、実行できたときはそのプログラムが返す値。
 
 ---
@@ -1222,14 +1222,14 @@ stringにNULLを指定した場合はコマンドプロセッサの存在を調�
 
 baseのデータが降順ソートされているなら、comparの返す正と負の条件を逆にする。<br>
 具体的な作り方はqsortを参照。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 見つかればそのデータへのポインタ、一致するものが無ければNULL、2つ以上一致するものがある場合にその中のどのデータへのポインタを返すかは処理系依存。
 
 ---
 
 ### 文字列からint値への変換<br>`int atoi(const char *nptr);`
 nptrで示す10進数文字列をint値に変換する。(int)strtol(nptr, (char **)NULL, 10)と等価とする。違いはerrnoの設定は行わないこと、変換結果が範囲を超える場合の動作は処理系依存。atolは古いC処理系との互換のために残されている。atolはstrtolで代用できる。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 成功なら変換されたint値、失敗なら0(処理系依存)。
 
 ---
@@ -1239,7 +1239,7 @@ nptrで示される整数文字列をlong int値に変換する。文字列中�
 変換結果がオーバーフローすればオーバーフローした分が捨てられる。endptrが文字列の終わりを示す'\0'であれば文字列を正常に変換できたことを示す。endptrにNULLを指定した場合は変換のみを行う。<br>
 baseは文字列を変換するときの基数で、`0～36`が指定できる。baseを0にすると、文字列nptrの先頭が0なら8進、0x、0Xなら16進、それ以外の数字なら10進とみなす。baseが1のときは数字文字は0だけを認める(事実上意味を持たない)。<br>
 数字文字は`0～9`と、`10～35`を示す文字のa(A)～z(Z)である。数字文字として認められない文字はbaseで示す進数以上の文字である。例えばbaseが8なら、8以上の文字。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 成功なら変換したlong int値、失敗なら0L。変換結果がlong int値で表現できる範囲を超えていれば、LONG_MIN_MAX(limits.h)を返し、errnoにERANGEをセットする。
 
 ---
@@ -1249,7 +1249,7 @@ nptrで示される浮動小数点数文字列をdouble値に変換する。先�
 endptrが文字列の終わりを示す'\0'であれば文字列を正常に変換できたことを示す。endptrにNULLを指定した場合は変換のみを行う。<br>
 符号は仮数、指数部の前に1つ、小数点は仮数部に1つ、指数文字は指数部に1つまでとする。<br>
 小数点をどの文字で示すかはロケールに依存する。ISO C99では0x、0Xで始まる16進実数値文字列や"INF"、"NANなどの文字も扱える。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 成功なら変換したdouble値、失敗なら0.0。変換結果がdouble値で表現できる範囲を超えていれば±HUGE_VAL(math.h)を返しerrnoにERANGEをセットする。変換結果がアンダーフローした場合は表現できる最も小さな正の値(通常0.0)を返すが、errnoにERANGEをセットするかどうかは処理系依存。
 
 ---
@@ -1258,7 +1258,7 @@ endptrが文字列の終わりを示す'\0'であれば文字列を正常に変�
 
 ### 文字列のコピー<br>`char *strcpy(char *d, const *s);` <span class="warning">非推奨</span>
 文字列dに文字列sをコピーする。配列dにはコピーする文字列の長さ+1('\0'の分)の領域が必要。もしsの方が長いと、dの範囲を超えてコピーしてしまうので、周辺領域を破壊してしまう。このような危険を避けるためにはstrncpyを使用する。２つの領域に重なりがある場合の動作は処理系依存。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 dへのポインタ。
 
 ---
@@ -1266,42 +1266,42 @@ dへのポインタ。
 ### 長さを指定した文字列のコピー<br>`char *strncpy(char *d, const char *s, size_t n);`
 文字配列dに文字列sをコピーする。sの長さがn未満の場合は、sをコピーした後ろに'\0'を全体でnになるまで補う。sの長さがn以上の場合は、sの先頭からn文字目までをコピーし、'\0'を補わない。nに送り先のdの長さ-1を指定すれば、dの領域を超えてコピーすることはないので、strcpyより安全である。<br>
 ただし、sの長さがn以上の場合(つまりsの部分文字列をコピーする場合)に、最後に'\0'が付加されないという重大な欠陥があるので、この場合はユーザが補わなければならない。dとsの領域に重なりがある場合の動作は処理系依存。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 dへのポインタ。
 
 ---
 
 ### 文字列の連結<br>`char *strcat(char *d, const char *s);` <span class="warning">非推奨</span>
 文字列dの文字列の終わりに文字列sを連結する。2つの領域に重なりがある場合の動作は処理系依存。dは文字列として初期化されていなければいけない。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 dへのポインタ。
 
 ---
 
 ### 長さを指定した文字列の連結<br>`char *strncat(char *d, const char *s, size_t n);`
 文字配列dの文字列の終末に、文字列sを連結する。sの長さがn未満の場合はsの終わりまで連結する。sの長さがn以上の場合はsのn文字目までを連結する。いずれの場合も最後に１つの'/0'を補う。strncpyの'/0'を補う動作とは異なる。2つの領域に重なりがある場合の動作は処理系依存。dは文字列として初期化されていなければならない。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 dへのポインタ。
 
 ---
 
 ### 文字列の長さの取得<br>`size_t strlen(const char *s);`
 文字列sの長さ('\0'は含まない)を符号なし整数値で返す。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 文字列の長さ。
 
 ---
 
 ### 文字列の検索<br>`char *strstr(const char *s, const char *key);`
 文字列sの中から文字列keyを探す。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 見つかれば最初に見つかった位置へのポインタ、見つからなければNULL。keyが空文字列ならsへのポインタを返す。
 
 ---
 
 ### 文字列の比較<br>`int strcmp(const char *s1, const char *ch2);`
 文字列s1とs2の内容を文字コード順で比較する。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 s1 < s2なら負の値、s1 == s2なら0、s1 > s2なら正の値。規格では最初に異なる文字の対の値(unsigned charとみなした)の差の符号となっている。strcmp("a", "aa")
 は'/0'-'a'の-97で判定する。
 
@@ -1309,28 +1309,28 @@ s1 < s2なら負の値、s1 == s2なら0、s1 > s2なら正の値。規格では
 
 ### 長さを指定した文字列の比較<br>`int strncmp(const char *s1, const char *s2, size_t n);`
 文字列s1とs2の先頭からn文字の内容を文字コード順で比較する。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 s1 < s2なら負の値、s1 == s2なら0、s1 > s2なら正の値。
 
 ---
 
 ### 指定文字の検索<br>`char *strchr(const char *s, int c);`
 文字列sの中から文字cを探す。'\0'も文字列の一部として扱う。つまり'\0'をcに指定して検索できる。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 見つかれば最初に見つかった文字へのポインタ。見つからなければNULL。
 
 ---
 
 ### メモリブロックの初期化<br>`void *memset(void *s, int c, size_t n);`
 sのnバイトを文字cで初期化する。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 sへのポインタ。
 
 ---
 
 ### メモリブロックのコピー<br>`void *memcpy(void *d, const void *s, size_t n);`
 sのnバイトの内容をdにコピーする。2つの領域に重なりがある場合の動作は処理系依存。その場合はmemmoveを使う。nには配列の要素数ではなくバイト数を指定する。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 
 dへのポインタ。
 
@@ -1338,14 +1338,14 @@ dへのポインタ。
 
 ### メモリブロックの移動<br>`void *memmove(void *d, const void *s, size_t n);`
 sのnバイトの内容をdにコピーする。2つの領域が重なっていても正常にコピーできる。memmoveよりmemcpyの方が処理時間は早いが、memcpyは2つの領域が重なっている場合は使えない。2つの領域が重ならないことがはっきりしていればmemcpyを使い、重なる場合はmemmoveを使う。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 dへのポインタ。
 
 ---
 
 ### メモリブロックの比較<br>`int memcmp(const void *s1, const void *s2, size_t n);`
 s1とs2のバイト内容を、文字コード順で比較する。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 s1 < s2なら負の値、s1 == s2なら0、s1 > s2なら正の値。
 
 ---
@@ -1354,14 +1354,14 @@ s1 < s2なら負の値、s1 == s2なら0、s1 > s2なら正の値。
 
 ### 大文字に変換<br>`int toupper(int c);`
 引数が小文字なら大文字に変換し、小文字でなければ変換しない。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 変換後の文字。
 
 ---
 
 ### 小文字に変換<br>`int tolower(int c);`
 引数が大文字なら小文字に変換し、大文字でなければ変換しない。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 変換後の文字。
 
 ---
@@ -1388,29 +1388,29 @@ s1 < s2なら負の値、s1 == s2なら0、s1 > s2なら正の値。
 ## 数学関数<br>`<math.h>` <a id="math-h" data-name="数学関数"></a>
 
 ### 累乗<br>`double pow(double x, double y);`
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 xのy乗を返す。xが負でyが小数部のある実数(整数にならない実数)の場合、xが0でy <= 0の場合は定義域エラーとなる。引数の値によって値域エラーとなる場合がある。
 
 ---
 
 ### 平方根<br>`double sqrt(double x);`
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 xの平方根(ルート)を返す。xが負なら定義域エラーとなる。
 
 ---
 
 ### 実数の絶対値<br>`double fabs(double x);`
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 double値xの絶対値を返す。
 
 ### 引数を上回らない最大整数<br>`double floor(double x);`
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 xの小数点部を数直線上で左方向へ切り下げる。ceilは右方向へ切り上げになる。
 
 ---
 
 ### 引数を下回らない最小整数<br>`double ceil(double x);`
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 xの小数点部を数直線上で右方向へ切り上げる。floorは左方向へ切り下げになる。
 
 ---
@@ -1468,27 +1468,27 @@ typedef long time_t
 
 ### 歴時刻の取得<br>`time_t time(time_t *t);`
 歴時刻を取得する。tがNULLでない場合はtにも歴時刻が得られる。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 成功ならtime_t歴時刻。失敗なら(time_t)-1。
 
 ---
 
 ### プリプロセッサ時間の取得<br>`clock_t clock(void);`
 clockを呼んだプロセスが開始されてからの経過時間を取得する。この値をCLOCK_PER_SECで割ると秒単位の値に変換できる。例えばCLOCK_PER_SECが1000.0に定義されている処理系ならclockが返す時間の単位はミリ秒。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 プロセスが開始されてからの経過時間を返す。失敗なら(clock_t)-1を返す。プロセスの開始の時点があいまいなので、プログラムの最初でclockを呼び出し、その差で経過時間を出す方が移植性が高い。
 
 ---
 
 ### 歴時刻の時間差の計算<br>`double difftime(time_t t1, time_t t0);`
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 歴時刻の時間差(t1 - t0)を秒で返す。
 
 ---
 
 ### 地方時間としてtm構造体に変換<br>`struct tm *localtime(const time_t *t);`
 time_t時間tを地方時間としてtm構造体型に変換する。localtimeが返す構造体領域は、次のlocaltimeあるいはgmtimeの呼び出しで変更されるので、後で使用したい場合は別領域に保存しておく。
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 成功ならtm構造体へのポインタ、失敗ならNULL。
 
 ---
@@ -1543,7 +1543,7 @@ tm構造体tの時間を、formatで示す書式に従って文字列に変換�
 | %V         | JIS X 0301で規定する暦週の通し番号(01～53)。                                                               |
 | %z         | UTCからの時差をJIS X 0301で規定する文字列にする。例えば"-0430"はUTCとり4時間30分遅れていることを意味する。 |
 
-<div class="return-value">戻り値</div>
+<div class="subtitle2">戻り値</div>
 変換した文字列の長さがmaxsize以下ならその文字数、そうでないなら0を返し配列の内容は不定。
 
 ---
