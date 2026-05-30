@@ -1,8 +1,54 @@
+---
+title: Git/Github
+layout: default
+---
+
+# Git/Github <a id="top" data-name="TOP"></a>
+
+
+---
+
+
+## 導入 <a id="introduction" data-name="導入"></a>
+
+### 初期設定
+
+ユーザーネームとメールアドレスを設定する
+
+```bash
+git config --global user.name “名前”
+git config --global user.email “メールアドレス”
+```
+
+デフォルトの初期ブランチ名を登録する
+git config --global init.defaultBranch ブランチ名
+
+エディタを設定する場合
+git config --global core.editor ‘エディタ名’
+
+ホームディレクトリ下の.gitconfigに保存される
+git config --list
+
+で確認することもできる
+
+
+
+
+---
+
+## 用語 <a id="term" data-name="用語"></a>
+
+
+
+
+
 Gitのブランチ（Branch）は、プロジェクトの歴史を枝分かれさせて、「本番用のコードを汚さずに新しい機能を作る」ための魔法のツールです。並行世界をいくつも作るようなものだと考えると分かりやすいですよ。
 
 基本的な使い方と流れを整理しました。
 
----
+
+
+
 
 ## 1. 基本のコマンド操作
 
