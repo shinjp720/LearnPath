@@ -745,6 +745,7 @@ elm.getAttribute("data-price");</code></pre></td></tr>
 | '&ensp;' | `&ensp;` | nと同じ幅のスペース |
 | '&emsp;' | `&emsp;` | mと同じ幅のスペース |
 | '&thinsp;' | `&thinsp;` | 細い空白 |
+| '&#8203;' | `&#8203;` | ゼロ幅スペース |
 
 ### ポップな特殊文字
 

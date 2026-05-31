@@ -1,5 +1,7 @@
 html {
     font-size: 120%;
+    font-family: 'Noto Sans', Arial, sans-serif;
+    /* 'Segoe UI',Helvetica,    */
 }
 
 body {
@@ -7,7 +9,6 @@ body {
     padding: 0;
     background-color: #0d1117;
     color: #c9d1d9;
-    font-family: 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
     line-height: 1.6;
     overflow-y: auto;
 }
@@ -69,7 +70,6 @@ hr {
 
 /* code(インライン) */
 code {
-    font-family: inherit;
     font-weight: 500;
 }
 
@@ -180,7 +180,6 @@ pre code {
     padding: 1.0rem;
     border-radius: 6px;
     border: 1px solid #353d47;
-    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
     font-size: 1.0rem;
     line-height: 1.2;
 }
@@ -290,7 +289,6 @@ pre code {
     display: inline-block;
     background-color: #131b29;
     color: #f0f6fc;
-    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
     padding: 0.2rem 0.6rem;
     border-radius: 6px;
     font-size: 1.4rem;
