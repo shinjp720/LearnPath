@@ -36,7 +36,7 @@ git config --global core.editor ‘エディタ名’
 
 設定はホームディレクトリ下の.gitconfigに保存される。
 
-<span class="code-like">git config -&#8203;-list</span>で確認することもできる。
+<span class="code-like">git config -&#8203;-list</span> で確認することもできる。
 
 
 ---
@@ -91,7 +91,13 @@ git config --global core.editor ‘エディタ名’
 
 インデックスに追加 (ステージングする)。
 
+commit した時に保存されるのは add した時の状態であるため、 add した後に作業して、最新の状態を commit したい場合は再び add する必要がある。
+
 <span class="code-like">git add .</span> ドット(.) を使うとカレントディレクトリ以下のものを全て一括して追加する。
+
+<pre><code class="tips">.gitignore を変更できないが <span class="code-like">git add .</span> した時に含めたくないファイルがある場合は、
+.git/info/exclude に .gitignore の要領で無視するファイル/ディレクトリを追記することにより、ローカル環境でだけ無視できる。
+追記するだけならこれでもOK <span class="code-like">echo "ファイル名" >> .git/info/exclude</span></code></pre>
 
 ### git restore
 
@@ -106,7 +112,7 @@ git config --global core.editor ‘エディタ名’
 コメントを書かないとエラーになる。
 
 | --- | --- |
-| `--amend` | 直前のコミット修正 |
+| `--amend` | 直前のコミットメッセージとコミット内容を修正 (push する前) |
 
 ### git restore <ファイル名>
 
@@ -161,9 +167,9 @@ HEAD移動履歴。
 
 HEAD が指しているコミットからブランチを作成する。
 
-#### git branch <新ブランチ名> <コミット or ID>
+#### git branch <新ブランチ名> <ブランチかID>
 
-現在どこにいても後ろのコミット (または ID) から新ブランチを作る。
+現在どこにいても、後ろの引数で指定したブランチ (または ID) から新ブランチを作る。
 
 ```bash
 # main が指しているコミットから feature を作る
@@ -245,20 +251,42 @@ git branch feature main
 
 ### git stash
 
+stash は現在の作業内容を一時的に退避して、作業ディレクトとステージング領域を HEAD (現在の最新コミット) の状態に戻す。<br>
+<span class="code-like">git stash</span> で作成されたデータは .git/refs/stash というファイルに保存される。
 
-
-
-#### git stash list
-
-
-
+| --- | --- |
+| -m | commit のようにメッセージを付ける |
 
 #### git stash pop
 
-間違ったブランチで作業をしたので、<span class="code-like">checkout</span> したくても、
+退避していた変更が再び適用されて、 stash は削除される。
+
+#### git apply
+
+退避していた変更を適用して stash を残しておく場合。
+
+#### git stash list
+
+stash の一覧を表示する。
+
+```bash
+stash@{0}: WIP on release: 5f3a2b1 ... (一番新しい)
+stash@{1}: WIP on feature/login: 8d9c4f2 ...
+stash@{2}: WIP on main: 3a7b9e0 ... (古いもの)
+```
+
+インデックスを指定して適用する。
+
+```bash
+git stash pop stash@{1}
+git stash apply stash@{1}
+```
+
+<pre><code class="tips">間違ったブランチで作業をしたので、<span class="code-like">checkout</span> したくても、
 ファイルに変更を加えた状態では <span class="code-like">checkout</span> 出来ないので 、
 <span class="code-like">stash</span> で <span class="code-like">commit</span> する前の状態にして 
-<span class="code-like">checkout</span> してから <span class="code-like">pop</span> を行うと解決できる。
+<span class="code-like">checkout</span> してから <span class="code-like">pop</span> を行うと解決できる。</code></pre>
+
 
 ## 取り消し <a id="cancel" data-name="取り消し"></a>
 
@@ -271,9 +299,9 @@ git branch feature main
 
 ### git reset --hard <コミットID>
 
+現在作業中の状態を全て破棄して、コミットID の状態にする。
 
-
-
+<pre><code class="example">git reset --hard HEAD</code></pre>
 
 
 ### git revert
@@ -330,6 +358,18 @@ rmのみだとローカルのワークツリーとインデックスからファ
 ---
 
 ## 困った時 <a id="trouble" data-name="困った時"></a>
+
+### 現在の履歴を残しつつ別のブランチに切り替えたい
+
+コミットできる状況ならコミットするのが一番安心。
+
+```bash
+git add .
+git commit -m "WIP: 作業途中"
+git switch other-branch
+```
+
+コミットできない状況なら stash がいい。
 
 ### 無視したいファイルをコミットしてしまったとき(ignoreしたい)
 gitの追跡対象から除外する。
