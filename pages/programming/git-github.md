@@ -99,8 +99,6 @@ commit した時に保存されるのは add した時の状態であるため�
 .git/info/exclude に .gitignore の要領で無視するファイル/ディレクトリを追記することにより、ローカル環境でだけ無視できる。
 追記するだけならこれでもOK <span class="code-like">echo "ファイル名" >> .git/info/exclude</span></code></pre>
 
-### git restore
-
 ---
 
 ## コミット <a id="commit" data-name="コミット"></a>
@@ -113,14 +111,6 @@ commit した時に保存されるのは add した時の状態であるため�
 
 | --- | --- |
 | `--amend` | 直前のコミットメッセージとコミット内容を修正 (push する前) |
-
-### git restore <ファイル名>
-
-特定のブランチ/コミットからファイルを元に戻す。
-
-### git restore -&#8203;-source <コミットID> <ファイル名>
-
-ファイルを特定のコミット状態まで戻す (ステージングエリアも含む)
 
 ---
 
@@ -290,19 +280,30 @@ git stash apply stash@{1}
 
 ## 取り消し <a id="cancel" data-name="取り消し"></a>
 
-### git restore
+### git reset HEAD <ファイル名><br>git restore --staged <ファイル名>
 
+誤って余計なファイルをステージングしてしまった時などにステージングを取り消す。
 
+### git reset --soft HEAD~
 
+直前のコミットだけを取り消して add してステージングした状態に戻す。<br>
+HEAD~ は1つ前のコミットという意味。
 
+### git reset --hard HEAD~
 
+1つ前のコミットの状態に、手元のファイルごと完全に巻き戻す。<br>
+
+### git reset --hard HEAD
+
+最新のコミット (HEAD) の状態に、手元のファイルごと完全に巻き戻す。
+
+### git restore -&#8203;-source <コミットID> <ファイル名>
+
+ファイルを特定のコミット状態まで戻す (ステージングエリアも含む)
 
 ### git reset --hard <コミットID>
 
 現在作業中の状態を全て破棄して、コミットID の状態にする。
-
-<pre><code class="example">git reset --hard HEAD</code></pre>
-
 
 ### git revert
 

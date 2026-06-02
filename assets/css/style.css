@@ -373,7 +373,7 @@ pre code {
 }
 
 /* ----------- スマホ用 ----------- */
-@media screen and (max-width: 960px) {
+@media screen and (max-width: 980px) {
     #container {
         display: block;
     }
