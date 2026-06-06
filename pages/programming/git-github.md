@@ -41,22 +41,33 @@ git config --global init.defaultBranch main
 
 ## GitHub導入 <a id="github-introduction" data-name="GitHub導入"></a>
 
+### SSHキーの生成
+
+GitHub に登録されているメールアドレスを指定してキーを生成。
+
+```bash
+ssh-keygen -t ed25519 -C "email@example.com"
+```
+
+保存場所、パスフレーズを聞かれるので、必要なければ Enter 3回入力。
 
 
+### GitHub に公開鍵を登録
 
+settings &gt;&gt; SSH and GPG keys &gt;&gt; New SSH key に、<br>
+home にある id_ed25519.pub の内容を張り付ける。
 
+```bash
+cat id_ed25519.pub
+```
 
+### 接続確認
 
+```bash
+ssh -T git@github.com
+```
 
-
-
-
-
-
-
-
-
-
+初回接続時は「Are you sure you want to continue connecting...」と聞かれるので、yes と入力。
 
 ---
 
