@@ -5,38 +5,57 @@ layout: default
 
 # Git/Github <a id="top" data-name="TOP"></a>
 
-
 ---
 
-
-## 導入 <a id="introduction" data-name="導入"></a>
+## Git導入 <a id="git-introduction" data-name="Git導入"></a>
 
 ### 初期設定
 
-<div class="subtitle">ユーザーネームとメールアドレスを設定する</div>
+#### ユーザーネームとメールアドレスを設定する
 
 ```bash
 git config --global user.name “名前”
 git config --global user.email “メールアドレス”
 ```
 
-<div class="subtitle">デフォルトの初期ブランチ名を登録する</div>
+#### デフォルトの初期ブランチ名を登録する
 
 ```bash
-git config --global init.defaultBranch ブランチ名
+git config --global init.defaultBranch main
 ```
 
-<div class="subtitle">エディタを設定する場合</div>
+#### エディタを設定する場合
 
 ```bash
-git config --global core.editor ‘エディタ名’
-```
+# VSCode の場合
+ git config --global core.editor "code --wait"
+ ```
 
 ### 設定の確認
 
 設定はホームディレクトリ下の.gitconfigに保存される。
 
 <span class="code-like">git config -&#8203;-list</span> で確認することもできる。
+
+---
+
+## GitHub導入 <a id="github-introduction" data-name="GitHub導入"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ---
@@ -75,46 +94,14 @@ git config --global core.editor ‘エディタ名’
 | `--word-diff` | 文字単位での差分。見やすくなる |
 | `--cached` | インデックスとの差分 |
 
+#### git diff FETCH_HEAD..HEAD
+
+追跡ブランチとローカルブランチの差分を見る。
+
 ### git show <コミットID>
 
 コミットIDを指定して詳細を表示する。<br>
 <span class="code-like">git show</span> のみだと現在位置の指定 (git show HEADと同じ) 。
-
-
-<span class="code-like">git diff FETCH_HEAD..HEAD</span> 追跡ブランチとローカルブランチの差分を見る。
-
----
-
-## ステージング操作 <a id="staging" data-name="ステージング操作"></a>
-
-### git add <ファイル名>
-
-インデックスに追加 (ステージングする)。
-
-commit した時に保存されるのは add した時の状態であるため、 add した後に作業して、最新の状態を commit したい場合は再び add する必要がある。
-
-<span class="code-like">git add .</span> ドット(.) を使うとカレントディレクトリ以下のものを全て一括して追加する。
-
-<pre><code class="tips">.gitignore を変更できないが <span class="code-like">git add .</span> した時に含めたくないファイルがある場合は、
-.git/info/exclude に .gitignore の要領で無視するファイル/ディレクトリを追記することにより、ローカル環境でだけ無視できる。
-追記するだけならこれでもOK <span class="code-like">echo "ファイル名" >> .git/info/exclude</span></code></pre>
-
----
-
-## コミット <a id="commit" data-name="コミット"></a>
-
-### git commit -m “コメント”
-
-ステージングしたものをコミット (変更履歴をローカルリポジトリに登録) する。
-
-コメントを書かないとエラーになる。
-
-| --- | --- |
-| `--amend` | 直前のコミットメッセージとコミット内容を修正 (push する前) |
-
----
-
-## 履歴閲覧 <a id="history" data-name="履歴閲覧"></a>
 
 ### git log
 
@@ -138,6 +125,40 @@ commit した時に保存されるのは add した時の状態であるため�
 ### get reflog
 
 HEAD移動履歴。
+
+---
+
+## ステージング操作 <a id="staging" data-name="ステージング操作"></a>
+
+### git add <ファイル名>
+
+インデックスに追加 (ステージングする)。
+
+commit した時に保存されるのは add した時の状態であるため、 add した後に作業して、最新の状態を commit したい場合は再び add する必要がある。
+
+<span class="code-like">git add .</span> ドット(.) を使うとカレントディレクトリ以下のものを全て一括して追加する。
+
+<pre><code class="tips">すでに管理中だがローカルでの変更を <span class="code-like">git add .</span> で無視したい場合は
+<span class="code-like">git update-index --skip-worktree &lt;ファイル名&gt;</span> とする</code></pre>
+
+
+
+<pre><code class="tips">追跡中ファイルではない、かつ .gitignore を変更できないが <span class="code-like">git add .</span> した時に含めたくないファイルがある場合は、
+.git/info/exclude に .gitignore の要領で無視するファイル/ディレクトリを追記することにより、ローカル環境でだけ無視できる。
+追記するだけならこれでもOK <span class="code-like">echo "ファイル名" >> .git/info/exclude</span></code></pre>
+
+---
+
+## コミット <a id="commit" data-name="コミット"></a>
+
+### git commit -m “コメント”
+
+ステージングしたものをコミット (変更履歴をローカルリポジトリに登録) する。
+
+コメントを書かないとエラーになる。
+
+| --- | --- |
+| `--amend` | 直前のコミットメッセージとコミット内容を修正 (push する前) |
 
 ---
 
@@ -174,6 +195,35 @@ git branch feature main
 
 ブランチの作成と移動を同時に行う。 <span class="code-like">checkout</span> の代替として追加されたコマンド。
 
+### 親ブランチの変更を取り込む
+
+#### git mergeを使う (安全・初心者向け)
+
+親ブランチの変更を取り込む標準的なやり方で、コンフリクトの解消が1度で済むが、グラフの履歴が少し複雑になる。
+
+```bash
+# 取り込みたいブランチにいる状態で release を取り込む場合
+git merge origin/release
+```
+
+#### git rebase (履歴をきれいに保つ)
+
+親ブランチの最新状態からブランチを切ったかのようになるが、場合によっては複数回コンフリクトの解消が必要になる。
+
+```bash
+# 取り込みたいブランチにいる状態で release にブランチを付け替えたい場合
+git rebase origin/release
+```
+
+### ブランチの削除
+
+```bash
+# ローカルのブランチを削除
+git branch -d feature-abc
+# リモートに削除を反映
+git push origin --delete feature-abc
+```
+
 ---
 
 ## マージ <a id="merge" data-name="マージ"></a>
@@ -185,9 +235,33 @@ git branch feature main
 | --- | --- |
 | `--no-edit` | エディタで開かれるのを回避する |
 
+### merge の手順
+
+1. 作業内容をコミット
+    ```bash
+    git add .
+    git commit -m "完成"
+    ```
+2. 取り込み先に切り替える
+    ```bash
+    git switch main
+    ```
+3. 最新の状態を反映させる (重要)
+    ```bash
+    git pull origin main
+    ```
+4. 合流
+    ```bash
+    git merge feature-abc
+    ```
+5. リモートに反映
+    ```bash
+    git push origin main
+    ```
+
 ### git rebase
 
-履歴を付け替える。 
+履歴を付け替える。
 
 ---
 
@@ -221,12 +295,6 @@ git branch feature main
 リモートブランチの変更履歴を追跡ブランチに持ってくる。<br>
 <span class="code-like">fetch</span> は HEAD に影響されないので安全に実行できる。ただし <span class="code-like">pull</span> は別。
 
-### git pull <リモート名> <ブランチ名>
-
-フェッチとマージを同時に行う。
-
-リモートブランチの変更履歴をローカルブランチに一気に持ってくる。
-
 ### git push <リモート名> <ブランチ名>
 
 ローカルからリモートへプッシュする。
@@ -235,13 +303,25 @@ git branch feature main
 
 追跡を指定して、以降ブランチ名の記述が不要になる。
 
+
+### git pull <リモート名> <取り込みたいブランチ名>
+
+フェッチとマージを同時に行う。<br>
+リモートブランチの変更履歴をローカルブランチの HEAD (今いるブランチ) に一気に持ってくる。
+
+<span class="code-like">git push -u origin main</span> が指定されていると、 origin main がマージされる。
+
+<pre><code class="caution">ファイルをコミットしていない状態で  <span class="code-like">pull</span> しようとすると
+ファイルが混ざるのを防ぐために <span class="code-like">pull</span> が拒否されることがあるのでその場合は、
+<span class="code-like">git stash</span> <span class="code-like">git pull</span> <span class="code-like">git stash pop</span> を行う。</code></pre>
+
 ---
 
 ## 一時退避 <a id="temp" data-name="一時退避"></a>
 
 ### git stash
 
-stash は現在の作業内容を一時的に退避して、作業ディレクトとステージング領域を HEAD (現在の最新コミット) の状態に戻す。<br>
+<span class="code-like">stash</span> は現在の作業内容を一時的に退避して、作業ディレクトとステージング領域を HEAD (現在の最新コミット) の状態に戻す。<br>
 <span class="code-like">git stash</span> で作成されたデータは .git/refs/stash というファイルに保存される。
 
 | --- | --- |
@@ -260,10 +340,12 @@ stash は現在の作業内容を一時的に退避して、作業ディレク�
 stash の一覧を表示する。
 
 ```bash
-stash@{0}: WIP on release: 5f3a2b1 ... (一番新しい)
-stash@{1}: WIP on feature/login: 8d9c4f2 ...
-stash@{2}: WIP on main: 3a7b9e0 ... (古いもの)
+stash@{0}: WIP on release: 5f3a2b1... # 一番新しい
+stash@{1}: WIP on feature/login: 8d9c4f2...
+stash@{2}: WIP on main: 3a7b9e0... # 古いもの
 ```
+
+<pre><code class="tips">WIP は Work In Progress の略</code></pre>
 
 インデックスを指定して適用する。
 
@@ -280,30 +362,26 @@ git stash apply stash@{1}
 
 ## 取り消し <a id="cancel" data-name="取り消し"></a>
 
-### git reset HEAD <ファイル名><br>git restore --staged <ファイル名>
+### git reset HEAD <ファイル名><br>git restore -&#8203;-staged <ファイル名>
 
 誤って余計なファイルをステージングしてしまった時などにステージングを取り消す。
 
-### git reset --soft HEAD~
+### git reset -&#8203;-hard HEAD
+
+最新のコミット (HEAD) の状態に、手元のファイルごと完全に巻き戻す。
+
+### git reset -&#8203;-hard <コミットID>
+
+現在作業中の状態を全て破棄して、コミットID の状態にする。
+
+### git reset -&#8203;-soft HEAD~
 
 直前のコミットだけを取り消して add してステージングした状態に戻す。<br>
 HEAD~ は1つ前のコミットという意味。
 
-### git reset --hard HEAD~
-
-1つ前のコミットの状態に、手元のファイルごと完全に巻き戻す。<br>
-
-### git reset --hard HEAD
-
-最新のコミット (HEAD) の状態に、手元のファイルごと完全に巻き戻す。
-
 ### git restore -&#8203;-source <コミットID> <ファイル名>
 
 ファイルを特定のコミット状態まで戻す (ステージングエリアも含む)
-
-### git reset --hard <コミットID>
-
-現在作業中の状態を全て破棄して、コミットID の状態にする。
 
 ### git revert
 
@@ -317,7 +395,7 @@ HEAD~ は1つ前のコミットという意味。
 
 ### git tag v1.0
 
-### git push --tags
+### git push -&#8203;-tags
 
 
 
@@ -504,9 +582,10 @@ main ブランチのみでバージョン管理していくことも可能だが
 
 また追跡ブランチの現在位置を指すポインタは FETCH_HEAD となる (ローカルブランチはHEAD) 。
 
-### マージ (marge)
+### マージ (merge)
 
-
+変更を取り込んで合流させる。<br>
+変更を取り込みたいブランチに立って行う。
 
 ### プル (pull)
 

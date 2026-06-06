@@ -43,7 +43,7 @@ h3 {
 }
 
 h4 {
-    font-size: 1.4rem;
+    font-size: 1.3rem;
     color: #9fccff;
     margin: 0;
     padding: 0;
@@ -52,6 +52,23 @@ h4 {
 h5 {
     color: #c6e1ff;
     font-size: 1rem;
+}
+
+/* サブタイトル */
+.subtitle {
+    display: block;
+    color: #f5bdbd;
+    font-weight: 600;
+    font-size: 1.2rem;
+}
+
+/* サブタイトル2 */
+.subtitle2 {
+    display: block;
+    color: #bc8cff;
+    font-weight: 600;
+    font-size: 1.0rem;
+    padding: 1rem 0;
 }
 
 /* リンク */
@@ -66,11 +83,6 @@ a:visited {
 /* 水平ライン */
 hr {
     margin: 1rem 0;
-}
-
-/* code(インライン) */
-code {
-    font-weight: 500;
 }
 
 /* リスト */
@@ -167,6 +179,11 @@ tr:hover {
     transition: background-color 0.2s ease;
 }
 
+/* code(インライン) */
+code {
+    /* font-weight: 500; */
+}
+
 /* コード */
 pre {
     white-space: pre-wrap;
@@ -243,23 +260,6 @@ pre code {
     margin-bottom: 0.5rem;
     color: #0d1117;
     font-weight: 600;
-}
-
-/* サブタイトル */
-.subtitle {
-    display: block;
-    color: #f5bdbd;
-    font-weight: 600;
-    font-size: 1.2rem;
-}
-
-/* サブタイトル2 */
-.subtitle2 {
-    display: block;
-    color: #bc8cff;
-    font-weight: 600;
-    font-size: 1.0rem;
-    padding: 1rem 0;
 }
 
 /* ラベル */
