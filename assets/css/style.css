@@ -179,11 +179,6 @@ tr:hover {
     transition: background-color 0.2s ease;
 }
 
-/* code(インライン) */
-code {
-    /* font-weight: 500; */
-}
-
 /* コード */
 pre {
     white-space: pre-wrap;

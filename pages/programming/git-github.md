@@ -28,8 +28,8 @@ git config --global init.defaultBranch main
 
 ```bash
 # VSCode の場合
- git config --global core.editor "code --wait"
- ```
+git config --global core.editor "code --wait"
+```
 
 ### 設定の確認
 
@@ -116,7 +116,7 @@ ssh -T git@github.com
 
 ### git log
 
-ログを表示する。
+コミットの履歴を表示する。
 
 | --- | --- |
 | `--all` | 現在のブランチだけでなく全てのブランチの履歴を表示 |
@@ -145,11 +145,13 @@ HEAD移動履歴。
 
 インデックスに追加 (ステージングする)。
 
-commit した時に保存されるのは add した時の状態であるため、 add した後に作業して、最新の状態を commit したい場合は再び add する必要がある。
+commit した時に保存されるのは add した時の状態。add した後に作業して、その状態を commit する場合は再び add する必要がある。
 
-<span class="code-like">git add .</span> ドット(.) を使うとカレントディレクトリ以下のものを全て一括して追加する。
+#### git add .
 
-<pre><code class="tips">すでに管理中だがローカルでの変更を <span class="code-like">git add .</span> で無視したい場合は
+ドット(.) を使うとカレントディレクトリ以下のものを全て一括して追加する。
+
+<pre><code class="tips">すでに git で管理中だが、ローカルでの変更を <span class="code-like">git add .</span> した時に無視したい場合は、
 <span class="code-like">git update-index --skip-worktree &lt;ファイル名&gt;</span> とする</code></pre>
 
 
@@ -371,7 +373,7 @@ git stash apply stash@{1}
 <span class="code-like">checkout</span> してから <span class="code-like">pop</span> を行うと解決できる。</code></pre>
 
 
-## 取り消し <a id="cancel" data-name="取り消し"></a>
+## 取り消し・削除 <a id="cancel-delete" data-name="取り消し・削除"></a>
 
 ### git reset HEAD <ファイル名><br>git restore -&#8203;-staged <ファイル名>
 
@@ -398,6 +400,14 @@ HEAD~ は1つ前のコミットという意味。
 
 打ち消しコミット作成。
 
+### git rm <ファイル名>
+
+リポジトリにあるファイル自体を削除する。削除した履歴が残るのが特徴。
+
+| --- | --- |
+| --cached | ファイルを残したまま Git の追跡をやめる。その後に .gitignore に追加 |
+| -r | 再帰的にディレクトリごと削除 |
+
 ---
 
 ## タグ <a id="tag" data-name="タグ"></a>
@@ -411,16 +421,7 @@ HEAD~ は1つ前のコミットという意味。
 
 
 
----
 
-### git rm <ファイル名>
-
-リポジトリにあるファイルを削除する。<br>
-rmのみだとローカルのワークツリーとインデックスからファイルを削除する。
-
-| --- | --- |
-| -r | ローカルのディレクトリごと削除 |
-| --cached | リモートリポジトリからファイルを削除 |
 
 
 
