@@ -179,6 +179,10 @@ tr:hover {
     transition: background-color 0.2s ease;
 }
 
+code {
+    font-family: inherit;
+}
+
 /* コード */
 pre {
     white-space: pre-wrap;

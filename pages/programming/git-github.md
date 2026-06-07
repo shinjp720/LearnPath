@@ -54,7 +54,7 @@ ssh-keygen -t ed25519 -C "email@example.com"
 
 ### GitHub に公開鍵を登録
 
-settings &gt;&gt; SSH and GPG keys &gt;&gt; New SSH key に、<br>
+`settings >> SSH and GPG keys >> New SSH key` に、<br>
 home にある id_ed25519.pub の内容を張り付ける。
 
 ```bash
@@ -193,7 +193,7 @@ HEAD が指しているコミットからブランチを作成する。
 
 #### git branch <新ブランチ名> <ブランチかID>
 
-現在どこにいても、後ろの引数で指定したブランチ (または ID) から新ブランチを作る。
+現在どこにいるのかに関わらず、後ろの引数で指定したブランチ (または ID) から新ブランチを作る。
 
 ```bash
 # main が指しているコミットから feature を作る
@@ -287,37 +287,37 @@ git push origin --delete feature-abc
 | --- | --- |
 | -v | 登録されているリモート名とURLを表示 |
 
-#### git remote add <リモート名> <リモートURL>
+#### `git remote add <リモート名> <リモートURL>`
 
 リモートリポジトリを登録する。
 
-#### git remote rename <旧リモート名> <新リモート名>
+#### `git remote rename <旧リモート名> <新リモート名>`
 
 登録されているリモート名を変更する。
 
-#### git remote set-url <リモート名> <変更したいURL>
+#### `git remote set-url <リモート名> <変更したいURL>`
 
 登録されているリモートのURLを変更する。
 
-#### git remote rm <リモート名>
+#### `git remote rm <リモート名>`
 
 リモートリポジトリを削除する。
 
-### git fetch <リモート名> <ブランチ名>
+### `git fetch <リモート名> <ブランチ名>`
 
 リモートブランチの変更履歴を追跡ブランチに持ってくる。<br>
 <span class="code-like">fetch</span> は HEAD に影響されないので安全に実行できる。ただし <span class="code-like">pull</span> は別。
 
-### git push <リモート名> <ブランチ名>
+### `git push <リモート名> <ブランチ名>`
 
 ローカルからリモートへプッシュする。
 
-#### git push -u <リモート名> <ブランチ名>
+#### `git push -u <リモート名> <ブランチ名>`
 
 追跡を指定して、以降ブランチ名の記述が不要になる。
 
 
-### git pull <リモート名> <取り込みたいブランチ名>
+### `git pull <リモート名> <取り込みたいブランチ名>`
 
 フェッチとマージを同時に行う。<br>
 リモートブランチの変更履歴をローカルブランチの HEAD (今いるブランチ) に一気に持ってくる。
@@ -367,40 +367,47 @@ git stash pop stash@{1}
 git stash apply stash@{1}
 ```
 
-<pre><code class="tips">間違ったブランチで作業をしたので、<span class="code-like">checkout</span> したくても、
-ファイルに変更を加えた状態では <span class="code-like">checkout</span> 出来ないので 、
+<pre><code class="tips">間違ったブランチで作業をしたので、<span class="code-like">switch</span> したくても、
+ファイルに変更を加えた状態では <span class="code-like">switch</span> 出来ないので 、
 <span class="code-like">stash</span> で <span class="code-like">commit</span> する前の状態にして 
-<span class="code-like">checkout</span> してから <span class="code-like">pop</span> を行うと解決できる。</code></pre>
+<span class="code-like">switch</span> してから <span class="code-like">pop</span> を行うと解決できる。</code></pre>
 
 
 ## 取り消し・削除 <a id="cancel-delete" data-name="取り消し・削除"></a>
 
-### git reset HEAD <ファイル名><br>git restore -&#8203;-staged <ファイル名>
+### `git restore <ファイル名>`
+
+ファイルの変更を捨てて最新コミットの状態に戻す。
+
+<pre><code class="tips">誤って <span class="code-like">git rm</span> した場合でもコミット前なら <span class="code-like">git restore &lt;ファイル名&gt;</span> で戻せる</code></pre>
+
+### `git restore --staged <ファイル名>`
 
 誤って余計なファイルをステージングしてしまった時などにステージングを取り消す。
 
-### git reset -&#8203;-hard HEAD
+### `git restore --source <コミットID> <ファイル名>`
 
-最新のコミット (HEAD) の状態に、手元のファイルごと完全に巻き戻す。
+ファイルの変更を捨てて特定のコミット状態まで戻す (ステージングエリアも含む)。
 
-### git reset -&#8203;-hard <コミットID>
+### `git reset --hard HEAD`
+
+最新のコミット (HEAD) の状態に、手元のファイルごと完全に巻き戻す。<br>
+HEAD 以降の作業が無かったことになる。
+
+### `git reset --hard <コミットID>`
 
 現在作業中の状態を全て破棄して、コミットID の状態にする。
 
-### git reset -&#8203;-soft HEAD~
+### `git reset --soft HEAD~`
 
 直前のコミットだけを取り消して add してステージングした状態に戻す。<br>
 HEAD~ は1つ前のコミットという意味。
 
-### git restore -&#8203;-source <コミットID> <ファイル名>
-
-ファイルを特定のコミット状態まで戻す (ステージングエリアも含む)
-
-### git revert
+### `git revert`
 
 打ち消しコミット作成。
 
-### git rm <ファイル名>
+### `git rm <ファイル名>`
 
 リポジトリにあるファイル自体を削除する。削除した履歴が残るのが特徴。
 
@@ -416,7 +423,7 @@ HEAD~ は1つ前のコミットという意味。
 
 ### git tag v1.0
 
-### git push -&#8203;-tags
+### `git push --tags`
 
 
 
