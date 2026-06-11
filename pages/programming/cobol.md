@@ -908,111 +908,117 @@ COPY
 
 ## キーワード <a id="keyword" data-name="キーワード"></a>
 
-##### ACCESS MODE
+#### ACCESS MODE
 プログラムがファイルのレコードをどのような方法で読み書きするかを指定する。<br>
 以下は主要な3つのアクセスモード。
 - SEQUENTIAL：先頭から順番に1件ずつ処理する。
 - RANDOM：主キーや相対キーを指定して、特定のレコードに直接アクセスする。
 - DYNAMIC：プログラム内で順次処理と直接アクセスを切り替えられる。
 
-##### ADD
+#### ADD
 加算
 
-##### ACCEPT
+#### ACCEPT
 プログラムの外部(OSやファイル、キーボードなど)からデータを受け取る。
 - ACCEPT PARAM-DATA FROM SYSIN.
 - ACCEPT W-SYOYMD FROM DATE.
 
-##### AFTER
+#### AFTER
 改行を表し、 WRITE ... AFTER の場合、改行をしてから書き込みを行う。<br>
 AFTER のみで改行、 AFTER n で n だけ改行、 AFTER PAGE で改ページ。<br>
 正しくは AFTER ADVANCING と書くが、省略可能。
 
-##### AT END
+#### AT END
 読み込むデータが空になり、データがなかった場合の処理を書く。
 
-##### ASSIGN
+#### ASSIGN
 SELECT で名前と物理を紐づける。
 
-##### CALL
+#### ALSO
+EVALUATE 文における ALSO は、複数の条件を同時に判定することができ、<br>
+<span class="code-like">EVALUATE 変数A ALSO 変数B ALSO 変数C</span> という書き方で、複数の変数を一緒に判定することができ、さらに<br>
+<span class="code-like">WHEN 値A ALSO ANY</span> と書けば、値Aなら他は何でもいいという意味になる。
+
+
+#### CALL
 別のプログラムとしてコンパイルされているものを実行する。引数も渡せる。<br>
 PERFORM は同じプログラム内の別の段落やセクションを実行する。
 - CALL "PROG".
 
-##### COMPUTE
+#### COMPUTE
 算術式計算。
 
-##### COPY
+#### COPY
 COPY 句により外部のファイルなどを挿入する。
 
-##### DISPLAY
+#### DISPLAY
 標準出力への出力。
 
-##### DIVIDE
+#### DIVIDE
 除算。
 
-##### EVALUATE
+#### EVALUATE
 EVALUATE 評価式 として、 switch文のように値を評価する。
 
-##### FILLER
+#### FILLER
 変数名を持たず、詰め物として使う値。
 
-##### GIVING
+#### GIVING
 計算結果を変数に代入するときに使う。
 - ADD A TO B GIVING C.
 
-##### HIGH-VALUE
+#### HIGH-VALUE
 データのバイト列を全て1にする。
 
-##### INVALID
+#### INVALID
 INVALID句はデータの妥当性を検査する。<br>
 READ で読み込めなかった、 WRITE で書き込めなかった等。
 - INVALID KEY
 
-##### INITIALIZE
+#### INITIALIZE
 変数の初期化を行い、数字項目には0文字列項目にはスペースが代入される。
 - INITIALIZE TOP-LEVEL.
 
-##### JOINING
+#### JOINING
 PREFIX または SUFFIX によって、接頭辞または接尾辞を-(ハイフン)を区切り文字として付加する。
 - JOINING HAI AS PREFIX.
 
-##### KEY
+#### KEY
 SELECT句で定義してある RECORD KEY IS 項目名. と紐づけられる。
 
-##### MOVE
+#### MOVE
 代入。
 
-##### USING
+#### USING
 PROCEDURE DIVISION の冒頭で、 USING 構造体名として、 LINKAGESECTION で宣言された構造体へのポインタを呼出元から引数として受け取る。
 - PROCEDURE DIVISION USING LNK-AREA.
 
-##### LOW-VALUE
+#### LOW-VALUE
 データのバイト列を全て0にする。
 
-##### LINAGE
+#### LINAGE
 FD句の中に記述し、印刷時の論理的なページ構成をシステムに伝える。
 - LINAGE WK-LINES LINES.
 
-##### LINKAGE SECTION
+#### LINKAGE SECTION
 呼ばれる側のプログラムでCALLを通じて引数を渡すために記述する。<br>
 このセクションにどんなデータが届くのかを定義して、 PROCEDURE DIVISION USING... に記述した順番で紐づけられる。<br>
 データの参照になるので呼出元のデータを直接書き換える。
 
-##### MULTIPLY
+#### MULTIPLY
 乗算。
 
-##### OPEN
+#### OPEN
 ファイルをオープンする。使用後は必ずクローズする。
 - INPUT：入力用にオープン。データを読み込む (READ) ときに使う。
 - OUTPUT：出力用にオープン。新しくファイルを作ってデータを書き込む (WRITE) ときに使う。上書き保存される。
 - I-O：入出力用にオープン。必要に応じて読込、更新、削除を行う。
 - EXTENDED：拡張用にオープン。既存ファイルの末尾にデータを追加する。
 
-##### ON SIZE ERROR
+#### ON SIZE ERROR
 桁あふれが発生した時のエラー処理を記述する。
 
-##### ORGANIZATION
+#### ORGANIZATION
 データがファイルの中でどのように構成・記録されるかを指定する。<br>
 FILE-CONTROL 段落で記述して、一度ファイルを作成すると後から変更できない。<br>
 以下は主な4つのファイル編成。
@@ -1021,44 +1027,50 @@ FILE-CONTROL 段落で記述して、一度ファイルを作成すると後か�
 - RELATIVE：各レコードに番号(相対レコードキー)が割り当てられ、番号を指定して直接アクセス可能。
 - INDEXED：レコード内の特定の項目(レコードキー)を索引としてもち、高速な検索・更新が可能。
 
-##### OCCURS
+#### OCCURS
 配列を宣言する。
 - 03  UK1-SCD  PIC X(2)  OCCURS 8 TIMES.
 
-##### PERFORM
+#### PERFORM
 サブルーチンを呼び出したり、 UNTIL(while) 、 VARYING(for) 、 TIMES で繰り返し処理を行う。
 
-##### PIC
+#### PIC
 変数のデータ型を指定する。
 
-##### ROUNDED
+#### ROUNDED
 計算結果を四捨五入する。
 
-##### REMAINDER
+#### REMAINDER
 DIVIDE文で余りを取得する。
 
-##### SPACE
+#### START
+
+Indexedファイルやrelativeファイルに対して、読み込みを開始する位置を決めるために使う。<br>
+レコード自体は読み込まれないので READ と一緒に使う。
+
+
+#### SPACE
 スペースを表す予約語。
 
-##### SPECIAL-NAMES
+#### SPECIAL-NAMES
 システムのデバイスに独自の呼び名をつける。
 - CONSOLE IS CSL.
 
-##### SUBTRACT
+#### SUBTRACT
 減算。
 
-##### UNTIL
+#### UNTIL
 UNTIL 条件式でまでずっと（while）。
 
-##### UPON
+#### UPON
 主に DISPLAY 文と一緒に使われ、データの出力先を指定するキーワード。
 
-##### VALUE
+#### VALUE
 変数に初期値を割り当てるために使う。
 
-##### VARYING
+#### VARYING
 他の言語で言うところのfor文。
 - PERFORM VARYING  カウンタ  FROM  初期値  BY  変動値
 
-##### ZERO
+#### ZERO
 0を表す予約語。
