@@ -1955,8 +1955,11 @@ where
 
 の用途がある。
 
-アトリビュートがクレート全体に適用される場合は `#![crate_attribute]` という書き方になり<br>
-モジュールや要素に適用される場合は `#[item_attribute]` となる。
+アトリビュートがクレート全体に適用される場合は<br>
+<span class="code-like">#![crate_attribute]</span><br>
+と書き、モジュールや要素に適用される場合は<br>
+<span class="code-like">#[item_attribute]</span><br>
+と書く。
 
 ---
 
@@ -2029,7 +2032,7 @@ println!("{u}"); // User: Alice
 
 ### テストの書き方
 
-`#[cfg(test)]`アトリビュートによってコンパイラに、test時のみモジュールを有効にするように指定する。
+`#[cfg(test)]` アトリビュートによってコンパイラに、test時のみモジュールを有効にするように指定する。
 
 ```rust
 #[cfg(test)]

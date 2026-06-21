@@ -1616,16 +1616,30 @@ import type { User } from './types'
 
 ### 関数の定義
 
-- アロー式
+#### 関数宣言
 
 ```javascript
-() => {}
+function 関数名 (引数) {
+  // 処理
+}
+```
+
+最も基本的な書き方で、ホイスティングされるため定義より前でも呼び出すことができる。
+
+#### アロー式
+
+```javascript
+(引数) => {
+  // 処理
+}
 ```
 
 ES6でサポートされた比較的モダンな書き方で this の扱いが function と異なり、
 
 - function は誰が読んだか (呼び出し方) で this が決まる (動的)
 - アロー関数はどこに書いたか (定義場所) で this が決まる (静的)
+
+またアロー関数は記述が短い、ホイスティングされないなどの特徴がある。
 
 ```javascript
 // 一般的な書き方
@@ -1650,25 +1664,129 @@ arg1 => { return arg1 * 2; }
 (file, mode = "r") => { ... }
 ```
 
-- 関数宣言
+#### 関数式
 
 ```javascript
-function 関数名 () {}
+const 関数名 = function(引数) {
+  // 処理
+}
 ```
 
-- 関数式
+条件によって関数を切り替えたい場合などに使う。
+
+ホイスティングはされない。
+
+#### 無名関数
 
 ```javascript
-const 関数名 = function() {}
+function(引数) {
+  // 処理
+}
 ```
+
+名前を持たない関数で、1度しか呼び出されないような処理 (コールバック関数やイベント処理など) を記述するために使う。
+
+#### メソッド記法
+
+```javascript
+const オブジェクト名 = {
+  関数名() {
+    // 処理
+  }
+}
+```
+
+オブジェクト内専用の省略記法。実質的には
+
+```javascript
+const オブジェクト名 = {
+  関数名: function() {
+    // 処理
+  }
+}
+```
+
+### デフォルト引数
+
+関数の実行時に引数が渡されなかった場合の引数を指定できる。
+
+```javascript
+function (arg1 = 初期値1, arg2 = 初期値2) {
+  // 処理
+}
+```
+
+### オブジェクトを引数として渡す
+
+引数が多い場合にはオブジェクトを引数として渡せる。
+
+```javascript
+function fn(obj) {
+  obj.arg1 ??= "初期値1";
+  obj.arg2 ??= "初期値2";
+  console.log(obj.arg1, obj.arg2);
+}
+
+fn ({arg2: "引数2"}); // 初期値1 引数2
+```
+
+または
+
+```javascript
+// 引数の段階で展開し、デフォルト値を割り当て
+function fn({ arg1 = "初期値1", arg2 = "初期値2" } = {}) {
+  console.log(arg1, arg2); 
+}
+
+const params = { arg2: "引数2" };
+fn(params); // 初期値1 引数2
+```
+
+ただし、インスタンスを渡した場合参照が渡るので、値を書き換えた場合の挙動に注意
 
 ---
 
-<a id="async" data-name="非同期"></a>
+## 非同期関数 <a id="async-func" data-name="非同期関数"></a>
 
-## 非同期
+### async
 
-- コールバック関数
+asyncが付いた関数は自動的に Promise でラップされる (Promise を返す関数となる) ため、 await で待つことができる。
+
+もちろん自分で明示的に Promise を返すこともでき、その際は <span class="code-like">Promise&lt;Promise &lt;string&gt;&gt;</span> とはならずに平坦化される。
+
+```javascript
+async function hello() {
+    return "Hello";
+}
+```
+
+この関数は一見すると文字列を返すだけに見えるが内部的には次のようなイメージ。
+
+```javascript
+function hello() {
+    return Promise.resolve("Hello");
+}
+```
+
+また、例外を投げた場合は、
+
+```javascript
+async function test() {
+    throw new Error("Oops");
+}
+```
+
+次とほぼ同じ。
+
+```javascript
+function test() {
+    return Promise.reject(new Error("Oops"));
+}
+```
+
+### コールバック, Promise, async/await の違い
+
+#### コールバック関数
 
 ```javascript
 setTimeout(() => {
@@ -1682,7 +1800,7 @@ setTimeout(() => {
 }, 1000);
 ```
 
-- Promise
+#### Promise
 
 ```javascript
 new Promise(resolve => {
@@ -1707,7 +1825,7 @@ new Promise(resolve => {
 });
 ```
 
-- async/await
+#### async/await
 
 ```javascript
 func = async () => {
@@ -1728,16 +1846,7 @@ log = (num) => {
 func();
 ```
 
-
-
-
-
-
-
-
 ---
-
-
 
 ## 例外処理 <a id="error-handling" data-name="例外処理"></a>
 
