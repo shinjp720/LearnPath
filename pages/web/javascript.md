@@ -1562,8 +1562,55 @@ value を返す。<br>
 
 ### Map.groupBy(array, function)
 
+---
 
+## クラス <a id="class" data-name="クラス"></a>
 
+class はオブジェクトを作るためのひな型のようなもので、コードの重複が減るため保守性が上がったり、簡単にオブジェクトを生成できるなどのメリットがある。
+
+<span class="code-like">constructor</span> によりコンストラクタを定義できる。
+
+### クラスの定義
+
+```javascript
+class クラス名 {
+  constructor([引数, ...]) {
+    this.プロパティ = 値;
+  }
+
+  メソッド名([引数, ...]) {
+    // 処理
+  }
+}
+```
+
+### クラスの生成
+
+```javascript
+// 引数あり
+const オブジェクト = new クラス名([引数, ...]);
+
+// 引数なし
+const オブジェクト = new クラス名; // () は省略可能
+```
+
+### 静的メソッド・静的プロパティ
+
+static キーワードを付けると静的メソッド・静的プロパティとなり、class 自体に紐づけられる。<br>
+呼び出しは <span class="code-like">クラス名.メソッド名()</span> <span class="code-like">クラス名.プロパティ名</span> となる。
+
+```javascript
+class Test {
+    static count = 0;
+    static showCount() {
+        console.log(Test.count);
+    }
+
+    constructor() { Test.count++ }
+}
+```
+
+### ゲッター・セッター
 
 
 
