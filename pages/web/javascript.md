@@ -545,7 +545,7 @@ str.charAt(2) // 'う'
 
 charAt() とほぼ同様だが、負数を指定すると末尾からのインデックスになる点と、範囲外のインデックスを指定した場合に charAt() は空文字を返すのに対して at() は undefined を返す。
 
-#### string.slice(from [, to])
+#### `string.slice(from [, to])`
 
 string の from 文字目から to - 1 文字目の文字列を返す。<br>
 不の値を指定すると後ろから数える点が substring と異なる。<br>
@@ -556,7 +556,7 @@ console.log("ABCDEFG".substring(-3, 6));  // "ABCDEF"
 console.log("ABCDEFG".slice(-3, 6));      // "EF"
 ```
 
-#### string.substring(from [, to])
+#### `string.substring(from [, to])`
 
 string の from 文字目から to-1 文字目の文字列を返す。<br>
 to を省略すると残り全て。
@@ -570,7 +570,7 @@ console.log("ABCDEFG".substring(2));     // "CDEFG"
 
 ### 文字列の加工
 
-#### string.split([sep [, limit]])
+#### `string.split([sep [, limit]])`
 
 sep を区切り文字として string を分割し、その配列を返す。<br>
 limit は配列の要素数を制限して、sep を省略すると string 全体をひとつの要素とする配列を返す。
@@ -620,7 +620,7 @@ console.log("Japan".toUpperCase());   // "JAPAN"
 console.log("Japan".toLowerCase());   // "japan"
 ```
 
-#### string.padStart(length[, str])<br>string.padEnd(length[, str])
+#### `string.padStart(length[, str])`<br>`string.padEnd(length[, str])`
 
 padStart() は文字列の前方に、padEnd() は文字列の後方に詰め物を入れる。<br>
 length にはパディング後の全体の長さ、str にはパディングする文字を指定する。<br>
@@ -702,7 +702,7 @@ console.log("AAA".replaceAll(/A/, "X"));   // Error
 
 文字列の検索には正規表現の <a href="#matching">マッチング</a>もある。
 
-#### string.indexOf(key [, from])
+#### `string.indexOf(key [, from])`
 
 
 string の from 番目から後方に検索し、最初に key が現れた index を返す。<br>
@@ -713,7 +713,7 @@ console.log("ABCABC".indexOf("C"));    // 2
 console.log("ABCABC".indexOf("C", 3)); // 5
 ```
 
-#### string.lastIndexOf(key [, from])
+#### `string.lastIndexOf(key [, from])`
 
 string の from 番目から前方に検索し、最初に key が現れた index を返す。<br>
 見つからなかった場合は -1 を返す。
@@ -798,7 +798,7 @@ console.log("ABC".link("index.html")); // <a href="index.html">ABC</a>
 
 ### 正規表現オブジェクト
 
-#### regexp = new RegExp(pattern[, flags])
+#### `regexp = new RegExp(pattern[, flags])`
 
 正規表現オブジェクトを生成する。flags の詳細は<a href="#flags">flags</a>を参照。
 
@@ -933,7 +933,7 @@ console.log(result.groups.day);   // 31
 
 ### 生成
 
-#### Array.from(arrayLike[, mapFunc, [thisArg]])
+#### `Array.from(arrayLike[, mapFunc, [thisArg]])`
 
 String, Set, Mapなどの配列ライクなオブジェクトや反復可能オブジェクトから新しい配列を生成する。
 
@@ -1058,7 +1058,7 @@ for (let color of colors) {
 <pre><code class="caution">配列に対して for if を使うと index が取れるが、中身は文字列でありバグの元なので配列には for in は使わない。</code></pre>
 
 
-#### array.forEach(callback[, this])
+#### `array.forEach(callback[, this])`
 
 配列の各要素を引数にして callback を実行する。<br>
 callback の引数には、要素値 (value) 、 インデックス (index) 、 配列自体 (array) が渡される。引数は順不同だが省略は可能。
@@ -1098,7 +1098,7 @@ for (let value of arr.values()) {
 
 ### 配列の走査
 
-#### array.map(callback[, this])
+#### `array.map(callback[, this])`
 
 配列の各要素に対して callback を実行し、callback の戻り値からなる配列を返す。<br>
 callback の引数には、要素値 (value) 、インデックス (index) 、配列自体 (array) が渡される。
@@ -1109,7 +1109,7 @@ const arr2 = arr1.map((value, index, key) => value * 2);
 console.log(arr2) // [4, 8, 12]
 ```
 
-#### array.filter(callback[, this])
+#### `array.filter(callback[, this])`
 
 配列の各要素に対して callback を実行し、callback の戻り値が真となる要素からなる配列を返す。<br>
 callback の引数には、要素値 (value) 、インデックス (index) 、配列自体 (array) が渡される。
@@ -1172,7 +1172,7 @@ console.log(2 in arr); // true
 console.log(3 in arr); // false
 ```
 
-#### array.every(callback[, this]),<br>array.some(callback[, this])
+#### `array.every(callback[, this])`<br>`array.some(callback[, this])`
 
 配列の各要素に対して callback を実行して、every() は callback の戻り値がすべて真なら真を返し、some() は callback の戻り値が1つでも真なら真を返す。<br>
 callback の引数には、要素値 (value) 、インデックス (index) 、配列自体 (array) が渡される。
@@ -1190,7 +1190,7 @@ const bool = arr.some(function(value, index, array) {
 console.log(bool);  // true
 ```
 
-#### array.find(callback[, this]),<br>array.findLast(callback[, this]),<br>array.findIndex(callback[, this]),<br>array.findLastIndex(callback[, this])
+#### `array.find(callback[, this])`<br>`array.findLast(callback[, this])`<br>`array.findIndex(callback[, this])`<br>`array.findLastIndex(callback[, this])`
 
 find() は、配列の各要素に対して callback を実行して、callback の戻り値が最初に真となった要素の値を返す。<br>
 callback の引数には、要素値 (value) 、インデックス (index) 、配列自体 (array) が渡される。
@@ -1230,7 +1230,7 @@ const arr3 = arr1.concat(arr2);
 console.log(arr3);  // ["Red", "Green", "Blue", "Yellow"]
 ```
 
-#### array.join([separator])
+#### `array.join([separator])`
 
 array の各要素の値を separator で連結した文字列を返す。<br>
 separator を省略した場合はカンマ(,)で連結されるが、バージョンによって動作が異なる恐れがあるので省略しない。
@@ -1304,7 +1304,7 @@ console.log(arr1);  // ['A', 'B', 'C', 'D', 'E', 'F', 'G']
 console.log(arr2);  // ['A', 'B', 'X', 'Y', 'Z', 'F', 'G']
 ```
 
-#### array.slice(start [, end])
+#### `array.slice(start [, end])`
 
 0 から数えて、start からend-1 番目までの要素を配列で返す。<br>
 end を省略した場合は start から最後までの要素を返す。<br>
@@ -1315,7 +1315,7 @@ const arr = ["A", "B", "C", "D", "E", "F", "G"];
 console.log(arr.slice(2, 4));  // ["C", "D"]
 ```
 
-#### delete array[n]
+#### `delete array[n]`
 
 要素を削除する。削除したインデックスの値が undefined となるため、配列要素削除するには splice() を用いるのが一般的。
 
@@ -1332,7 +1332,7 @@ console.log(arr[2]);   // "Blue"
 
 ### 配列の並べ替え
 
-#### array.sort([func])
+#### `array.sort([func])`
 
 array を並べ替えて、結果の配列を返す。<br>
 array 自体も書き換えられる。
@@ -1359,7 +1359,7 @@ arr.sort(comparison);
 console.log(arr);  // ["a", "B", "c", "x", "y", "Z"]
 ```
 
-#### array.toSorted([func])
+#### `array.toSorted([func])`
 
 array をソートして、結果の配列を返す。<br>
 array は変化しない。<br>
@@ -1388,7 +1388,7 @@ const arr = [1, 2, 3, "A", "B", "C"];
 arr.toString(); // "1,2,3,A,B,C"
 ```
 
-#### array.toLocaleString([locales[, options]])
+#### `array.toLocaleString([locales[, options]])`
 
 配列をロケールに応じた文字列に変換する。
 
@@ -1403,7 +1403,7 @@ arr.toString();
 
 ### 配列要素の変更
 
-#### array.fill(value[, start[, end]])
+#### `array.fill(value[, start[, end]])`
 
 0 から数えて、start からend-1 番目までの要素の値を value に変換する。<br>
 array 自体を書き換える。<br>
@@ -1430,7 +1430,7 @@ console.log(arr1);   // ['0', '1', '2', '3', '4', '5']
 console.log(arr2);   // ['0', '1', '2', 'X', '4', '5']
 ```
 
-#### array.copyWithin(target[, start[, end]])
+#### `array.copyWithin(target[, start[, end]])`
 
 0 から数えて、start からend-1 番目の要素をコピーして target 番目から上書きする。<br>
 array 自体を書き換える。<br>
@@ -1470,7 +1470,7 @@ Object と似ているが、Map は、文字列や Symbol 以外の値もキー�
 リストの個数を size で取得できる、for of で簡単にループできる、
 頻繁な要素の追加や削除があるような大量のデータを扱うケースに最適化されているなどの利点がある。
 
-### map = new Map([iterable])
+### `map = new Map([iterable])`
 
 コンストラクタにはキーとバリューの二次元配列を指定できる。
 
@@ -1518,7 +1518,7 @@ for (let value of map.values()) {
 }
 ```
 
-### map.forEach(function[, this])
+### `map.forEach(function[, this])`
 
 
 
@@ -1612,7 +1612,27 @@ class Test {
 
 ### ゲッター・セッター
 
+get, set キーワードでゲッターとセッターを定義できる。
 
+```javascript
+class クラス名 {
+  get ゲットプロパティ名 {
+    return 取得される値;
+  }
+
+  set セットプロパティ名 {
+    値を設定する処理;
+  }
+}
+```
+
+実行する時は () は不要。
+
+```javascript
+const new クラス名;
+obj.セットプロパティ = 値
+console.log(ofj.ゲットプロパティ);
+```
 
 ---
 
@@ -2211,7 +2231,7 @@ historyオブジェクトはブラウザのセッション履歴を操作する�
     </tr>
     <tr>
         <td>history.pushState(stateObj, title, url)</td>
-        <td>stateObj: 任意のJavaScriptオブジェクトで、後に<a href="#popstate">popstate</a>イベントで取り出せる。<br>nullかオブジェクトである必要がある。
+        <td>stateObj: 任意のJavaScriptオブジェクトで、後にpopstateイベントで取り出せる。<br>nullかオブジェクトである必要がある。
         title: 無視される。<br>
         url: 相対または絶対パス(同一オリジンの必要あり)。<br>
         現在のページ履歴の次に新しい履歴エントリが追加される。戻るボタンで元のページに戻れる。ページの読み込みは行われない。
