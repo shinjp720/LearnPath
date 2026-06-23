@@ -1815,6 +1815,47 @@ fn(params); // 初期値1 引数2
 
 ## 非同期関数 <a id="async-func" data-name="非同期関数"></a>
 
+### Promise
+
+Promise は、将来得られる結果を表すオブジェクト。
+
+Promise は3つの状態を持つ。
+
+| --- | --- |
+| Pending | 処理中 |
+| Fulfilled | 成功 |
+| Rejected | 失敗 |
+
+#### Promise の生成
+
+```javascript
+const promise = new Promise((resolve, reject) => {
+    const ok = true;
+
+    if (ok) {
+        resolve("成功");
+    } else {
+        reject("失敗");
+    }
+});
+```
+
+Promise は終了した時、状態と値を持つ。<br>
+つまり、成功した時には Fulfilled と結果の値、失敗した時には Rejected と Errorを持つ。
+
+<pre><code class="example">// Rustで言うと
+enum PromiseState&lt;T, E&gt; {
+    Pending,
+    Fulfilled(T),
+    Rejected(E),
+}</code></pre>
+
+#### 結果を取り出す
+
+Promise から結果を取り出すときには、 <span class="code-like">.then()</span> か <span class="code-like">await</span> で Fulfilled の値を取り出し、<span class="code-like">catch()</span> で Rejected の値を取り出す。
+
+---
+
 ### async
 
 asyncが付いた関数は自動的に Promise でラップされる (Promise を返す関数となる) ため、 await で待つことができる。
