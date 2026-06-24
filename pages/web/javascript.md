@@ -1813,11 +1813,11 @@ fn(params); // 初期値1 引数2
 
 ---
 
-## 非同期関数 <a id="async-func" data-name="非同期関数"></a>
+## 非同期 <a id="async" data-name="非同期"></a>
 
 ### Promise
 
-Promise は、将来得られる結果を表すオブジェクト。
+Promise は、将来得られる結果を表すオブジェクトで、 JavaScript は元々非同期処理 (ネットワーク通信、ファイル読み込み、タイマーなど) が多いため、その結果を扱いやすくするために導入された。
 
 Promise は3つの状態を持つ。
 
@@ -1841,7 +1841,9 @@ const promise = new Promise((resolve, reject) => {
 ```
 
 Promise は終了した時、状態と値を持つ。<br>
-つまり、成功した時には Fulfilled と結果の値、失敗した時には Rejected と Errorを持つ。
+つまり、成功した時には <span class="code-like">resolve()</span> が実行され、 Fulfilled と結果の値がセットされ、<br>
+失敗した時には <span class="code-like">reject()</span> が実行され、 Rejected と Errorがセットされる。<br>
+そして、そのどちらかの処理が1度だけ実行され、状態と値がセットされる。
 
 <pre><code class="example">// Rustで言うと
 enum PromiseState&lt;T, E&gt; {
@@ -1854,11 +1856,71 @@ enum PromiseState&lt;T, E&gt; {
 
 Promise から結果を取り出すときには、 <span class="code-like">.then()</span> か <span class="code-like">await</span> で Fulfilled の値を取り出し、<span class="code-like">catch()</span> で Rejected の値を取り出す。
 
+##### 成功した時
+
+```javascript
+promise.then(value => {
+    console.log(value);
+});
+```
+
+##### 失敗した時
+
+```javascript
+promise.catch(error => {
+    console.error(error);
+});
+```
+
+#### まとめて記述
+
+```javascript
+const promise = new Promise((resolve, reject) => {
+    const ok = false;
+    if (ok) {
+        resolve("成功");
+    } else {
+        reject("失敗");
+    }
+}).then((value) => {
+    console.log(value);
+}).catch((value) => {
+    console.log(value);
+})
+```
+
+#### Promise.all
+
+すべての非同期処理を並列に実行して、すべての完了を待ってから処理を行う。
+
+```javascript
+const [a, b] = await Promise.all([
+    fetch("/a"),
+    fetch("/b")
+]);
+```
+
+#### Promise.race
+
+すべての非同期処理を並列に実行して、最初に終わったものを採用する。
+
+```javascript
+Promise.race([
+    promise1,
+    promise2
+]).then((value) => {
+    console.log(value);
+}).catch((value) => {
+    console.log(value);
+})
+```
+
 ---
 
 ### async
 
-asyncが付いた関数は自動的に Promise でラップされる (Promise を返す関数となる) ため、 await で待つことができる。
+関数に async を付けると、関数内で await が使えるようになる。 async が無いと await が使えない。<br>
+また、 async が付いた関数は自動的に Promise でラップされる (Promise を返す関数となる) 。
 
 もちろん自分で明示的に Promise を返すこともでき、その際は <span class="code-like">Promise&lt;Promise &lt;string&gt;&gt;</span> とはならずに平坦化される。
 
