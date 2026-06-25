@@ -1924,3 +1924,48 @@ th { background-color: #f5f5f5; }
 #### そのため、まさに理想とされている「テーブルの枠は動かさず、届いたデータ配列から中身の書き込みだけを行う」という挙動が、JavaScriptでごちゃごちゃと待機処理を書くことなく、Vueの標準機能（宣言的レンダリング）だけで完全に実現できます
 
 この構造で、コンポーネントAのボタンを押したときに親経由でBのテーブルの中身がサッと切り替わるはずです。
+
+
+## TemplateRef<a id="template-ref" data-name="TemplateRef"></a>
+
+TemplateRef は、コンポーネントのテンプレート内でレンダリングされた DOM要素や子コンポーネントのインスタンスに直接アクセスするための機能。
+
+通常 Vueは宣言的なデータバインディングによって DOM 操作を自動化するが、特定のケース (ライブラリの初期化、DOMのフォーカス、アニメーションの制御など)で直接要素を操作したい場合に使用する。
+
+可能な限り DOMは直接操作しないことが推奨されている。
+
+### 使い方
+
+```javascript
+const compRef = ref<InstanceType<typeof ExtendedInput>>();
+```
+
+または vue3.5 以降なら
+
+```javascript
+const compRef = useTemplateRef<HTMLInputElement>("compRef")
+```
+
+と宣言して、
+
+```javascript
+<MyComponent ref="comRef" />
+```
+
+で紐づける。
+
+#### DOM 要素の場合
+
+```javascript
+const inputEl = ref<HTMLInputElement>();
+<input ref="inputEl">
+```
+
+すると
+
+```javascript
+inputEl.value?.focus();
+```
+
+のようにアクセスできる。
+
