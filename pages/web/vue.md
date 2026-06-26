@@ -128,7 +128,7 @@ v-on:submit.prevent="onSubmit"
 
 ### v-bind <a id="v-bind" data-name="v-bind"></a>
 
-動的な値を属性にバインドする。 v-bind で渡された値は JavaScript として解釈され渡されるため、
+動的な値を属性にバインドする。 v-bind で渡された値は JavaScript として解釈してから渡されるため、
 
 {% raw %}
 ```javascript
@@ -200,7 +200,10 @@ const hasError = ref(false)
 
 ### v-on <a id="v-on" data-name="v-on"></a>
 
-DOMイベントを登録する。<br>
+DOMイベントを登録する。
+
+#### 省略記法
+
 v-on には省略記法がある。
 
 - v-on:click=""
