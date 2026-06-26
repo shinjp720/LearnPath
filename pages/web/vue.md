@@ -91,8 +91,6 @@ Vue のテンプレートでは以下の場所で JavaScript の式を使用す�
 {{ ok ? 'YES' : 'NO' }}
 
 {{ message.split('').reverse().join('') }}
-
-<div :id="`list-${id}`"></div>
 ```
 {% endraw %}
 
@@ -130,8 +128,25 @@ v-on:submit.prevent="onSubmit"
 
 ### v-bind <a id="v-bind" data-name="v-bind"></a>
 
-動的な値を属性にバインドする。
-v-bind には省略記法がある。
+動的な値を属性にバインドする。 v-bind で渡された値は JavaScript として解釈され渡されるため、
+
+{% raw %}
+```javascript
+<div :num="number + 1"></div>
+
+<div :isOk:="ok ? 'YES' : 'NO'"></div>
+
+<div :message="message.split('').reverse().join('')"></div>
+
+<div :id="`list-${id}`"></div>
+```
+{% endraw %}
+
+何でも書ける (マスタッシュと同じ) 。
+
+#### 省略記法
+
+v-bind は頻出なので、省略記法がある。
 
 - v-bind:id=""
 - :id=""
@@ -773,12 +788,55 @@ onMounted(() => {
 
 ---
 
+## TemplateRef<a id="template-ref" data-name="TemplateRef"></a>
+
+TemplateRef は、コンポーネントのテンプレート内でレンダリングされた DOM要素や子コンポーネントのインスタンスに直接アクセスするための機能。
+
+通常 Vueは宣言的なデータバインディングによって DOM 操作を自動化するが、特定のケース (ライブラリの初期化、DOMのフォーカス、アニメーションの制御など)で直接要素を操作したい場合に使用する。
+
+可能な限り DOMは直接操作しないことが推奨されている。
+
+### 使い方
+
+```javascript
+const compRef = ref<InstanceType<typeof ExtendedInput>>();
+```
+
+または vue3.5 以降なら
+
+```javascript
+const compRef = useTemplateRef<HTMLInputElement>("compRef")
+```
+
+と宣言して、
+
+```javascript
+<MyComponent ref="comRef" />
+```
+
+で紐づける。
+
+#### DOM 要素の場合
+
+```javascript
+const inputEl = ref<HTMLInputElement>();
+<input ref="inputEl">
+```
+
+すると
+
+```javascript
+inputEl.value?.focus();
+```
+
+のようにアクセスできる。
+
+---
+
 ## Props, Emits <a id="props-emits" data-name="Props, Emits"></a>
 
 親子コンポーネント間のデータ通信は、「Propsは下り（親→子）」「Emitsは上り（子→親）」というルールで動きます。 [1]
 これをVue 3の標準的な書き方 `<script setup>` で解説します。
-
----
 
 ### 1. Props（親から子へデータを渡す）
 
@@ -1925,47 +1983,4 @@ th { background-color: #f5f5f5; }
 
 この構造で、コンポーネントAのボタンを押したときに親経由でBのテーブルの中身がサッと切り替わるはずです。
 
-
-## TemplateRef<a id="template-ref" data-name="TemplateRef"></a>
-
-TemplateRef は、コンポーネントのテンプレート内でレンダリングされた DOM要素や子コンポーネントのインスタンスに直接アクセスするための機能。
-
-通常 Vueは宣言的なデータバインディングによって DOM 操作を自動化するが、特定のケース (ライブラリの初期化、DOMのフォーカス、アニメーションの制御など)で直接要素を操作したい場合に使用する。
-
-可能な限り DOMは直接操作しないことが推奨されている。
-
-### 使い方
-
-```javascript
-const compRef = ref<InstanceType<typeof ExtendedInput>>();
-```
-
-または vue3.5 以降なら
-
-```javascript
-const compRef = useTemplateRef<HTMLInputElement>("compRef")
-```
-
-と宣言して、
-
-```javascript
-<MyComponent ref="comRef" />
-```
-
-で紐づける。
-
-#### DOM 要素の場合
-
-```javascript
-const inputEl = ref<HTMLInputElement>();
-<input ref="inputEl">
-```
-
-すると
-
-```javascript
-inputEl.value?.focus();
-```
-
-のようにアクセスできる。
 
