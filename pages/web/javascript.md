@@ -1819,7 +1819,8 @@ fn(params); // 初期値1 引数2
 
 Promise は、将来得られる結果を表すオブジェクトで、 JavaScript は元々非同期処理 (ネットワーク通信、ファイル読み込み、タイマーなど) が多いため、その結果を扱いやすくするために導入された。
 
-Promise は3つの状態を持つ。
+Promise は3つの状態を持ち、1度だけ Pending から状態を移行できる。<br>
+状態を移行した後に <span class="code-like">resolve()</span> や <span class="code-like">reject()</span> を記述しても無視される。
 
 | --- | --- |
 | Pending | 処理中 |
@@ -1827,6 +1828,11 @@ Promise は3つの状態を持つ。
 | Rejected | 失敗 |
 
 #### Promise の生成
+
+<span class="code-like">new Promise()</span> に渡すコールバック関数 (executor) の
+
+- 第1引数 (resolve) を成功として Fulfilled と値をセット
+- 第2引数 (reject) を失敗として Rejected とエラーをセット
 
 ```javascript
 const promise = new Promise((resolve, reject) => {
@@ -1840,11 +1846,6 @@ const promise = new Promise((resolve, reject) => {
 });
 ```
 
-Promise は終了した時、状態と値を持つ。<br>
-つまり、成功した時には <span class="code-like">resolve()</span> が実行され、 Fulfilled と結果の値がセットされ、<br>
-失敗した時には <span class="code-like">reject()</span> が実行され、 Rejected と Errorがセットされる。<br>
-そして、そのどちらかの処理が1度だけ実行され、状態と値がセットされる。
-
 <pre><code class="example">// Rustで言うと
 enum PromiseState&lt;T, E&gt; {
     Pending,
@@ -1854,7 +1855,9 @@ enum PromiseState&lt;T, E&gt; {
 
 #### 結果を取り出す
 
-Promise から結果を取り出すときには、 <span class="code-like">.then()</span> か <span class="code-like">await</span> で Fulfilled の値を取り出し、<span class="code-like">catch()</span> で Rejected の値を取り出す。
+Promise から結果を取り出すときには、 <span class="code-like">.then()</span> か <span class="code-like">await</span> で Fulfilled の値を取り出し、<span class="code-like">.catch()</span> で Rejected の値を取り出す。
+
+<pre><code class="caution">try/catch でエラー処理を記述する場合は、 async/await と組み合わせる必要がある。</code></pre>
 
 ##### 成功した時
 
@@ -1872,7 +1875,7 @@ promise.catch(error => {
 });
 ```
 
-#### まとめて記述
+##### まとめて記述
 
 ```javascript
 const promise = new Promise((resolve, reject) => {
@@ -1919,10 +1922,16 @@ Promise.race([
 
 ### async
 
-関数に async を付けると、関数内で await が使えるようになる。 async が無いと await が使えない。<br>
-また、 async が付いた関数は自動的に Promise でラップされる (Promise を返す関数となる) 。
+async は Promise をより使いやすくする仕組みで Promise を前提として作られており、新しい非同期の仕組みが登場したわけではない。<br>
+async が付いた関数の役割は2つで、
 
-もちろん自分で明示的に Promise を返すこともでき、その際は <span class="code-like">Promise&lt;Promise &lt;string&gt;&gt;</span> とはならずに平坦化される。
+- 戻り値が必ず Promise になる。
+- 関数内で await を使えるようにする (async が無いと await が使えない) 。
+
+また、 async が付いた関数の戻り値は自動的に Promise でラップされる (Promise を返す関数となる) 。<br>
+async関数は直接 Promise を返すこともでき、その際は平坦化される。
+
+戻り値が Promise であることを明示的にするために async を付けてもいい。ただし、呼び出し側は非同期関数として扱う必要がある (戻り値は Promise) 。
 
 ```javascript
 async function hello() {
@@ -1930,7 +1939,7 @@ async function hello() {
 }
 ```
 
-この関数は一見すると文字列を返すだけに見えるが内部的には次のようなイメージ。
+上記の関数は一見すると文字列を返すだけに見えるが内部的には次のようなイメージのように Promise を返す。
 
 ```javascript
 function hello() {
@@ -1946,7 +1955,7 @@ async function test() {
 }
 ```
 
-次とほぼ同じ。
+下記と同じイメージ。
 
 ```javascript
 function test() {
@@ -2044,7 +2053,41 @@ try {
 
 ---
 
-## メソッド <a id="methods" data-name="メソッド"></a>
+## 組み込み関数・メソッド <a id="methods" data-name="組み込み関数・メソッド"></a>
+
+### fetch
+
+サーバーからデータやファイルを取得する非同期関数。
+
+```javascript
+fetch("URL" [, data])
+```
+
+- URL にリクエストを送信するURLを文字列で渡す
+- リクエスト送信時のプロパティをオブジェクトで指定する。代表的なプロパティは以下の通り
+
+  | プロパティ | 説明 |
+  | --- | --- |
+  | method | `POST | GET | PUT | DELETE` などのリクエストメソッドを文字列で指定する<br>デフォルトで GET|
+  | headers | リクエストの header を変更するきに指定する<br>`headers: {"Content-Type": "application/json"}` |
+  | body | リクエストの body を挿入したいときに指定する。<br>`body: JSON.stringify(obj)` |
+
+- 戻り値に、 Promise でラップされた response が返る。代表的なプロパティやメソッドは以下の通り
+
+  | プロパティ | 説明 |
+  | --- | --- |
+  |  |  |
+  |  |  |
+  |  |  |
+
+  | メソッド | 説明 |
+  | --- | --- |
+  |  |  |
+  |  |  |
+  |  |  |
+
+
+
 
 ### 配列系
 

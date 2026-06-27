@@ -54,6 +54,11 @@ h5 {
     font-size: 1rem;
 }
 
+/* p */
+p {
+    margin: 10px;
+}
+
 /* サブタイトル */
 .subtitle {
     display: block;
@@ -91,6 +96,7 @@ ul {
 }
 
 li {
+    padding: 4px;
     margin: 0;
 }
 

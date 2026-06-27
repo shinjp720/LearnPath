@@ -91,6 +91,8 @@ Vue のテンプレートでは以下の場所で JavaScript の式を使用す�
 {{ ok ? 'YES' : 'NO' }}
 
 {{ message.split('').reverse().join('') }}
+
+<div :id="`list-${id}`"></div>
 ```
 {% endraw %}
 
@@ -128,7 +130,7 @@ v-on:submit.prevent="onSubmit"
 
 ### v-bind <a id="v-bind" data-name="v-bind"></a>
 
-動的な値を属性にバインドする。 v-bind で渡された値は JavaScript として解釈してから渡されるため、
+動的な値を属性にバインドする。 v-bind で渡された値は JavaScript として解釈してから渡されるため何でも書ける (マスタッシュと同じ) 。
 
 {% raw %}
 ```javascript
@@ -142,7 +144,6 @@ v-on:submit.prevent="onSubmit"
 ```
 {% endraw %}
 
-何でも書ける (マスタッシュと同じ) 。
 
 #### 省略記法
 
