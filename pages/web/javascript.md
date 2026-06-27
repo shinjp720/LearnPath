@@ -1014,6 +1014,92 @@ console.log(arr); // [0, 2, 4, 6]
 
 ---
 
+### 要素の取り出しと追加と削除
+
+#### array.at(n)
+
+配列の n 番目の要素を取り出す。ES2022 以降では負数を指定すると最後からかぞえて n 番目の要素を取り出す。<br>
+array は変化しない。
+
+```javascript
+const arr = ["Red", "Blue", "Green"];
+console.log(arr.at(0));  // "red"
+console.log(arr.at(1));  // "Blue"
+console.log(arr.at(-1)); // "Green"
+```
+
+#### array.unshift(e1, e2, ...),<br>array.push(e1, e2, ...)
+
+unshift は array の先頭に e1, e2, ... の要素を追加する。<br>
+push は array の末尾に要素を追加する。<br>
+戻り値は JavaScript のバージョンによって異なる。
+
+```javascript
+const arr = ["Green"];
+arr.unshift("Red");  // ["Red", "Green"]
+arr.push("Blue");    // ["Red", "Green", "Blue"]
+```
+
+#### array.shift(), <br>array.pop()
+
+shift は最初の値を削除して戻り値として返す。<br>
+pop は最後の値を削除して戻り値として返す。
+
+```javascript
+const arr = ["Red", "Green", "Blue"];
+arr.shift(); // ["Green", "Blue"]
+arr.pop();   // ["Green"]
+```
+
+#### array.splice(start, n, e1, e2, ...)
+
+0 から数えて、start から n 個の要素を削除して、その位置に e1, e2, ... を要素として埋め込み、削除した要素を配列で返す。<br>
+array 自体を書き換える。
+
+```javascript
+const arr1 = ["A", "B", "C", "D", "E", "F", "G"];
+const arr2 = arr1.splice(2, 3, "X", "Y");
+console.log(arr1);   // ['A', 'B', 'X', 'Y', 'F', 'G']
+console.log(arr2);   // ['C', 'D', 'E']
+```
+
+#### array.toSpliced(start, n, e1, e2, ...)
+
+0 から数えて、start から n 個の要素を削除して、その位置に e1, e2, ... を要素として埋め込んだものを返す。<br>
+array は変化しない。
+
+```javascript
+const arr1 = ["A", "B", "C", "D", "E", "F", "G"];
+const arr2 = arr1.toSpliced(2, 3, "X", "Y", "Z");
+console.log(arr1);  // ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+console.log(arr2);  // ['A', 'B', 'X', 'Y', 'Z', 'F', 'G']
+```
+
+#### `array.slice(start [, end])`
+
+0 から数えて、start からend-1 番目までの要素を配列で返す。<br>
+end を省略した場合は start から最後までの要素を返す。<br>
+array は変化しない。
+
+```javascript
+const arr = ["A", "B", "C", "D", "E", "F", "G"];
+console.log(arr.slice(2, 4));  // ["C", "D"]
+```
+
+#### `delete array[n]`
+
+要素を削除する。削除したインデックスの値が undefined となるため、配列要素削除するには splice() を用いるのが一般的。
+
+```javascript
+const arr = ["Red", "Green", "Blue"];
+delete arr[1];
+console.log(arr);      // ["Red", empty, "Blue"]
+console.log(arr[0]);   // "Red"
+console.log(arr[1]);   // undefined
+console.log(arr[2]);   // "Blue"
+```
+---
+
 ### 多次元配列
 
 ```javascript
@@ -1239,93 +1325,6 @@ separator を省略した場合はカンマ(,)で連結されるが、バージ�
 const arr = ["2000", "12", "31"];
 const str = arr.join("/");
 console.log(str);  // "2000/12/31"
-```
-
----
-
-### 配列要素の取り出しと追加と削除
-
-#### array.at(n)
-
-配列の n 番目の要素を取り出す。ES2022 以降では負数を指定すると最後からかぞえて n 番目の要素を取り出す。<br>
-array は変化しない。
-
-```javascript
-const arr = ["Red", "Blue", "Green"];
-console.log(arr.at(0));  // "red"
-console.log(arr.at(1));  // "Blue"
-console.log(arr.at(-1)); // "Green"
-```
-
-#### array.unshift(e1, e2, ...),<br>array.push(e1, e2, ...)
-
-unshift は array の先頭に e1, e2, ... の要素を追加する。<br>
-push は array の末尾に要素を追加する。<br>
-戻り値は JavaScript のバージョンによって異なる。
-
-```javascript
-const arr = ["Green"];
-arr.unshift("Red");  // ["Red", "Green"]
-arr.push("Blue");    // ["Red", "Green", "Blue"]
-```
-
-#### array.shift(), <br>array.pop()
-
-shift は最初の値を削除して戻り値として返す。<br>
-pop は最後の値を削除して戻り値として返す。
-
-```javascript
-const arr = ["Red", "Green", "Blue"];
-arr.shift(); // ["Green", "Blue"]
-arr.pop();   // ["Green"]
-```
-
-#### array.splice(start, n, e1, e2, ...)
-
-0 から数えて、start から n 個の要素を削除して、その位置に e1, e2, ... を要素として埋め込み、削除した要素を配列で返す。<br>
-array 自体を書き換える。
-
-```javascript
-const arr1 = ["A", "B", "C", "D", "E", "F", "G"];
-const arr2 = arr1.splice(2, 3, "X", "Y");
-console.log(arr1);   // ['A', 'B', 'X', 'Y', 'F', 'G']
-console.log(arr2);   // ['C', 'D', 'E']
-```
-
-#### array.toSpliced(start, n, e1, e2, ...)
-
-0 から数えて、start から n 個の要素を削除して、その位置に e1, e2, ... を要素として埋め込んだものを返す。<br>
-array は変化しない。
-
-```javascript
-const arr1 = ["A", "B", "C", "D", "E", "F", "G"];
-const arr2 = arr1.toSpliced(2, 3, "X", "Y", "Z");
-console.log(arr1);  // ['A', 'B', 'C', 'D', 'E', 'F', 'G']
-console.log(arr2);  // ['A', 'B', 'X', 'Y', 'Z', 'F', 'G']
-```
-
-#### `array.slice(start [, end])`
-
-0 から数えて、start からend-1 番目までの要素を配列で返す。<br>
-end を省略した場合は start から最後までの要素を返す。<br>
-array は変化しない。
-
-```javascript
-const arr = ["A", "B", "C", "D", "E", "F", "G"];
-console.log(arr.slice(2, 4));  // ["C", "D"]
-```
-
-#### `delete array[n]`
-
-要素を削除する。削除したインデックスの値が undefined となるため、配列要素削除するには splice() を用いるのが一般的。
-
-```javascript
-const arr = ["Red", "Green", "Blue"];
-delete arr[1];
-console.log(arr);      // ["Red", empty, "Blue"]
-console.log(arr[0]);   // "Red"
-console.log(arr[1]);   // undefined
-console.log(arr[2]);   // "Blue"
 ```
 
 ---
@@ -2076,22 +2075,21 @@ fetch("URL" [, data])
 
   | プロパティ | 説明 |
   | --- | --- |
-  |  |  |
-  |  |  |
-  |  |  |
+  | Response.ok | 200~299 の HTTP ステータスがサーバーから返された場合、成功として true 、それ以外は失敗として false が格納 |
+  | Response.status | HTTPステータスが格納 |
+  | Response.headers | レスポンスのヘッダー情報がオブジェクトとして格納 |
 
   | メソッド | 説明 |
   | --- | --- |
-  |  |  |
-  |  |  |
-  |  |  |
-
-
-
+  | Response.json() | レスポンスで返ってきた JSON文字列を処理する時に使う。レスポンスをオブジェクトに変換した値を Promise でラップしたものを返す |
+  | Response.blob() | バイナリデータを含むレスポンスを処理する時に使う。blob オブジェクトを Promise でラップしたものを返す |
+  | Response.text() | レスポンスの文字列を取得する時に使う。文字列を扱うUSVString オブジェクトを Promise でラップしたものを返す |
 
 ### 配列系
 
 #### sort
+
+
 
 ```javascript
 const users = [
