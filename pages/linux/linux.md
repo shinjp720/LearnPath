@@ -330,7 +330,7 @@ WSL2側でWindowsのパスをUnixパスに変換する公式コマンド。<br>
 
 ---
 
-## rsync [option] src dst <a id="rsync" data-name="rsync"></a>
+## `rsync [option] src dst` <a id="rsync" data-name="rsync"></a>
 
 rsyncはLinuxやUnix系システムで広く使用されるファイル同期、バックアップ用のコマンドラインツール。
 
