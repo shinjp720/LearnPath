@@ -139,7 +139,50 @@ updateでインデックスを更新して、upgradeで実際にインストー�
 ### ps
 ### top, htop
 ### kill, killall
+
 ### systemctl
+
+systemctl は、Linux で systemd を操作するためのコマンドで、昔の service コマンドや /etc/init.d/ のスクリプトを置き換える存在。
+
+#### 基本構文
+
+```bash
+systemctl <サブコマンド> <ユニット名>
+```
+
+#### Unit
+
+systemd では管理対象をユニットと呼び、代表的なものは以下の通り。
+
+| 種類 | 拡張子 | 用途 |
+| --- | --- | --- |
+| Service | .service | サービス・デーモン |
+| Socket | .socket | ソケット起動 |
+| Mount | .mount | マウントポイント |
+| Timer | .timer | 定期実行 (cron の代替) |
+| Target | .target | 実行レベルのようなグループ |
+
+#### よく使うサブコマンド
+
+| サブコマンド | 意味 |
+| --- | --- |
+| start | サービスを起動する |
+| stop | サービスを停止する |
+| restart | サービスを一度停止してから起動する |
+| reload | プロセスを停止せずに設定を再読み込み。対応していないサービスもある |
+| reload-or-restart | リロードできなければ再起動 |
+| status | 状態を確認 |
+| enable | PC起動時に自動起動する |
+| disable | 自動起動を無効化 |
+| is-enabled | 起動状態の確認 |
+| is-active | 起動中か確認 |
+| list-units | 起動中のユニット一覧 |
+| list-unit-files | インストール済みユニット一覧 |
+| --failed | 失敗したユニット一覧 |
+| deamon-reload | ユニットファイル変更後の再読み込み |
+
+RustやCで作成したサーバープログラムを .service ファイルとして登録すれば、systemctl で起動・停止・自動起動まで一元管理できる。
+
 ### df
 ### du
 ### free

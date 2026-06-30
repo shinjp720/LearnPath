@@ -334,11 +334,16 @@ git push origin --delete feature-abc
 
 ### git stash
 
-<span class="code-like">stash</span> は現在の作業内容を一時的に退避して、作業ディレクトとステージング領域を HEAD (現在の最新コミット) の状態に戻す。<br>
+<span class="code-like">stash</span> は現在の作業内容を一時的に退避して、作業ディレクトとステージング領域を HEAD (現在の最新コミット) の状態に戻す。コミットはしたくない場合に便利。<br>
+基本的にはワーキングツリーはクリーンになる。<br>
 <span class="code-like">git stash</span> で作成されたデータは .git/refs/stash というファイルに保存される。
+
+<pre><code class="caution">Git の管理下にあるファイルしか退避させないので、新規ファイルも含めて退避させたい場合は
+git stash -u</code></pre>
 
 | --- | --- |
 | -m | commit のようにメッセージを付ける |
+| -u | untracked file も含めて退避 |
 
 #### git stash pop
 

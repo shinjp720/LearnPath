@@ -1927,6 +1927,11 @@ async が付いた関数の役割は2つで、
 - 戻り値が必ず Promise になる。
 - 関数内で await を使えるようにする (async が無いと await が使えない) 。
 
+<pre><code class="tips">  await は async が付いた関数の中でしか使えない。
+  await の位置で Promise の結果が返ってくるまで一時停止する。
+  await は成功 (Fulfilled) を受け、Promise を剥がして値そのものにする。
+  失敗 (Rejected) は、 try/catch で受ける。</code></pre>
+
 また、 async が付いた関数の戻り値は自動的に Promise でラップされる (Promise を返す関数となる) 。<br>
 async関数は直接 Promise を返すこともでき、その際は平坦化される。
 
@@ -2084,6 +2089,17 @@ fetch("URL" [, data])
   | Response.json() | レスポンスで返ってきた JSON文字列を処理する時に使う。レスポンスをオブジェクトに変換した値を Promise でラップしたものを返す |
   | Response.blob() | バイナリデータを含むレスポンスを処理する時に使う。blob オブジェクトを Promise でラップしたものを返す |
   | Response.text() | レスポンスの文字列を取得する時に使う。文字列を扱うUSVString オブジェクトを Promise でラップしたものを返す |
+
+  <pre><code class="caution">fetch() が成功したかどうかは (Rejected) で判断できるが、サーバーから 404 や 500 などのエラーが返ってきたかどうかは Promise だけでは判断できないので、以下のような二段構えにする。</code></pre>
+  ```javascript
+  try {
+    const response = await fetch('/dummyData.json');
+
+    if (!response.ok) {
+      throw new Error(`サーバーエラー: ${response.status}`);
+    }
+  }
+  ```
 
 ### 配列系
 
