@@ -2328,6 +2328,15 @@ JSON文字列 -> オブジェクトへ。
 const obj = JSON.parse(json)
 ```
 
+#### respose.json
+
+<span class="code-like">fetch()</span> の戻り値の Response オブジェクトのレスポンスボディから JSON オブジェクトを返す。
+
+```javascript
+const response = await fetch(url);
+const data = await response.json();
+```
+
 ---
 
 ## DOM <a id="dom" data-name="DOM"></a>

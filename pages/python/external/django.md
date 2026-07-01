@@ -90,10 +90,6 @@ python manage.py startapp myapp
 
 ## manage.pyのコマンド <a id="command-manage" data-name="manage.pyのコマンド"></a>
 
-```bash
-python manage.py command
-```
-
 #### startup
 
 ```bash
@@ -133,7 +129,6 @@ python manage.py createsuperuser
 ```
 
 コマンドを実行すると、ユーザー名、メールアドレス、パスワードの入力が求められ、すべてを入力するとスーパーユーザーが作成される。
-
 
 ---
 
