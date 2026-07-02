@@ -45,7 +45,41 @@ sudo apt purge nodejs npm -y && sudo apt autoremove -y
 npm create vue@latest
 ```
 
-作成後に移動。
+実行するとプロジェクトに何の機能を追加するかを選択する。
+
+- JSX Support
+
+  JSX (React のように JavaScript の中に HTML っぽく記述する機能) を導入するか。<br>
+  基本的に No 。Vue では .vue に記述していく。
+
+- Router (SPA development)
+
+  画面遷移の機能を最初から入れるか。<br>
+  SPA には必須級。
+
+- Pinia (state management)
+
+  データを複数の画面や部品で共有するための仕組み。
+
+- Vitest (unit testing)
+
+  ブログラムの細かい部品が正しく動くかテストするツール。
+
+- End-to-End Testing
+
+  ブラウザを自動で動かして画面全体の動きをテストするツール。
+
+- Linter (error prevention)
+
+  リントツール。
+
+- Prettier (code formatting)
+
+  コード整形ツール。
+
+---
+
+プロジェクト作成後に移動。
 
 ```bash
 cd my-app
