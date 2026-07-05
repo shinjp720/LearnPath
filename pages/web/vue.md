@@ -212,7 +212,7 @@ class と style には複数のプロパティを持てるので、特別な拡�
 <div :class="{ active: isActive }"></div>
 ```
 
-上記の例は isActive がの真偽によって active というクラスを持つかが決まる。
+上記の例は、右の値 isActive の真偽によって active というクラスを持つかどうかが決まる。
 
 ```javascript
 <script setup>
@@ -602,9 +602,9 @@ v-for ディレクティブを使用すると、配列を基にした要素の�
 ```
 {% endraw %}
 
-##### インデックス
+##### 配列 + v-for
 
-v-for では以下のように現在の項目のインデックスを指す、2つ目の省略可能なエイリアスもある。
+v-for を配列に使用する場合は以下のように現在の項目のインデックスを指す、2つ目の省略可能なエイリアスもある。
 
 {% raw %}
 ```javascript
@@ -612,7 +612,7 @@ v-for では以下のように現在の項目のインデックスを指す、2�
 ```
 {% endraw %}
 
-##### オブジェクトに適用する
+##### オブジェクト + v-for
 
 オブジェクトの各プロパティを反復処理するのにも使える。
 
@@ -653,13 +653,16 @@ const myObject = reactive({ title: 'How to do lists in Vue', author: 'Jane Doe',
 ```
 {% endraw %}
 
+<pre><code class="tips">v-for で分割代入する場合は丸括弧 (&npsp;) で書く必要がある。
+また、 in と of はどっちでもいい。</code></pre>
+
+
+
 <pre><code class="caution">:key 属性が無い状態で v-for の中で動的に値を削除したりすると、インプレースパッチ戦略という仕様のせいでバグが発生する恐れがあるため、:key 属性の指定が推奨とされており、一意の値を :key とする必要がある。</code></pre>
 
 <pre><code class="tips">追加・削除・並び替えが発生しない場合。
-<ul>
-  <li>index を取得して :key="index"</li>
-  <li>&lt;tr v-for="n in 10" :key="n"&gt;</li>
-</ul></code></pre>
+・index を取得して :key="index"
+    &lt;tr v-for="n in 10" :key="n"&gt;</code></pre>
 
 <pre><code class="tips">&lt;!--複合キーを :key とする(重複がない場合)。--&gt;
 &lt;ul&gt;
