@@ -168,9 +168,9 @@ python manage.py migrate
 
 ```
 blog/
-    templates/
-        blog/
-            index.html
+  templates/
+    blog/
+      index.html
 ```
 
 View を変更。
