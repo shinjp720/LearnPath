@@ -14,7 +14,7 @@ model は通常の Django と同じで、特に Serializer が重要となる。
 pip install djangorestframework
 ```
 
-## Serializer
+## Serializer <a id="serializer" data-name="serializer"></a>
 
 シリアライザーは Python オブジェクトや Model などと JSON を相互変換し、そのデータが正しいか検証するクラス。<br>
 つまり
@@ -83,7 +83,7 @@ serializer.is_valid()
 
 <span class="code-like">is_valid()</span> でバリデーションが実行される。
 
-<span class="code-like">validate()</span> や <span class="code-like">validate_ &lt;filed&gt;()</span> があれば自動で実行される。
+<span class="code-like">validate()</span> や <span class="code-like">validate_&lt;filed&gt;()</span> があれば自動で実行される。
 
 <pre><code class="tips">実装した <span class="code-like">validate()</span> は、検証したデータを返す必要があり、
 特定のフィールドを検証するメソッドはそのフィールドの値を (加工してもいい)、
@@ -116,3 +116,65 @@ serializer.instance
 ```
 
 にアクセスできる。
+
+## クラスベースビュー <a id="class-baes-view" data-name="クラスベースビュー"></a>
+
+クラスベースビューは、基底クラスを継承することで実装できるビューで、効率的で再利用性の高いAPIを構築できる。
+
+### APIView
+
+Django 純正の View クラスを DRF用に拡張したすべての CBV の基底クラス。<br>
+自動化があまりなく、拡張性が高い。
+
+<span class="code-like">get()</span> , <span class="code-like">post()</span> , <span class="code-like">put()</span> , <span class="code-like">delete()</span> などの HTTPメソッドに対応するメソッドを自分で定義する。
+
+DRF の認証、権限、認証制限などの基本機能は最初から組み込まれている。
+
+### GenericAPIView
+
+APIView を継承し、モデルのデータを取得してシリアライザで変換するという API の共通パターンを共通化したクラス。<br>
+単体で使うことは少なく、基本的には Mixin と組み合わせて使う。
+
+queryset (どのデータを使うか) と serializer_class (どのシリアライザで変換するか) を設定するだけで、データのフィルタリングやページネーション、バリデーションの基盤を自動で提供してくれる。
+
+#### 主要な属性・メソッド
+
+- 属性: queryset, serializer_class, lookup_field など
+- メソッド: get_queryset(), get_object() など
+
+### Mixins
+
+特定の CRUD 操作 (一覧取得、作成、詳細取得、更新、削除) のロジックだけを個別に実装したクラス群
+。
+
+単体では動作せず、必ず GenericAPIView と一緒に多重継承するして使う。
+
+必要な機能だけを使いたい (ミックスイン) 時に便利。
+
+#### 種類
+
+- ListModelMixin: 一覧取得 (.list())
+
+- CreateModelMixin: 新規作成 (.create())
+
+- RetrieveModelMixin: 1件取得 (.retrieve())
+
+- UpdateModelMixin: 更新 (.update())
+
+- DestroyModelMixin: 削除 (.destroy())
+
+### Generics Views
+
+GenericAPIView と各種 Mixins を最初から組み合わせて、よくある API の形に仕上げた完成品クラス群。
+
+コードを数行書くだけで、標準的な CRUD API が完成する。
+
+開発効率が良く、可読性にも優れている。
+
+#### 主な Views
+
+- ListAPIView: データの「一覧取得」専用（GenericAPIView + ListModelMixin）
+
+- CreateAPIView: データの「新規作成」専用（GenericAPIView + CreateModelMixin）
+
+- RetrieveUpdateDestroyAPIView: 1件の「取得・更新・削除」をすべて行う（GenericAPIView + Retrieve + Update + Destroy）

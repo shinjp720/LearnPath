@@ -1,5 +1,5 @@
-html {
-    font-size: 120%;
+* {
+    font-size: 1.1rem;
     font-family: 'HackGen', 'Noto Sans', Arial, sans-serif;
     /* 'UDEV Gothic', 'Segoe UI',Helvetica,    */
 }
@@ -379,6 +379,10 @@ pre code {
 
 /* ----------- スマホ用 ----------- */
 @media screen and (max-width: 980px) {
+    * {
+        font-size: 1rem;
+    }
+
     #container {
         display: block;
     }

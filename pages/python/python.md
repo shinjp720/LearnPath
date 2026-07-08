@@ -20,6 +20,19 @@ UNIX系のシステムでは、ファイルのパーミッションビット**x*
 
 <pre><code>#!/usr/bin/env/python</code></pre>
 
+## 演算子 <a id="operator" data-name="演算子"></a>
+
+### 三項演算子
+
+条件が真の時値1となり、それ以外は値2となる。
+
+```
+値1 if 条件 else 値2
+```
+
+
+
+
 ---
 
 ## リスト <a id="list" data-name="リスト"></a>
@@ -385,18 +398,21 @@ fs.add(4)  # ❌ エラー
 evens = [x for x in range(10) if x % 2 == 0]
 # [0, 2, 4, 6, 8]</code></pre>
 
-<div class="subtitle">if の書き方</div>
+<div class="subtitle">条件式の書き方</div>
 
 1. フィルタとしての if
     ```python
     [x for x in range(10) if x % 2 == 0]
     ```
 
-2. 式の中の if-else
+2. 式の中の if-else (三項演算子)
     ```python
     ["even" if x % 2 == 0 else "odd" for x in range(5)]
     # ['even', 'odd', 'even', 'odd', 'even']
     ```
+
+<pre><code class="tips">左の if文は全要素が対象でデータを変えたい時、
+右の if文はフィルタリングをかけたい時。</code></pre>
 
 #### 辞書内包表記
 

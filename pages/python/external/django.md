@@ -37,8 +37,8 @@ django-admin startproject djangoproject .
 | --- | --- |
 | manage.py | Django のコマンドを使うためのモジュール |
 | `__init__.py` | 他のファイルからモジュールを読み込むためのファイル |
-| urls.py | ルーティングを記述するためのモジュール |
-| settings.py | プロジェクト全体の設定情報を記述するモジュール |
+| urls.py | ルーティングを記述するためのファイル |
+| settings.py | プロジェクト全体の設定情報を記述するファイル |
 | wsgi.py | WSGIサーバー用のモジュール |
 | asgi.py | ASGIサーバー用のモジュール |
 
@@ -66,12 +66,12 @@ python manage.py startapp myapp
 
 | --- | --- |
 | `__init__.py` | 他のファイルからモジュールを読み込むためのファイル |
-| admin.py |  |
-| apps.py |  |
-| models.py |  |
-| tests.py |  |
-| views.py |  |
-| migrationsディレクトリ |  |
+| migrations/ | データベースの変更履歴を記録するディレクトリ |
+| admin.py | Djangoの管理画面の設定ファイル |
+| apps.py | アプリケーション自体の設定ファイル |
+| models.py | データベースの構造 (model) を定義するファイル |
+| tests.py | テストコードを書くファイル |
+| views.py | 画面の表示処理やビジネスロジックを書くファイル |
 
 ### settings.py に登録
 
@@ -252,6 +252,48 @@ INSTALLED_APPS = [
 
 ---
 
+## ルーティング <a id="routing" data-name="ルーティング"></a>
+
+urls.py の urlpatterns[] に path() を追記してルーティングを設定する。
+
+### django.urls.path()
+
+```python
+# 書式
+path(route, view, kwargs=None, name=None)
+```
+
+| --- | --- |
+| route | ルートディレクトリを指定する |
+| view | ビューまたは as_view() で返されるビューを指定する |
+| kwargs | ビューで定義されている関数やメソッドが引数を取る場合に渡す |
+| name | path() 関数で設定した URLパターンに名前を付けられる |
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---
+
 ## manage.pyのコマンド <a id="command-manage" data-name="manage.pyのコマンド"></a>
 
 ### startproject
@@ -291,3 +333,5 @@ python manage.py createsuperuser
 ```
 
 コマンドを実行すると、ユーザー名、メールアドレス、パスワードの入力が求められ、すべてを入力するとスーパーユーザーが作成される。
+
+---
