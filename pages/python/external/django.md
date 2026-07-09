@@ -270,19 +270,328 @@ path(route, view, kwargs=None, name=None)
 | name | path() 関数で設定した URLパターンに名前を付けられる |
 
 
+## Model <a id="model" data-name="Model"></a>
+
+### クエリセット
+
+モデルオブジェクトが1件のデータなら、クエリセットは検索条件、または検索結果の集合。<br>
+クエリセットで条件を組み立てて、必要に応じてモデルオブジェクトを取り出す。
+
+<pre><code class="tips">QuerySet は SQL を組み立てるためのオブジェクト。</code></pre>
+
+以下のようなモデルがあったとする。
+
+```python
+class User(models.Model):
+    name = models.CharField(max_length=100)
+    age = models.IntegerField()
+```
+
+#### all()
+
+全てのレコードを取得する。
+
+```python
+users = User.objects.all()
+```
+
+#### filter()
+
+条件を追加する。
+
+```python
+users = User.objects.filter(age=20)
+```
+
+#### exclude()
+
+逆条件 (NOT)。
+
+```python
+users = User.objects.exclude(age=20)
+```
+
+#### get()
+
+条件でオブジェクトを返す。
+
+```python
+user = User.objects.get(pk=1)
+```
+
+#### first()
+
+最初の1件を返す。なければ None。
+
+```python
+user = User.objects.first()
+```
 
 
+#### last()
+
+最後の1件を返す。なければ None。
+
+```python
+user = User.objects.last()
+```
+
+#### exists()
+
+あるかどうかを bool で返す。
+
+```python
+User.objects.filter(age=20).exists()
+```
+
+非常に高速。
+
+#### count()
+
+件数。
+
+```python
+User.objects.count()
+```
+
+#### order_by()
+
+並び替え。
+
+```python
+User.objects.order_by("age")
+```
+
+逆順。
+
+```python
+User.objects.order_by("-age")
+```
+
+#### values_list()
+
+カラムの値をタプルで返す。
+
+```python
+User.objects.values_list("name")
+```
+
+```
+[
+    ("Taro",),
+    ("Jiro",)
+]
+```
+
+リストにするなら。
+
+```python
+User.objects.values_list(
+    "name",
+    flat=True
+)
+```
+
+```
+[
+    "Taro",
+    "Jiro"
+]
+```
+
+#### only()
+
+必要な列だけ取得して、不要な列を遅延ロードする。
+
+```python
+User.objects.only("name")
+```
+
+逆に email だけを遅延ロード。
+
+```python
+User.objects.defer("email")
+```
+
+#### update()
+
+一括更新。
+
+```python
+User.objects.filter(age=20).update(age=21)
+```
+
+#### delete()
+
+条件で削除。
+
+```python
+User.objects.filter(age=20).delete()
+```
+
+#### bulk_create()
+
+まとめて INSERT。
+
+```python
+User.objects.bulk_create([
+    User(name="A"),
+    User(name="B"),
+    User(name="C"),
+])
+```
+
+<pre><code class="tips">QuerySet は遅延評価であり、値が必要になった時にまとめて実行される。</code></pre>
+
+---
+
+### モデルオブジェクト
+
+Django のモデルオブジェクトは、データベースの1レコードを Python オブジェクトとして扱うためのもの。
+
+```python
+from django.db import models
+
+class User(models.Model):
+    name = models.CharField(max_length=100)
+    age = models.IntegerField()
+    email = models.EmailField()
+```
+
+以上のようなモデルがあったとして、以下のようにモデルオブジェクトを取得する。
+
+```python
+user = User.objects.get(pk=1)
+```
+
+フィールドには属性としてアクセスすることができ、
+
+```python
+print(user.name)
+print(user.age)
+```
+
+値を書き換えられる。ただしこの時点ではデータベースに反映されていない。
+
+```python
+user.name = "Jiro"
+user.age = 25
+```
+
+#### save()
+
+```python
+user.save()
+```
+
+これで UPDATE される。
+
+#### delete()
+
+```python
+user.delete()
+```
+
+これで DELETE される。
+
+#### create()
+
+```python
+user = User.objects.create(
+    name="Taro",
+    age=20,
+    email="a@example.com"
+)
+```
+
+これで INSERT される。
+
+```python
+user = User(
+    name="Taro",
+    age=20,
+    email="a@example.com"
+)
+
+user.save()
+```
+
+これも同じ意味。
+
+### その他の操作
+
+#### 主キーの取得
+
+pkが主キーを表す。
+
+```python
+user.pk
+```
+
+<pre><code class="tips">主キーを設定しなかった場合、自動で id というフィールドが pk として追加される。</code></pre>
 
 
+#### 辞書化
 
+```python
+from django.forms.models import model_to_dict
 
+obj = model_to_dict(user)
+```
 
+#### オブジェクトをコピー
 
+```python
+user.pk = None
+user.save()
+```
 
+#### オブジェクト同士を比較
 
+```python
+u1 = User.objects.get(pk=1)
+u2 = User.objects.get(pk=1)
 
+print(u1 == u2)
+```
 
+#### リレーションへアクセス
 
+例えばこういうモデル。
+
+```python
+class Post(models.Model):
+    title = models.CharField(max_length=100)
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+```
+
+取得。
+
+```python
+post = Post.objects.get(pk=1)
+```
+
+親へ。
+
+```python
+post.author
+```
+
+逆参照。
+
+```python
+user.post_set.all()
+```
+
+#### 値を最新にする
+
+値を最新の状態 (データベースの値) に書き換える。
+
+```python
+user.refresh_from_db()
+```
+
+---
 
 
 

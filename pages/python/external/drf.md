@@ -66,7 +66,9 @@ serializer = BookSerializer(book)
 serializer = BookSerializer(data=request.data)
 ```
 
-<pre><code class="tips">デフォルトで単数なので、複数渡す場合は <span class="code-like">many=True</span> を指定する</code></pre>
+<pre><code class="caution">データを渡す際は <span class="code-like">data=</span>が必須。</code></pre>
+
+<pre><code class="tips">デフォルトで単数なので、複数渡す場合は <span class="code-like">many=True</span> を指定する。</code></pre>
 
 この時点で使えるのは
 
@@ -86,7 +88,7 @@ serializer.is_valid()
 <span class="code-like">validate()</span> や <span class="code-like">validate_&lt;filed&gt;()</span> があれば自動で実行される。
 
 <pre><code class="tips">実装した <span class="code-like">validate()</span> は、検証したデータを返す必要があり、
-特定のフィールドを検証するメソッドはそのフィールドの値を (加工してもいい)、
+特定のフィールドを検証するメソッドはそのフィールドの値 (加工してもいい) を、
 オブジェクト全体を検証する <span class="code-like">validate()</span> は値を丸ごと返す必要がある。
 また失敗した場合は <span class="code-like">ValidationError</span> を <span class="code-like">raise</span> する必要がある。</code></pre>
 
