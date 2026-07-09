@@ -313,11 +313,15 @@ users = User.objects.exclude(age=20)
 
 #### get()
 
-条件でオブジェクトを返す。
+条件でオブジェクトを返す。なければ エラー。
 
 ```python
 user = User.objects.get(pk=1)
 ```
+
+<pre><code class="tips">エラーを出さずに None を返させたい場合は
+User.objects.get(pk=999).first()
+とするとエラーを発生させずになければ None となる。  </code></pre>
 
 #### first()
 
