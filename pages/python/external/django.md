@@ -600,7 +600,7 @@ user = User.objects.get(pk=1)
 
 <pre><code class="tips">エラーを出さずに None を返させたい場合は
 User.objects.get(pk=999).first()
-とするとエラーを発生させずになければ None となる。  </code></pre>
+とするとエラーを発生させずに、なければ None となる。  </code></pre>
 
 #### first()
 
@@ -874,7 +874,6 @@ user.post_set.all()
 user.refresh_from_db()
 ```
 
----
 
 
 
