@@ -44,7 +44,7 @@ django-admin startproject djangoproject .
 
 ### サーバーの起動
 
-この時点で起動が可能なので確認。
+この時点で起動が可能なので確認する場合。
 
 ```bash
 # プロジェクト内へ移動
@@ -53,6 +53,89 @@ cd djangoproject
 # サーバーを起動
 python manage.py runserver
 ```
+
+### 設定
+
+### スーパーユーザーの作成
+
+```bash
+python manage.py createsuperuser
+```
+
+ユーザー名、メールアドレス、パスワードの入力が求められる。
+
+### カスタムユーザーモデルへの切り替え
+
+プロジェクトを作成した時に設定しておきたい (後から変更が大変になる) 。
+Django では標準で User モデルが用意されているが、将来的にログインIDをユーザー名ではなくメールアドレスにしたい、プロフィール画像や電話番号の項目を追加したいとなった時、標準のままだとマイグレーションで衝突が起きる。
+
+1. ユーザー管理用のアプリを作る (accounts など) 。
+2. そのアプリの models.py に、標準の User を継承した空のクラスを作る。
+    ```python
+    from django.contrib.auth.models import AbstractUser
+
+    class CustomUser(AbstractUser):
+    pass
+    ```
+3. settings.py に以下を追記する (migrate する前に) 。
+    ```python
+    AUTH_USER_MODEL = 'accounts.CustomUser'
+    ```
+
+### データベースの指定
+
+```python
+DATABASES = {
+    ...
+}
+```
+
+### タイムゾーン
+
+```python
+TIME_ZONE = "Asia/Tokyo"
+```
+
+### 言語
+
+```python
+LANGUAGE_CODE = "ja"
+```
+
+### Static ファイル
+
+```python
+STATIC_URL = "static/"
+```
+
+必要なら、
+
+```python
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+```
+
+### Media ファイル
+
+```python
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+```
+
+### DRF を使う場合
+
+```bash
+pip install djangorestframework
+```
+
+```python
+INSTALLED_APPS = [
+    ...
+    "rest_framework",
+]
+```
+
 
 ### アプリの作成 
 
@@ -184,71 +267,7 @@ def index(request):
 
 ---
 
-## 設定 <a id="settings" data-name="設定"></a>
 
-### スーパーユーザーの作成
-
-
-
-### カスタムユーザーモデルへの切り替え
-
-プロジェクトを作成した時に設定しておきたい (後から変更が大変になる) 。
-
-
-
-### データベースの指定
-
-```python
-DATABASES = {
-    ...
-}
-```
-
-### タイムゾーン
-
-```python
-TIME_ZONE = "Asia/Tokyo"
-```
-
-### 言語
-
-```python
-LANGUAGE_CODE = "ja"
-```
-
-### Static ファイル
-
-```python
-STATIC_URL = "static/"
-```
-
-必要なら、
-
-```python
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
-```
-
-### Media ファイル
-
-```python
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
-```
-
-### DRF を使う場合
-
-```bash
-pip install djangorestframework
-```
-
-```python
-INSTALLED_APPS = [
-    ...
-    "rest_framework",
-]
-```
 
 ---
 
@@ -271,6 +290,266 @@ path(route, view, kwargs=None, name=None)
 
 
 ## Model <a id="model" data-name="Model"></a>
+
+Model = データベース。
+
+### よく使うフィールド
+
+#### CharField()
+
+短い文字列。
+
+- 必ず max_length が必要
+- 名前、タイトル、メールアドレスなど
+
+    ```python
+    name = models.CharField(max_length=10)
+    ```
+
+#### TextField()
+
+長文用。
+
+- 記事本文、コメント、説明文など
+
+    ```python
+    body = models.TextField()
+    ```
+
+#### IntegerField()
+
+整数。
+
+- 年齢、在庫数、順位など
+
+    ```python
+    age = models.IntegerField()
+    ```
+
+#### BigIntegerField()
+
+かなり大きな整数。
+
+```python
+count = models.BigIntegerField()
+```
+
+#### PositiveIntegerField()
+
+0以上の自然数。
+
+```python
+stock = models.PositiveIntegerField()
+```
+
+#### FloatField()
+
+浮動小数。
+
+- 誤差があるためお金など、正確な値には向かない
+
+    ```python
+    score = models.FloatField()
+    ```
+
+#### DecimalField()
+
+固定小数点。
+
+```python
+price = models.DecimalField(
+    max_digits=8,
+    decimal_places=2
+)
+```
+
+であれば
+
+```
+123456.78
+```
+
+まで保存可能。お金はこちらを使う。
+
+#### BooleanField()
+
+真偽値。
+
+```python
+is_active = models.BooleanField(default=True)
+```
+
+#### DateField
+
+日付けだけ。
+
+```python
+birthday = models.DateField()
+```
+
+#### TimeField()
+
+時間だけ。
+
+```python
+open_time = models.TimeField()
+```
+
+#### DateTimeField()
+
+日時。
+
+```python
+created_at = models.DateTimeField()
+```
+
+よく使うオプション。
+
+```python
+created_at = models.DateTimeField(auto_now_add=True)
+updated_at = models.DateTimeField(auto_now=True)
+```
+
+- `auto_now_add=True`
+  - 作成時のみセット
+- `auto_now=True`
+  - 保存するたび更新
+
+#### BinaryField()
+
+バイト列。
+
+```python
+data = models.BinaryField()
+```
+
+画像そのものを保存することも可能だが、通常はファイルとして保存する。
+
+#### UUID()
+
+UUID。
+
+```python
+import uuid
+
+id = models.UUIDField(
+    primary_key=True,
+    default=uuid.uuid4,
+    editable=False
+)
+```
+
+#### JSON()
+
+JSON をそのまま保存できる。
+
+```python
+info = models.JSONField()
+```
+
+Python では辞書として扱える。
+
+```python
+user.info["name"]
+```
+
+#### FileField()
+
+ファイル。
+
+```python
+file = models.FileField(upload_to="files/")
+```
+
+この場合アップロード先が <span class="code-like">MEDIA_ROOT/files/</span> となる。
+
+#### ImageField()
+
+画像専用。 Pillow ライブラリが必要。
+
+```python
+image = models.ImageField(upload_to="images/")
+```
+
+#### EmailField()
+
+メールアドレスの形式を検証する。
+
+```python
+email = models.EmailField()
+```
+
+#### URLField()
+
+URL形式を検証する。
+
+```python
+url = models.URLField()
+```
+
+#### SlugField()
+
+URL用文字列。
+
+```python
+slug = models.SlugField()
+```
+
+---
+
+### リレーション
+
+#### ForeignKey()
+
+多対一。
+
+```python
+class Book(models.Model):
+    author = models.ForeignKey(
+        Author,
+        on_delete=models.CASCADE
+    )
+```
+
+#### OneToOneField()
+
+一対一。
+
+```python
+profile = models.OneToOneField(
+    User,
+    on_delete=models.CASCADE
+)
+```
+
+#### ManyToManyField()
+
+多対多
+
+```python
+tags = models.ManyToManyField(Tag)
+```
+
+中間テーブルが自動生成される。
+
+---
+
+### フィールド共通オプション
+
+| オプション | 説明 |
+| --- | --- |
+| null=True | DBでnullを許可 |
+| blank=True | フォームで空入力、空文字列を許可 |
+| default= | デフォルト値 |
+| choices= | 選択肢を制限 |
+| unique=True | 一意制約 |
+| db_index=True | インデックス作成 |
+| primary_key=True | 主キー |
+| verbose_name="名前" | 管理画面、フォームなどで表示する名称 |
+| help_text="説明" | 管理画面などで補助説明を表示 |
+| `validators=[...]` | 独自バリデーションを追加 |
+
+---
 
 ### クエリセット
 

@@ -248,10 +248,15 @@ for (const { id, name } of users) {
 
 | 記号 | 説明 | 例 | 結果 |
 | --- | --- | --- | --- |
-| `typeof` | 型を返す | `typeof 1` | `number` |
-| `instanceof` | オブジェクトが特定のクラスやコンストラクタのインスタンスかどうかを判定する<br>プリミティブ型はオブジェクトと異なるため`false`となる点に注意 | `let arr = [1, 2, 3];`<br>`arr instanceof Array;` | `true` |
-| `in` | オブジェクトや配列に、特定のプロパティやインデックスが存在するかどうかを判定する | `"val" in {val: 1}`<br>`"noVal" in {val: 1}`| `true`<br>`false` |
+| `typeof` <span class="label">JS</span> | 型を返す<br>JS では実行時に動いて、厳密には<br>object, number, string, boolean, undefined, bigint, symbol, function の8種類のみ | `typeof 1` | `number` |
+| `typeof` <span class="label">TS</span> | 型を返す<br>TS では型チェック時に動いて、オブジェクトの細かい構造まで再現される | `typeof bob` | type User = {<br>name: string;<br>age: number;<br>} |
+| `keyof` <span class="label">TS</span> | 型のキー名を文字列のユニオンで返す | keyof User | `"name" | "age"` |
+| `instanceof` | オブジェクトが特定のクラスやコンストラクタの<br>インスタンスかどうかを判定する<br>プリミティブ型はオブジェクトと異なるため`false`となる点に注意 | `let arr = [1, 2, 3];`<br>`arr instanceof Array;` | `true` |
+| `in` | オブジェクトや配列に、特定のプロパティやインデックスが<br>存在するかどうかを判定する | `"val" in {val: 1}`<br>`"noVal" in {val: 1}`| `true`<br>`false` |
 | `delete` | オブジェクトのプロパティや配列の要素を削除する<br>`delete`は、配列の要素を削除しても長さ(length)は変わらない | `let obj = {a: 1, b: 2};`<br>`delete obj.a;` | `{b: 2}` |
+
+<pre><code class="tips">オブジェクトからキー名を導く <span class="label">TS</span>
+keyof typeof bob; // "name" | "age"</code></pre>
 
 ### 条件(三項)演算子
 
