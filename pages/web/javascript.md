@@ -367,14 +367,14 @@ person["phone-no"] // 記号などプロパティ名で指定できないもの�
 
 ### extends
 
-クラス継承 (JS)
+クラス継承 <span class="label">JS</span>
 
 ```javascript
 class Animal {}
 class Dog extends Animal {}
 ```
 
-interface 拡張 (TS)
+interface 拡張 <span class="label">TS</span>
 
 ```typescript
 interface Animal {
@@ -411,11 +411,11 @@ const el = document.querySelector('#app') as HTMLDivElement
 
 ```javascript
 interface User {
-  name: string
+    name: string
 }
 
 type ID = string | number
-
+type State = "success" | "error" | "loading"
 type Point = [number, number]
 ```
 
@@ -425,10 +425,18 @@ type Point = [number, number]
 
 ```javascript
 interface User {
-  name: string
-  age: number
+    name: string
+    age: number
 }
 ```
+
+基本は interface で定義することで外部から拡張できる。<br>
+Union型や複雑な型ユーティリティを使うときだけ type で定義する。
+
+<pre><code class="tips">同名で宣言した場合、
+    interface はプロパティが統合 (マージ) される。
+    type はエラーとなる。
+</code></pre>
 
 ### enum <span class="label">TS</span>
 

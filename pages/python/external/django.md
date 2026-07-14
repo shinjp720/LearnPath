@@ -267,10 +267,6 @@ def index(request):
 
 ---
 
-
-
----
-
 ## ルーティング <a id="routing" data-name="ルーティング"></a>
 
 urls.py の urlpatterns[] に path() を追記してルーティングを設定する。
@@ -288,12 +284,30 @@ path(route, view, kwargs=None, name=None)
 | kwargs | ビューで定義されている関数やメソッドが引数を取る場合に渡す |
 | name | path() 関数で設定した URLパターンに名前を付けられる |
 
+---
 
 ## Model <a id="model" data-name="Model"></a>
 
 Model = データベース。
 
-### よく使うフィールド
+### フィールド <a id="filed" data-name="フィールド"></a>
+
+#### フィールド共通オプション
+
+| オプション | 説明 |
+| --- | --- |
+| null=True | DBでnullを許可 |
+| blank=True | フォームで空入力、空文字列を許可 |
+| default= | デフォルト値 |
+| choices= | 選択肢を制限 |
+| unique=True | 一意制約 |
+| db_index=True | インデックス作成 |
+| primary_key=True | 主キー |
+| verbose_name="名前" | 管理画面、フォームなどで表示する名称 |
+| help_text="説明" | 管理画面などで補助説明を表示 |
+| `validators=[...]` | 独自バリデーションを追加 |
+
+---
 
 #### CharField()
 
@@ -497,7 +511,7 @@ slug = models.SlugField()
 
 ---
 
-### リレーション
+### リレーション <a id="eelationship" data-name="リレーション"></a>
 
 #### ForeignKey()
 
@@ -534,24 +548,7 @@ tags = models.ManyToManyField(Tag)
 
 ---
 
-### フィールド共通オプション
-
-| オプション | 説明 |
-| --- | --- |
-| null=True | DBでnullを許可 |
-| blank=True | フォームで空入力、空文字列を許可 |
-| default= | デフォルト値 |
-| choices= | 選択肢を制限 |
-| unique=True | 一意制約 |
-| db_index=True | インデックス作成 |
-| primary_key=True | 主キー |
-| verbose_name="名前" | 管理画面、フォームなどで表示する名称 |
-| help_text="説明" | 管理画面などで補助説明を表示 |
-| `validators=[...]` | 独自バリデーションを追加 |
-
----
-
-### クエリセット
+### クエリセット <a id="queryset" data-name="クエリセット"></a>
 
 モデルオブジェクトが1件のデータなら、クエリセットは検索条件、または検索結果の集合。<br>
 クエリセットで条件を組み立てて、必要に応じてモデルオブジェクトを取り出す。
@@ -566,33 +563,120 @@ class User(models.Model):
     age = models.IntegerField()
 ```
 
-#### all()
+#### 全件取得
 
 全てのレコードを取得する。
+
+```sql
+SELECT * FROM user;
+```
 
 ```python
 users = User.objects.all()
 ```
 
-#### filter()
+#### 条件検索
 
 条件を追加する。
+
+```sql
+SELECT *
+FROM user
+WHERE age = 20;
+```
 
 ```python
 users = User.objects.filter(age=20)
 ```
 
-#### exclude()
+複数条件。
+
+```sql
+SELECT *
+FROM user
+WHERE age = 20
+AND name = '田中';
+```
+
+```python
+users = User.objects.filter(
+    age=20,
+    name="田中"
+)
+```
+
+#### 比較演算子
+
+| SQL | Django |
+| --- | --- |
+| `=` | age=20 |
+| `>` | age__gt=20 |
+| `>=` | age__gte=20 |
+| `<` | age__lt=20 |
+| `<=` | age__lte=20 |
+| `!=` | exclude(age=20) |
+
+#### LIKE
+
+- 部分一致 (大文字小文字を区別する)
+
+    ```sql
+    WHERE name LIKE '%smith%'
+    ```
+
+    ```python
+    User.objects.filter(name__contains="smith")
+    ```
+
+- 部分一致 (大文字小文字を区別しない)
+
+    ```sql
+    WHERE LOWER(name) LIKE '%smith%'
+    ```
+
+    ```python
+    User.objects.filter(name__icontains="smith")
+    ```
+
+- 前方一致
+
+    ```sql
+    WHERE name LIKE 'John%'
+    ```
+
+    ```python
+    User.objects.filter(name__startswith="John")
+    ```
+
+- 後方一致
+
+    ```sql
+    WHERE name LIKE '%son'
+    ```
+
+    ```python
+    User.objects.filter(name__endswith="son")
+    ```
+
+#### NOT
 
 逆条件 (NOT)。
+
+```sql
+SELECT *
+FROM user
+WHERE age != 20;
+```
 
 ```python
 users = User.objects.exclude(age=20)
 ```
 
-#### get()
+#### 1件取得
 
-条件でオブジェクトを返す。なければ エラー。
+条件でオブジェクトを返す。
+なければ `DoesNotExist`
+複数あれば `MultipleObjectsReturned` となる。
 
 ```python
 user = User.objects.get(pk=1)
@@ -600,9 +684,95 @@ user = User.objects.get(pk=1)
 
 <pre><code class="tips">エラーを出さずに None を返させたい場合は
 User.objects.get(pk=999).first()
-とするとエラーを発生させずに、なければ None となる。  </code></pre>
+とするとエラーを発生させずに、なければ None となる。</code></pre>
 
-#### first()
+#### LIMIT
+
+```sql
+SELECT *
+FROM user
+LIMIT 5;
+```
+
+```python
+users = User.objects.all()[:5]
+```
+
+途中を取得。
+
+```sql
+LIMIT 5 OFFSET 10;
+```
+
+```python
+users = User.objects.all()[10:15]
+```
+
+Python のスライス構文がそのまま使える。
+
+#### ORDER BY
+
+並び替え。
+
+```sql
+SELECT *
+FROM user
+ORDER BY age;
+```
+
+```python
+User.objects.order_by("age")
+```
+
+逆順。
+
+```sql
+ORDER BY age DESC;
+```
+
+```python
+User.objects.order_by("-age")
+```
+
+#### COUNT
+
+件数。
+
+```sql
+SELECT COUNT(*)
+FROM user;
+```
+
+```python
+User.objects.count()
+```
+
+条件付き
+
+```python
+User.objects.filter(age=20).count()
+```
+
+#### EXISTS
+
+存在するかどうかを bool で返す。
+
+```SQL
+SELECT EXISTS(
+    SELECT *
+    FROM user
+    WHERE age=20
+);
+```
+
+```python
+User.objects.filter(age=20).exists()
+```
+
+非常に高速。
+
+
+#### 最初の1件
 
 最初の1件を返す。なければ None。
 
@@ -611,7 +781,7 @@ user = User.objects.first()
 ```
 
 
-#### last()
+#### 最後の1件
 
 最後の1件を返す。なければ None。
 
@@ -619,50 +789,40 @@ user = User.objects.first()
 user = User.objects.last()
 ```
 
-#### exists()
+#### 特定の列だけ
 
-あるかどうかを bool で返す。
-
-```python
-User.objects.filter(age=20).exists()
+```sql
+SELECT name
+FROM user;
 ```
 
-非常に高速。
-
-#### count()
-
-件数。
-
 ```python
-User.objects.count()
+User.objects.values("name")
 ```
 
-#### order_by()
+クエリセットが返る。
 
-並び替え。
-
-```python
-User.objects.order_by("age")
-```
-
-逆順。
+複数列。
 
 ```python
-User.objects.order_by("-age")
+User.objects.values(
+    "id",
+    "name"
+)
 ```
 
 #### values_list()
 
-カラムの値をタプルで返す。
+タプルで取得。
 
 ```python
-User.objects.values_list("name")
+User.objects.values_list("id", "name")
 ```
 
 ```
 [
-    ("Taro",),
-    ("Jiro",)
+    (1, "Taro"),
+    (2, "Jiro")
 ]
 ```
 
@@ -680,6 +840,19 @@ User.objects.values_list(
     "Taro",
     "Jiro"
 ]
+```
+
+#### DISTINCT
+
+重複を除外。
+
+```sql
+SELECT DISTINCT age
+FROM user;
+```
+
+```python
+User.objects.values("age").distinct()
 ```
 
 #### only()
@@ -728,7 +901,7 @@ User.objects.bulk_create([
 
 ---
 
-### モデルオブジェクト
+### モデルオブジェクト <a id="model-object" data-name="モデルオブジェクト"></a>
 
 Django のモデルオブジェクトは、データベースの1レコードを Python オブジェクトとして扱うためのもの。
 
@@ -873,15 +1046,6 @@ user.post_set.all()
 ```python
 user.refresh_from_db()
 ```
-
-
-
-
-
-
-
-
-
 
 ---
 
