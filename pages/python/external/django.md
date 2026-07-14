@@ -674,8 +674,8 @@ users = User.objects.exclude(age=20)
 
 #### 1件取得
 
-条件でオブジェクトを返す。
-なければ `DoesNotExist`
+条件でオブジェクトを返す。<br>
+なければ `DoesNotExist`<br>
 複数あれば `MultipleObjectsReturned` となる。
 
 ```python
