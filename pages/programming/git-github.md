@@ -338,12 +338,12 @@ git push origin --delete feature-abc
 基本的にはワーキングツリーはクリーンになる。<br>
 <span class="code-like">git stash</span> で作成されたデータは .git/refs/stash というファイルに保存される。
 
-<pre><code class="caution">Git の管理下にあるファイルしか退避させないので、新規ファイルも含めて退避させたい場合は
-git stash -u</code></pre>
-
 | --- | --- |
 | -m | commit のようにメッセージを付ける |
 | -u | untracked file も含めて退避 |
+
+<pre><code class="tips">Git の管理下にあるファイルしか退避させないので、
+<span class="code-like">git stash -u</span> が普段使いでOK。</code></pre>
 
 #### git stash pop
 

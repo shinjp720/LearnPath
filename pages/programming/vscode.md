@@ -61,6 +61,7 @@ layout: default
 <table>
     <caption>タブ</caption>
         <tr><th>ショートカットキー</th><th>意味</th></tr>
+        <tr><td>Ctrl+Shift+PageUp と Ctrl+Shift+PageDown</td><td>タブを左または右へ移動</td></tr>
         <tr><td>Ctrl+W</td><td>タブを閉じる</td></tr>
         <tr><td>Ctrl+Tab と Ctrl+Shift+Tab</td><td>1つ前のタブ、次のタブへフォーカスを移動</td></tr>
         <tr><td>Ctrl+PageUp と Ctrl+PageDown</td><td>右のタブ、左のタブへフォーカスを移動</td></tr>
@@ -104,9 +105,9 @@ layout: default
 <table>
     <caption>折りたたみ</caption>
         <tr><th>ショートカットキー</th><th>意味</th></tr>
-        <tr><td>Ctrl+K, Ctrl+0</td><td>すべて折りたたむ</td></tr>
+        <tr><td>Ctrl+K, Ctrl+0(ゼロ)</td><td>すべて折りたたむ</td></tr>
+        <tr><td>Ctrl+K, Ctrl+J</td><td>すべて展開</td></tr>
         <tr><td>Ctrl+K, Ctrl+[</td><td>再帰的に折りたたむ</td></tr>
-        <tr><td>Ctrl+K, Ctrl+J</td><td>全て展開</td></tr>
         <tr><td>Ctrl+K, Ctrl+]</td><td>再帰的に展開</td></tr>
 </table>
 
