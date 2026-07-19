@@ -905,6 +905,8 @@ User.objects.bulk_create([
 
 Django のモデルオブジェクトは、データベースの1レコードを Python オブジェクトとして扱うためのもの。
 
+#### update
+
 ```python
 from django.db import models
 
@@ -927,14 +929,12 @@ print(user.name)
 print(user.age)
 ```
 
-値を書き換えられる。ただしこの時点ではデータベースに反映されていない。
-
 ```python
 user.name = "Jiro"
 user.age = 25
 ```
 
-#### save()
+値を書き換えられる。ただしこの時点ではデータベースに反映されていない。
 
 ```python
 user.save()
@@ -942,15 +942,47 @@ user.save()
 
 これで UPDATE される。
 
-#### delete()
+<pre><code class="caution">Djangoでは、 pk (または id) があるかどうかで save() した時に新規、か更新かを判別しているため、単なる unique キーで更新する場合は以下のように <span class="code-like">update_or_create()</span> を使う。
 
-```python
-user.delete()
-```
+# データのイメージ
+unique_value = update_data.pop('unique_key') # 検索条件にするため辞書から抜く
 
-これで DELETE される。
+# これだけで「検索 ➔ あれば更新」を1行で行う
+instance, created = MyModel.objects.update_or_create(
+    unique_key=unique_value,    # どのレコードを探すか（一意のキー）
+    defaults=update_data        # 更新したい中身（辞書）
+)</code></pre>
 
-#### create()
+
+
+<pre><code class="tips">モデルに対してバリデーションを行う場合は <span class="code-like">full_clean()</span> を行う。full_clean は以下の3つを実行する (DRF であればシリアライザを使う)。
+<ul><li>clean_fields() : 各フィールドの基本チェック。</li>
+    <li>clean() : 自分でロジックを書いたチェック。</li>
+    <li>validate_unique() : 一意性のチェック (unique=True や unique_together の違反がないか)</li></ul></code></pre>
+
+<pre><code class="example"># clean()の実装例
+
+from django.core.exceptions import ValidationError
+from django.db import models
+
+class SaleEvent(models.Model):
+    title = models.CharField(max_length=100)
+    start_date = models.DateField()
+    end_date = models.DateField()
+
+    # 独自ルールを clean() に書き込む
+    def clean(self):
+        # 親クラスのcleanを呼んでおく（習慣として）
+        super().clean()
+        
+        # 開始日と終了日の矛盾をチェック
+        if self.start_date and self.end_date:
+            if self.end_date < self.start_date:
+                raise ValidationError({
+                    'end_date': '終了日は開始日よりも後の日付にしてください。'
+                })</code></pre>
+
+#### insert
 
 ```python
 user = User.objects.create(
@@ -973,6 +1005,14 @@ user.save()
 ```
 
 これも同じ意味。
+
+#### delete
+
+```python
+user.delete()
+```
+
+これで DELETE される。
 
 ### その他の操作
 

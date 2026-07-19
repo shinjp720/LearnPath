@@ -16,7 +16,7 @@ pip install djangorestframework
 
 ## Serializer <a id="serializer" data-name="serializer"></a>
 
-シリアライザーは Python オブジェクトや Model などと JSON を相互変換し、そのデータが正しいか検証するクラス。<br>
+シリアライザーは Python オブジェクトや Model などと JSON を相互変換し、そのデータが正しいか検証するクラスであり、モデルのラッパーであるとも言える。<br>
 つまり
 
 - Python -> JSON (レスポンス)
@@ -25,7 +25,7 @@ pip install djangorestframework
 
 の3つを担当する。
 
-Serializer は単なる JSON の変換器ではなく、データの定義書のようなもので、
+Serializer は単なる JSON への変換器ではなく、データの定義書のようなもので、
 
 ```python
 # モデル
@@ -100,6 +100,18 @@ serializer.validated_data
 ```
 
 へアクセスできるようになる。
+
+<pre><code class="caution"><span class="code-like">is_valid()</span> は、unique なフィールドに対してチェックが走るため、更新のためのバリデーションはエラーが発生する。
+<span class="code-like">is_valid()</span> 実行時に重複チェックを走らせたくない場合はシリアライザで以下のように定義する。
+
+class MyModelSerializer(serializers.ModelSerializer):
+    # 勝手に付与された UniqueValidator を空にする
+    email = serializers.EmailField(validators=[]) 
+
+    class Meta:
+        model = MyModel  # モデルは元のままでOK
+        fields = ['id', 'email', 'name']</code></pre>
+
 
 #### save()
 
