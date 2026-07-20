@@ -942,19 +942,6 @@ user.save()
 
 これで UPDATE される。
 
-<pre><code class="caution">Djangoでは、 pk (または id) があるかどうかで save() した時に新規、か更新かを判別しているため、単なる unique キーで更新する場合は以下のように <span class="code-like">update_or_create()</span> を使う。
-
-# データのイメージ
-unique_value = update_data.pop('unique_key') # 検索条件にするため辞書から抜く
-
-# これだけで「検索 ➔ あれば更新」を1行で行う
-instance, created = MyModel.objects.update_or_create(
-    unique_key=unique_value,    # どのレコードを探すか（一意のキー）
-    defaults=update_data        # 更新したい中身（辞書）
-)</code></pre>
-
-
-
 <pre><code class="tips">モデルに対してバリデーションを行う場合は <span class="code-like">full_clean()</span> を行う。full_clean は以下の3つを実行する (DRF であればシリアライザを使う)。
 <ul><li>clean_fields() : 各フィールドの基本チェック。</li>
     <li>clean() : 自分でロジックを書いたチェック。</li>
