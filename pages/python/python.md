@@ -184,7 +184,7 @@ print(a)   # [99, 2] ← 一緒に変わる</code></pre>
 
 ```python
 t1 = (1, 2, 3)
-t2 = 1, 2, 3      # これでもOK（実はこっちが本質）
+t2 = 1, 2, 3  # これでもOK（実はこっちが本質）
 
 t = (1)     # intになる
 t = (1,)    # タプルになる ← カンマが本体
@@ -248,7 +248,7 @@ user.items()   # (キー, 値)
 user["email"] = "a@example.com"  # 追加
 user["age"] = 21                 # 更新
 del user["age"]
-user.pop("name")   # 値を返す
+user.pop("name")   # 値を返す (削除される)
 
 # まとめて更新
 user.update({"age": 30, "city": "Osaka"})
@@ -330,13 +330,15 @@ fs.add(4)  # ❌ エラー
 
 ---
 
-## String型 <a id="string" data-name="String型"></a>
+<a id="string" data-name="String型"></a>
+
+## String型
 
 ### 文字列操作関連メソッド
 
 | メソッド     | 説明                                                                        | 使用例                              |
 | ------------ | --------------------------------------------------------------------------- | ----------------------------------- |
-| capitalize() | 1文字目が英字の場合は大文字で表し、他に英字がある場合はすべて小文字になる。 | 'hello'.capitalize() → 'Hello'      |
+| capitalize() | 1文字目が英字の場合は大文字で表し、<br>他に英字がある場合はすべて小文字になる。 | 'hello'.capitalize() → 'Hello'      |
 | casefold()   | 大文字小文字を区別せず比較できる形に変換。Unicodeのみ。                     | 'HELLO'.casefold() → 'hello'        |
 | title()      | 各単語の先頭を大文字に                                                      | 'helloworld'.title() → 'HelloWorld' |
 | lower()      | 小文字に変換                                                                | 'HELLO'.lower() → 'hello'           |
@@ -374,15 +376,15 @@ fs.add(4)  # ❌ エラー
 
 | メソッド     | 説明                       | 使用例                                                  |
 | ------------ | -------------------------- | ------------------------------------------------------- |
-| strip()      | 前後の空白や指定文字を除去 | ' hello '.strip() → 'hello'                             |
+| strip()      | 前後の空白や指定文字を除去 | `' hello '.strip() → 'hello'`                             |
 | lstrip()     | 左側の空白や指定文字を除去 | ' hello'.lstrip() → 'hello'                             |
 | rstrip()     | 右側の空白や指定文字を除去 | 'hello '.rstrip() → 'hello'                             |
 | replace()    | 部分文字列を置換           | 'hello'.replace('l', 'w') → 'hewwo'                     |
-| split()      | 指定の区切り文字で分割     | 'a,b,c'.split(',') → ['a', 'b', 'c']                    |
-| rsplit()     | 右から分割                 | 'a,b,c'.rsplit(',', 1) → ['a,b', 'c']                   |
-| partition()  | 最初の区切り文字で分割     | 'hello world'.partition(' ') → ('hello', ' ', 'world')  |
-| rpartition() | 右から区切り文字で分割     | 'hello world'.rpartition(' ') → ('hello', ' ', 'world') |
-| join()       | 文字列を指定の区切りで結合 | ','.join(['a', 'b', 'c']) → 'a,b,c'                     |
+| split()      | 指定の区切り文字で分割     | `'a,b,c'.split(',') → ['a', 'b', 'c']`                    |
+| rsplit()     | 右から分割                 | `'a,b,c'.rsplit(',', 1) → ['a,b', 'c']`                   |
+| partition()  | 最初の区切り文字で分割     | `'hello world'.partition(' ') → ('hello', ' ', 'world')`  |
+| rpartition() | 右から区切り文字で分割     | `'hello world'.rpartition(' ') → ('hello', ' ', 'world')` |
+| join()       | 文字列を指定の区切りで結合 | `','.join(['a', 'b', 'c']) → 'a,b,c'`                     |
 
 <div class="caution">
     strip系のメソッドは、<b>"指定文字列"</b>に含まれる<b>'文字'</b>が全て除去されるので注意。
@@ -406,6 +408,41 @@ fs.add(4)  # ❌ エラー
 | center()     | 文字列を中央寄せ             | 'hi'.center(6, '-') → '--hi--' |
 | ljust()      | 左寄せ                       | 'hi'.ljust(5, '-') → 'hi---'   |
 | rjust()      | 右寄せ                       | 'hi'.rjust(5, '-') → '---hi'   |
+
+---
+
+<a id="args" data-name="可変長引数"></a>
+
+## 可変長引数
+
+Python の `*args` `**kwargs` はどこで使うかによって意味が異なる。
+
+### 関数の定義 (梱包)
+
+```python
+def my_function(*args, **kwargs):
+    print(args)    # タプルにまとめられている
+    print(kwargs)  # 辞書にまとめられている
+
+# 呼び出すときはバラバラに渡す
+my_function(1, 2, 3, a="apple", b="banana")
+```
+
+### 関数の呼び出し (開墾)
+
+```python
+def greet(name, age, country):
+    print(f"{name} ({age}) from {country}")
+
+# 1. リストやタプルを「展開」して渡す (*)
+user_info = ["Alice", 25, "Japan"]
+greet(*user_info)  # greet("Alice", 25, "Japan") と書いたのと同じ
+
+# 2. 辞書を「展開」して渡す (**)
+user_dict = {"name": "Bob", "age": 30, "country": "USA"}
+greet(**user_dict) # greet(name="Bob", age=30, country="USA") と同じ
+```
+
 
 ---
 
@@ -704,7 +741,7 @@ seqはイテラブル。seqのいずれかの要素がtruthyの場合、anyは`T
 
 整数xのバイナリ文字列表現を返す。
 
-### dir([obj, ]/)
+### `dir([obj, ]/)`
 
 `dir()`(引数なし)の呼び出しは、現在のスコープでバインドされているすべての変数名をソート済みのリストとして返す。<br>`dir(obj)`の呼び出しは、objの型から、または継承によって取得したものを含め、objの属性の名前をソート済みのリストとして返す。
 
