@@ -66,7 +66,10 @@ serializer = BookSerializer(book)
 serializer = BookSerializer(data=request.data)
 ```
 
-<pre><code class="caution">データを渡す際は <span class="code-like">data=</span>が必須。</code></pre>
+
+### 入力
+
+<pre><code class="caution">入力をバリデーションする際は <span class="code-like">data=</span>が必須。</code></pre>
 
 <pre><code class="tips">デフォルトで単数なので、複数渡す場合は <span class="code-like">many=True</span> を指定する。</code></pre>
 
@@ -85,10 +88,10 @@ serializer.is_valid()
 
 <span class="code-like">is_valid()</span> でバリデーションが実行される。
 
-<span class="code-like">validate()</span> や <span class="code-like">validate_&lt;filed&gt;()</span> があれば自動で実行される。
+また、 <span class="code-like">validate()</span> や <span class="code-like">validate_&lt;filed&gt;()</span> が定義されていれば自動で実行される。
 
 <pre><code class="tips">実装した <span class="code-like">validate()</span> は、検証したデータを返す必要があり、
-特定のフィールドを検証するメソッドはそのフィールドの値 (加工してもいい) を、
+特定のフィールドを検証するメソッドはそのフィールドの値 (加工してもいい) を返し、
 オブジェクト全体を検証する <span class="code-like">validate()</span> は値を丸ごと返す必要がある。
 また失敗した場合は <span class="code-like">ValidationError</span> を <span class="code-like">raise</span> する必要がある。</code></pre>
 
@@ -106,7 +109,7 @@ serializer.validated_data
 
 class MyModelSerializer(serializers.ModelSerializer):
     # 勝手に付与された UniqueValidator を空にする
-    email = serializers.EmailField(validators=[]) 
+    email = serializers.EmailField(validators=[ ]) 
 
     class Meta:
         model = MyModel  # モデルは元のままでOK
@@ -130,6 +133,26 @@ serializer.instance
 ```
 
 にアクセスできる。
+
+### 出力
+
+レスポンスとしてモデルシリアライザを通す場合は、 <span class="code-like">instance=</span> もしくは第1引数としてモデルオブジェクトを渡すことにより、どのフィールドを JSON にするかなどを精査する。
+
+```python
+user = User.objects.get(pk=1)
+
+serializer = UserSerializer(user)
+# または
+serializer = UserSerializer(instance=user)
+
+serializer.data
+```
+
+<pre><code class="tips">更新は特殊で、 <span class="code-like">instance=</span> と <span class="code-like">data=</span> を渡す必要がある。
+
+serializer = UserSerializer(instance=user, data=request.data)
+serializer.is_valid()
+serializer.save()</code></pre>
 
 ## クラスベースビュー <a id="class-baes-view" data-name="クラスベースビュー"></a>
 
