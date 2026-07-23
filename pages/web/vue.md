@@ -2039,4 +2039,214 @@ th { background-color: #f5f5f5; }
 
 この構造で、コンポーネントAのボタンを押したときに親経由でBのテーブルの中身がサッと切り替わるはずです。
 
+---
 
+<a id="grouping" data-name="オブジェクトでまとめる"></a>
+
+## オブジェクトでまとめる 
+
+できます。こういう場合は **1項目を1オブジェクトとして定義**するのが一番きれいです。
+
+例えば、
+
+```ts
+const fields = [
+  {
+    el: useTemplateRef<HTMLInputElement>("exInput1"),
+    model: ref("REF1"),
+  },
+  {
+    el: useTemplateRef<HTMLInputElement>("exInput2"),
+    model: ref("REF2"),
+  },
+  {
+    el: useTemplateRef<HTMLInputElement>("exInput3"),
+    model: ref("REF3"),
+  },
+]
+```
+
+これなら
+
+```ts
+fields.forEach(field => {
+  watch(field.model, (value) => {
+    if (value === "") {
+      field.el.value?.focus()
+    }
+  })
+})
+```
+
+のように共通処理を書けます。
+
+---
+
+## 名前も残したいなら
+
+配列ではなくオブジェクトでもOKです。
+
+```ts
+const fields = {
+  exInput1: {
+    el: useTemplateRef<HTMLInputElement>("exInput1"),
+    model: ref("REF1"),
+  },
+  exInput2: {
+    el: useTemplateRef<HTMLInputElement>("exInput2"),
+    model: ref("REF2"),
+  },
+  exInput3: {
+    el: useTemplateRef<HTMLInputElement>("exInput3"),
+    model: ref("REF3"),
+  },
+}
+```
+
+ループは
+
+```ts
+Object.values(fields).forEach(field => {
+  watch(field.model, value => {
+    if (value === "") {
+      field.el.value?.focus()
+    }
+  })
+})
+```
+
+あるいはキーも欲しいなら
+
+```ts
+Object.entries(fields).forEach(([name, field]) => {
+  console.log(name); // exInput1
+
+  watch(field.model, value => {
+    if (value === "") {
+      field.el.value?.focus()
+    }
+  })
+})
+```
+
+---
+
+## 型も付けるとさらに扱いやすい
+
+```ts
+type Field = {
+  el: ReturnType<typeof useTemplateRef<HTMLInputElement>>
+  model: Ref<string>
+}
+
+const fields: Record<string, Field> = {
+  exInput1: {
+    el: useTemplateRef("exInput1"),
+    model: ref("REF1"),
+  },
+  exInput2: {
+    el: useTemplateRef("exInput2"),
+    model: ref("REF2"),
+  },
+  exInput3: {
+    el: useTemplateRef("exInput3"),
+    model: ref("REF3"),
+  },
+}
+```
+
+---
+
+この設計にしておくと、後から
+
+```ts
+type Field = {
+  el: ReturnType<typeof useTemplateRef<HTMLInputElement>>
+  model: Ref<string>
+  error: Ref<string | null>
+  required: boolean
+}
+```
+
+のように**バリデーションやエラーメッセージも同じオブジェクトに追加**できるので、フォームが大きくなっても管理しやすくなります。
+
+このような「フォームの各入力項目をオブジェクトとして扱う」設計は、Vueでも実務でよく使われるパターンです。
+
+---
+
+要素が複数になってくると、変数名を連番で書くのは管理が大変ですし、`for` ループで一気に処理したくなりますよね。
+
+Vue 3.5で導入された `useTemplateRef` は、引数に指定した文字列（キー）に対応する要素を探しにいく仕様のため、**「オブジェクトのキー」と「テンプレートの `ref="..."` の文字列」を一致させる**ことで、綺麗に `for` ループにまとめることができます。
+
+以下のように実装するとスッキリまとまります。
+
+---
+
+### 実装コードの例
+
+```vue
+<script setup lang="ts">
+import { ref, useTemplateRef } from 'vue'
+
+// 1. 各入力を識別する一意のキー（id）のリスト
+const inputKeys = ['exInput1', 'exInput2', 'exInput3'] as const
+type InputKey = typeof inputKeys[number]
+
+// 2. テンプレートRefをオブジェクトでまとめて定義
+// useTemplateRef は引数の文字列とテンプレートの ref="..." を紐づけます
+const inputRefs = {
+  exInput1: useTemplateRef<HTMLInputElement>('exInput1'),
+  exInput2: useTemplateRef<HTMLInputElement>('exInput2'),
+  exInput3: useTemplateRef<HTMLInputElement>('exInput3'),
+}
+
+// 3. 値（v-model用）もオブジェクトにまとめる
+const formValues = ref<Record<InputKey, string>>({
+  exInput1: 'REF1',
+  exInput2: 'REF2',
+  exInput3: 'REF3',
+})
+
+// 4. for ループで一括処理する関数
+const clearAllInputs = () => {
+  for (const key of inputKeys) {
+    // 値をクリア
+    formValues.value[key] = ''
+
+    // DOM要素（input）に直接アクセスして操作（例: フォーカスを当てる、スタイル変更など）
+    const inputElement = inputRefs[key].value
+    if (inputElement) {
+      // 例として、全要素の枠線に一瞬フォーカスを当てるなど
+      inputElement.style.borderColor = 'red'
+    }
+  }
+}
+</script>
+
+<template>
+  <div style="padding: 20px; display: flex; flex-direction: column; gap: 10px;">
+    <!-- 5. テンプレート側もキーを使ってループで回す -->
+    <div v-for="key in inputKeys" :key="key">
+      <label>{{ key }}: </label>
+      <!-- ref に動的な文字列を渡すことで、useTemplateRef と自動で紐づきます -->
+      <input 
+        :ref="key" 
+        v-model="formValues[key]" 
+        type="text" 
+      />
+    </div>
+
+    <button @click="clearAllInputs">一括操作を実行</button>
+  </div>
+</template>
+
+```
+
+### ポイントの解説
+
+* **`:ref="key"` の動的バインディング**
+Vueのテンプレートで `:ref="key"` と動的に指定すると、`key` が `'exInput1'` のときは `ref="exInput1"` として処理されます。これにより、スクリプト側で `useTemplateRef('exInput1')` と定義したRefへ自動的に要素が格納されます。
+* **データのオブジェクト化 (`formValues`)**
+`ref1`, `ref2` とバラバラだった `v-model` 用の値も、`formValues[key]` の形にしたことで、`for` ループの中で `formValues.value[key] = '新しい値'` のように一括書き換えが可能になります。
+* **型安全性の確保**
+`as const` を使ってキーを厳格に定義しておくことで、オブジェクトへのアクセス時に TypeScript の型補完が効き、押し間違えやタイポを防げます。
