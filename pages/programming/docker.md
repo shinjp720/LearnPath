@@ -5,6 +5,48 @@ layout: default
 
 # Docker <a id="top" data-name="top"></a>
 
+## 導入 <a id="introduction" data-name="導入"></a>
+
+<pre><code class="tips">Linuxで完結するやり方。</code></pre>
+
+### 公式リポジトリの準備
+
+```bash
+# 必要なツールのインストール
+sudo apt-get update
+sudo apt-get install ca-certificates curl gnupg util-linux-extra
+
+# Docker公式の暗号鍵を追加
+sudo install -m 0.755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+# リポジトリをAPTのソースに追加
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+```
+
+### 本体とComposeのインストール
+
+```bash
+sudo apt-get update
+# 本体と、Composeプラグインをまとめてインストール
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+```
+
+### sudo を付けずに Docker を実行するための設定
+
+```bash
+# ① dockerグループに自分 ($USER) を追加
+sudo usermod -aG docker $USER
+
+# ② 設定を反映させる (一度ログアウトして再ログインでもOK) 
+newgrp docker
+```
+
+
 
 コマンド
 docker -v
@@ -422,3 +464,72 @@ sudo systemctl restart docker
 
 コマンドを入力後ubuntuを再起動する
 
+## PC起動時に Docker を起動する <a id="startup" data-name="PC起動時に Docker を起動する"></a>
+
+<span class="code-like">docker-compose.yml</span> が <span class="code-like">/home/USER/my-projects</span>
+ というディレクトリにあるとする。
+
+### 設定ファイルを作成
+
+ubuntu のシステム管理ディレクトリに、自動起動用の設定ファイルを新規作成する。
+
+```bash
+sudo vim /etc/systemd/system/my-docker-apps.service
+```
+
+以下がファイルの内容。
+
+```toml
+[Unit]
+Description=My Docker Compose Applications
+# Docker本体が完全に立ち上がった後に、この処理をスタートさせる指定
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# docker-compose.ymlがある絶対パスを指定
+WorkingDirectory=/home/USER/my-project
+# 起動時に実行するコマンド (-d でバックグラウンド実行) 
+ExecStart=/usr/bin/docker compose up -d
+# Ubuntuシャットダウン時に綺麗にコンテナを停止させるコマンド
+ExecStop=/usr/bin/docker compose down
+
+[Install]
+# Ubuntuが通常の起動 (マルチユーザーモード) を完了した時に実行する指定
+WantedBy=multi-user.target
+```
+
+### Ubuntu に認識させる
+
+```bash
+# 設定ファイルのリロード
+sudo systemctl daemon-reload
+```
+
+### 自動起動を有効化
+
+```bash
+sudo systemctl enable my-docker-apps.service
+```
+
+### 設定後の便利コマンド
+
+#### 手動で起動
+
+```bash
+sudo systemctl start my-docker-apps.service
+```
+
+#### 手動で停止 (シャットダウン時の動きをテスト)
+
+```bash
+sudo systemctl stop my-docker-apps.service
+```
+
+#### 現在のステータスを確認
+
+```bash
+sudo systemctl status my-docker-apps.service
+```
