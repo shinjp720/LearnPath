@@ -16,7 +16,7 @@ layout: default
 
 ### shebang(シェバン)
 
-UNIX系のシステムでは、ファイルのパーミッションビット**x**と**r**を設定し、次のような**shebang行**でスクリプトを開始すると、スクリプトを直接実行できるようになる。<br>
+UNIX系のシステムでは、ファイルのパーミッションビット **x** と **r** を設定し、次のような **shebang行** でスクリプトを開始すると、スクリプトを直接実行できるようになる。<br>
 
 <pre><code>#!/usr/bin/env/python</code></pre>
 
@@ -24,12 +24,19 @@ UNIX系のシステムでは、ファイルのパーミッションビット**x*
 
 ### 三項演算子
 
-条件が真の時値1となり、それ以外は値2となる。
+条件が真のとき a となり、それ以外は b となる。
 
-```
-値1 if 条件 else 値2
+```python
+a if 条件 else b
 ```
 
+### or
+
+a が truthy a を返し、さもなければ b を返す。
+
+```python
+result = a or b
+```
 
 
 
@@ -519,6 +526,10 @@ lengths = {name: len(name) for name in names}
 
 ## 関数 <a id="function" data-name="関数"></a>
 
+### 戻り値のない関数
+
+戻り値のない関数は、暗黙的に None が返る。
+
 ### 位置専用引数
 
 `スラッシュ(/)`は前の引数を位置専用引数とする。
@@ -556,22 +567,39 @@ lengths = {name: len(name) for name in names}
 デコレーターは関数やクラスの振る舞いを変更するためのものであり、関数を引数として受け取り、別の関数やオブジェクトを返す関数。
 
 ```python
-@deco(①)
-def ②(③):
+@deco(option)
+def func(*args, **kwargs):
     pass
 ```
 
 ```python
-def deco(①ココに「デコレータへの引数」が入る): # 【最外層】
-     def decorator(②ココに「元の関数」が入る):  # 【中間層】
-         def wrapper(③ココに「関数への引数」が入る): # 【最内層】
+def deco(option):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
 
-             # --- ここで組み立てて実行 ---
-             ②元の関数(③関数への引数)
-
-         return wrapper
-     return decorator
+        return wrapper
+    return decorator
 ```
+
+そしてデコレーターへの引数がなくなると、
+
+```python
+@deco
+def func(*args, **kwargs)
+```
+
+となり、
+
+```python
+def deco(func)
+    def wrapper(*args, **kwargs)
+        return func(*args, **kwargs)
+    
+    return wrapper
+```
+
+こうなる。
 
 ### ラムダ式
 

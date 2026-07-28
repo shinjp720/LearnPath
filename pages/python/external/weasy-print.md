@@ -58,8 +58,10 @@ WeasyPrint自体に「帳票を書くための独自言語」があるわけで�
 
 基本的には、
 
+{% raw %}
 ```html
 <h1>請求書</h1>
+
 
 <table>
     <tr>
@@ -74,6 +76,8 @@ WeasyPrint自体に「帳票を書くための独自言語」があるわけで�
     </tr>
 </table>
 ```
+{% endraw %}
+
 
 のようなHTMLを書きます。
 
@@ -180,6 +184,7 @@ table {
 
 例えば、
 
+{% raw %}
 ```html
 {% for item in items %}
 <div class="item">
@@ -187,6 +192,8 @@ table {
 </div>
 {% endfor %}
 ```
+{% endraw %}
+
 
 のようなHTMLを生成すれば、WeasyPrint側が**内容がA4に収まらなくなったら自動的に次ページへ送ってくれます**。
 
@@ -364,6 +371,7 @@ HTML(
 
 Django Templateを使えば、
 
+{% raw %}
 ```html
 <!-- report.html -->
 
@@ -381,6 +389,8 @@ Django Templateを使えば、
     {% endfor %}
 </table>
 ```
+{% endraw %}
+
 
 Python側で、
 
