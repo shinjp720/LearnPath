@@ -1,14 +1,51 @@
+:root {
+    /* 基本色 */
+    --bg: #0d1117;
+    --bg-alt: #131b29;
+    --bg-nav: #0b0b0b;
+    --bg-navi-mobile: #010409;
+    --text: #c9d1d9;
+    --text-bright: #f0f6fc;
+    --text-muted: #8b949e;
+    --border: #21262d;
+    --border-alt: #353d47;
+    --border-hover: #30363d;
+    --border-hover-strong: #40464d;
+
+    /* アクセント色 */
+    --accent-blue: #58a6ff;
+    --accent-blue-dark: #5d86ff;
+    --accent-blue-light: #8ca9ff;
+    --accent-blue-lighter: #9fccff;
+    --accent-blue-pale: #c6e1ff;
+    --accent-purple: #bc8cff;
+    --accent-purple-dark: #954df9;
+    --accent-pink: #f5bdbd;
+    --accent-green: #2ea043;
+    --accent-green-bg: #08290d;
+    --accent-red: #f85149;
+    --accent-red-bg: #401712;
+    --accent-yellow: #d29922;
+    --accent-yellow-bg: #6c4800;
+    --accent-gray: #6e7681;
+    --accent-danger: #da3633;
+
+    /* サイドバー幅 */
+    --sidebar-width: 280px;
+    --sidebar-width-mobile: 350px;
+}
+
 * {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-family: 'Noto Sans', Arial, sans-serif;
-    /* 'UDEV Gothic', 'Segoe UI',Helvetica,'HackGen',     */
+    /* 'UDEV Gothic', 'Segoe UI',Helvetica,'HackGen', */
 }
 
 body {
     margin: 0;
     padding: 0;
-    background-color: #0d1117;
-    color: #c9d1d9;
+    background-color: var(--bg);
+    color: var(--text);
     line-height: 1.6;
     overflow-y: auto;
 }
@@ -17,19 +54,18 @@ body {
 h1 {
     font-size: 2.6rem;
     font-weight: 600;
-    color: #f0f6fc;
-    border-bottom: 1px solid #21262d;
+    color: var(--text-bright);
+    border-bottom: 1px solid var(--border);
     padding-bottom: 0.3em;
-    margin-bottom: 1em;
-    margin: 0;
+    margin: 0 0 1em;
 }
 
 h2 {
     font-size: 1.8rem;
     font-weight: 600;
-    color: #5d86ff;
-    background-color: #131b29;
-    border-left: 10px solid #58a6ff;
+    color: var(--accent-blue-dark);
+    background-color: var(--bg-alt);
+    border-left: 10px solid var(--accent-blue);
     padding: 0.8rem 1.2rem;
     border-radius: 6px;
 }
@@ -37,24 +73,22 @@ h2 {
 h3 {
     font-size: 1.6rem;
     font-weight: 600;
-    color: #8ca9ff;
-    margin-top: 2rem;
-    margin-bottom: 0;
+    color: var(--accent-blue-light);
+    margin: 2rem 0 0;
 }
 
 h4 {
     font-size: 1.3rem;
-    color: #9fccff;
+    color: var(--accent-blue-lighter);
     margin: 0;
     padding: 0;
 }
 
 h5 {
-    color: #c6e1ff;
+    color: var(--accent-blue-pale);
     font-size: 1rem;
 }
 
-/* p */
 p {
     margin: 10px;
 }
@@ -62,15 +96,14 @@ p {
 /* サブタイトル */
 .subtitle {
     display: block;
-    color: #f5bdbd;
+    color: var(--accent-pink);
     font-weight: 600;
     font-size: 1.2rem;
 }
 
-/* サブタイトル2 */
 .subtitle2 {
     display: block;
-    color: #bc8cff;
+    color: var(--accent-purple);
     font-weight: 600;
     font-size: 1.0rem;
     padding: 1rem 0;
@@ -78,20 +111,18 @@ p {
 
 /* リンク */
 a:link {
-    color: #bc8cff;
+    color: var(--accent-purple);
 }
 
 a:visited {
-    color: #954df9;
+    color: var(--accent-purple-dark);
 }
 
-/* 水平ライン */
 hr {
     margin: 1rem 0;
 }
 
-/* リスト */
-
+/* リスト（共通） */
 ul {
     display: flex;
     flex-direction: column;
@@ -102,74 +133,54 @@ li {
     padding: 5px;
 }
 
-#toc,
-#navi {
-    ul {
-        margin: 0;
-    }
-
-    li {
-        font-size: 0.5rem;
-        padding: 4px;
-        margin: 0;
-    }
-}
-
-
-/* naviのリスト */
-#navi ul {
+/* navi / toc 共通のリストスタイル */
+#navi ul,
+#toc ul {
     list-style: none;
     margin: 0;
 }
 
-#navi ul li {
+#navi ul li,
+#toc ul li {
     transition: all 0.2s ease;
 }
 
-#navi ul li:hover {
-    background-color: #21262d;
-    border-radius: 6px;
-    padding-left: 0.5rem;
-}
-
-#navi ul li a {
-    color: #8b949e;
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-
-#navi ul li a:hover {
-    color: #58a6ff;
-}
-
-/* tocのリスト */
-#toc ul {
-    margin: 0;
-    padding-left: 0.5rem;
-    list-style: none;
-}
-
+#navi ul li:hover,
 #toc ul li:hover {
-    background-color: #21262d;
+    background-color: var(--border);
     border-radius: 6px;
-    padding-left: 0.8rem;
+    padding-left: 0.5rem;
 }
 
+#navi ul li a,
 #toc ul li a {
-    color: #8b949e;
+    color: var(--text-muted);
     text-decoration: none;
     transition: color 0.2s ease;
 }
 
+#navi ul li a:hover,
 #toc ul li a:hover {
-    color: #58a6ff;
+    color: var(--accent-blue);
+}
+
+#toc ul {
+    padding-left: 0.5rem;
+}
+
+/* 目次内リンクの縮小表示 */
+#toc ul li a,
+#navi ul li a {
+    font-size: 1rem;
+    padding: 4px;
+    margin: 0;
 }
 
 /* テーブル */
 table {
     border-collapse: collapse;
     margin: 1rem;
-    background-color: #0d1117;
+    background-color: var(--bg);
     border-radius: 6px;
     overflow: hidden;
 }
@@ -177,26 +188,25 @@ table {
 table caption {
     text-align: left;
     font-weight: 600;
-    color: #f0f6fc;
+    color: var(--text-bright);
     padding: 1.2rem;
 }
 
 th {
-    background-color: #131b29;
-    color: #f0f6fc;
+    background-color: var(--bg-alt);
+    color: var(--text-bright);
     font-weight: 600;
 }
 
 th,
 tr,
 td {
-    border: 1px solid #353d47;
+    border: 1px solid var(--border-alt);
     padding: 0.4rem 0.8rem;
 }
 
 tr:hover {
-    background-color: #131b29;
-    ;
+    background-color: var(--bg-alt);
     transition: background-color 0.2s ease;
 }
 
@@ -212,81 +222,73 @@ pre {
 
 pre code {
     display: block;
-    color: #c9d1d9;
-    background-color: #131b29;
+    color: var(--text);
+    background-color: var(--bg-alt);
     padding: 1.0rem;
     border-radius: 6px;
-    border: 1px solid #353d47;
+    border: 1px solid var(--border-alt);
     font-size: 1.0rem;
     line-height: 1.2;
 }
 
-/* 例 */
-.example {
+/* 注釈ボックス（例・注意・ヒント）共通スタイル */
+.example,
+.caution,
+.tips {
     display: block;
     color: #ffffff;
-    background-color: #08290d;
     font-weight: 500;
-    border: 1px solid #2ea043;
-    border-left: 6px solid #2ea043;
     border-radius: 6px;
     padding: 1.2rem 1.6rem;
     margin: 1rem 0;
+}
+
+.example::before,
+.caution::before,
+.tips::before {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.example {
+    background-color: var(--accent-green-bg);
+    border: 1px solid var(--accent-green);
+    border-left: 6px solid var(--accent-green);
 }
 
 .example::before {
     content: "✂️ 例:";
-    display: block;
-    margin-bottom: 0.5rem;
-    color: #2ea043;
+    color: var(--accent-green);
 }
 
-/* 注意 */
 .caution {
-    display: block;
-    color: #ffffff;
-    background-color: #401712;
-    font-weight: 500;
-    border: 1px solid #f85149;
-    border-left: 6px solid #f85149;
-    border-radius: 6px;
-    padding: 1.2rem 1.6rem;
-    margin: 1rem 0;
+    background-color: var(--accent-red-bg);
+    border: 1px solid var(--accent-red);
+    border-left: 6px solid var(--accent-red);
 }
 
 .caution::before {
     content: "⚠️ 注意:";
-    display: block;
-    margin-bottom: 0.5rem;
-    color: #f85149;
+    color: var(--accent-red);
 }
 
-/* tips */
 .tips {
-    display: block;
-    color: #ffffff;
-    background-color: #6c4800;
-    font-weight: 500;
-    border: 1px solid #d29922;
-    border-left: 6px solid #d29922;
-    border-radius: 6px;
-    padding: 1.2rem 1.6rem;
-    margin: 1rem 0;
+    background-color: var(--accent-yellow-bg);
+    border: 1px solid var(--accent-yellow);
+    border-left: 6px solid var(--accent-yellow);
 }
 
 .tips::before {
     content: "💡 ヒント:";
-    display: block;
-    margin-bottom: 0.5rem;
-    color: #0d1117;
+    color: var(--bg);
     font-weight: 600;
 }
 
 /* ラベル */
 .label {
     display: inline-block;
-    color: #f0f6fc;
-    background-color: #6e7681;
+    color: var(--text-bright);
+    background-color: var(--accent-gray);
     border-radius: 6px;
     font-weight: 600;
     font-size: 1.2rem;
@@ -297,7 +299,7 @@ pre code {
 .warning {
     display: inline-block;
     color: #ffffff;
-    background-color: #da3633;
+    background-color: var(--accent-danger);
     padding: 0.2rem 0.8rem;
     border-radius: 6px;
     font-weight: 600;
@@ -307,55 +309,49 @@ pre code {
 /* コード風 */
 .code-like {
     display: inline-block;
-    background-color: #131b29;
-    color: #f0f6fc;
+    background-color: var(--bg-alt);
+    color: var(--text-bright);
     padding: 0 0.6rem;
     border-radius: 6px;
-    /* font-size: 1.1rem; */
     font-weight: 400;
-    border: 1px solid #353d47;
+    border: 1px solid var(--border-alt);
 }
 
-/* -----------レイアウト-----------*/
+/* -----------レイアウト----------- */
 #container {
-    /* 全体を横並びに */
     display: flex;
     flex-direction: row;
     height: 100vh;
 }
 
-/* メインコンテンツ */
 #main {
-    background-color: #0d1117;
+    background-color: var(--bg);
     flex: 1;
     overflow-y: auto;
     max-height: 100vh;
     padding: 2rem;
 }
 
-/* ナビ・目次 */
+/* ナビ・目次（共通） */
 #navi,
 #toc {
     overflow-y: auto;
-    width: 250px;
-    color: #c9d1d9;
-    background-color: #0b0b0b;
+    width: var(--sidebar-width);
+    color: var(--text);
+    background-color: var(--bg-nav);
     max-height: 100vh;
     padding: 1rem;
 }
 
 #navi {
-    border-left: none;
-    border-right: 1px solid #21262d;
-
+    border-right: 1px solid var(--border);
 }
 
 #toc {
-    border-right: none;
-    border-left: 1px solid #21262d;
+    border-left: 1px solid var(--border);
 }
 
-/* スクロールバーのスタイル */
+/* スクロールバー（共通） */
 #navi::-webkit-scrollbar,
 #toc::-webkit-scrollbar,
 #main::-webkit-scrollbar {
@@ -365,29 +361,25 @@ pre code {
 #navi::-webkit-scrollbar-track,
 #toc::-webkit-scrollbar-track,
 #main::-webkit-scrollbar-track {
-    background: #0d1117;
+    background: var(--bg);
 }
 
 #navi::-webkit-scrollbar-thumb,
 #toc::-webkit-scrollbar-thumb,
 #main::-webkit-scrollbar-thumb {
-    background: #30363d;
+    background: var(--border-hover);
     border-radius: 4px;
 }
 
 #navi::-webkit-scrollbar-thumb:hover,
 #toc::-webkit-scrollbar-thumb:hover,
 #main::-webkit-scrollbar-thumb:hover {
-    background: #40464d;
+    background: var(--border-hover-strong);
 }
 
-/* ボタンはデフォルト非表示（PC用） */
+/* ボタン・オーバーレイはPCでは非表示 */
 #menuBtn,
-#tocBtn {
-    display: none;
-}
-
-/* オーバーレイはデフォルト非表示 */
+#tocBtn,
 #overlay {
     display: none;
 }
@@ -407,8 +399,8 @@ pre code {
         position: fixed;
         top: 0;
         bottom: 0;
-        width: 350px;
-        background-color: #010409;
+        width: var(--sidebar-width-mobile);
+        background-color: var(--bg-navi-mobile);
         box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
         transition: transform 0.3s ease;
         z-index: 1000;
@@ -424,10 +416,7 @@ pre code {
         transform: translateX(100%);
     }
 
-    #navi.open {
-        transform: translateX(0);
-    }
-
+    #navi.open,
     #toc.open {
         transform: translateX(0);
     }
@@ -444,9 +433,9 @@ pre code {
         position: fixed;
         top: 10px;
         padding: 0.8rem 1.2rem;
-        background: #21262d;
-        color: #f0f6fc;
-        border: 1px solid #30363d;
+        background: var(--border);
+        color: var(--text-bright);
+        border: 1px solid var(--border-hover);
         border-radius: 6px;
         cursor: pointer;
         z-index: 1100;
@@ -456,8 +445,8 @@ pre code {
 
     #menuBtn:hover,
     #tocBtn:hover {
-        background: #30363d;
-        border-color: #58a6ff;
+        background: var(--border-hover);
+        border-color: var(--accent-blue);
     }
 
     #menuBtn {
@@ -469,7 +458,6 @@ pre code {
     }
 
     #overlay {
-        display: none;
         position: fixed;
         top: 0;
         left: 0;

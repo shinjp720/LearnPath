@@ -37,12 +37,12 @@ wsl --shutdown
 
 ## カスタムコマンド <a id="custom-command" data-name="カスタムコマンド"></a>
 
+### 自作の実行可能プログラムをターミナルから実行できるようにする
+
 管理者権限でコマンドプロンプトを起動して、以下のコマンドを実行。
 
 ```dos
-powershell -c "$s=(New-Object -ComObject WScript.Shell).CreateShortcut('C:\Windows\作りたいコマンド名.lnk');
-$s.TargetPath='リンク先のexeファイルのフルパス';
-$s.Save()"
+mklink "C:\Windows\呼び出したいコマンド名.exe" "自作プログラムのフルパス.exe"
 ```
 
 ---
