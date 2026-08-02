@@ -1,5 +1,5 @@
 * {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     font-family: 'Noto Sans', Arial, sans-serif;
     /* 'UDEV Gothic', 'Segoe UI',Helvetica,'HackGen',     */
 }
@@ -92,18 +92,6 @@ hr {
 
 /* リスト */
 
-#toc,
-#navi {
-    ul {
-        margin: 0;
-    }
-
-    li {
-        padding: 4px;
-        margin: 0;
-    }
-}
-
 ul {
     display: flex;
     flex-direction: column;
@@ -113,6 +101,20 @@ ul {
 li {
     padding: 5px;
 }
+
+#toc,
+#navi {
+    ul {
+        margin: 0;
+    }
+
+    li {
+        font-size: 0.5rem;
+        padding: 4px;
+        margin: 0;
+    }
+}
+
 
 /* naviのリスト */
 #navi ul {
@@ -127,7 +129,7 @@ li {
 #navi ul li:hover {
     background-color: #21262d;
     border-radius: 6px;
-    padding-left: 0.8rem;
+    padding-left: 0.5rem;
 }
 
 #navi ul li a {
@@ -181,7 +183,6 @@ table caption {
 
 th {
     background-color: #131b29;
-    ;
     color: #f0f6fc;
     font-weight: 600;
 }
