@@ -1839,6 +1839,34 @@ fn(params); // 初期値1 引数2
 
 ---
 
+## クロージャ <a id="closure" data-name="クロージャ"></a>
+
+クロージャ (関数閉包) は、関数が定義された時の周囲の環境 (レキシカルスコープ) を一緒に持ち運ぶ仕組み。
+
+```javascript
+function createCounter() {
+  let count = 0; // レキシカルスコープ内の変数
+
+  // 内部で関数を定義して、外に返す
+  return function() { 
+    count++; // 親の変数を覚えている
+    return count;
+  };
+}
+
+const counter = createCounter(); // createCounter の実行はここで終了している
+
+console.log(counter()); // 1
+console.log(counter()); // 2
+console.log(counter()); // 3
+```
+
+- やり取りするインターフェースのみを返し、状態をカプセル化して不正に書き換えられることを防ぐ。
+- createCounterにより、それぞれ完全に独立したコンテキストをいくらでも量産できる。
+- 関数自体が不要になるまでメモリ上に状態が残り続ける。
+
+---
+
 ## 非同期 <a id="async" data-name="非同期"></a>
 
 ### Promise
