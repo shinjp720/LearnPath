@@ -5,7 +5,9 @@ layout: default
 
 # clap <a id="top" data-name="TOP"></a>
 
-clapはCLIを作るための定番ライブラリ。
+clapはCLIを作るための定番ライブラリ。ここでは基本的に **derive** マクロを使った書き方で統一する。
+
+**builder** パターンという実装方法もある。
 
 ---
 
@@ -25,36 +27,22 @@ cargo add clap@4.5 --features derive
 環境変数を取り込む場合
 
 ```bash
-cargo add clap@4.5 --features derive, env
+cargo add clap@4.5 --features derive,env
 ```
 
 ---
 
 ## 基本 <a id="basic" data-name="基本"></a>
 
-clapには builder パターンと derive の二つの実装方法があり、
+deriveは、構造体・enumに `#[derive(Parser)]` や `#[derive(Subcommand)]` を付けるだけでCLIの定義ができる方式。
 
-builder は
-- 動的にCLIを変えたい
-- 条件分岐したい
-- プラグイン的構造
+- コマンド全体 → `struct`
+- サブコマンド → `enum`
+- 引数・オプション → 構造体のフィールド
 
-derive は
-- 普通のCLI
-- 型安全に書きたい
-- コードを短くしたい
+型がそのままCLIの形になるので、書く量が少なく、間違いにも気づきやすい。
 
-という用途に向いている。
-
-| 意味 | builder | derive |
-| --- | --- | --- |
-| コマンド | Command | struct |
-| サブコマンド | subcommand | enum |
-| 引数 | Arg | フィールド |
-| 必須オプション | required(true) | Optionかどうか |
-| 入力の取得 | get_matches() | parse() |
-
-このような対応関係になっている。
+普通のCLIを作るならほぼこれで十分。動的にコマンドを組み立てたい・プラグイン的に増減させたいなど特殊な事情がある場合だけ、後述の builder 方式を検討する。
 
 ---
 
@@ -62,15 +50,7 @@ derive は
 
 ### Command(ルート)
 
-#### builder
-
-```rust
-Command::new("app")
-    .version("1.0")
-    .about("説明")
-```
-
-#### derive
+CLI全体の入り口。`#[command(...)]` でアプリ名やバージョン、説明を指定する。
 
 ```rust
 use clap::Parser;
@@ -85,34 +65,15 @@ struct Cli {
 }
 ```
 
-### subcommand
-
-#### builder
+### 引数の取得
 
 ```rust
-.subcommand(Command::new("add"))
-.subcommand(Command::new("remove"))
+let cli = Cli::parse();
 ```
 
-#### derive
+### サブコマンド
 
-```rust
-#[derive(Parser)]
-struct Cli {
-    #[command(subcommand)]
-    command: Commands,
-}
-
-#[derive(clap::Subcommand)]
-enum Commands {
-    Add,
-    Remove,
-}
-```
-
-### Arg(引数・オプション)
-
-#### builder
+`#[command(subcommand)]` を付けたフィールドに、`enum` で定義したサブコマンド一覧を紐付ける。
 
 ```rust
 #[derive(Parser)]
@@ -128,88 +89,66 @@ enum Commands {
 }
 ```
 
-#### derive
+### サブコマンドを必須にする
 
 ```rust
-#[arg(short, long)]
-name: String,
+#[derive(Parser)]
+#[command(subcommand_required = true)]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+}
 ```
+
+### 引数・オプション
+
+フィールドとして書くだけで、名前がそのままオプション名になる。
+
+```rust
+#[derive(Parser)]
+struct Cli {
+    #[arg(short, long)]
+    name: String,
+}
+```
+
+`-n`(short)、`--name`(long)の両方で渡せるようになる。
 
 ### フラグ(bool)
 
-#### builder
-
-```rust
-Arg::new("force")
-    .long("force")
-    .action(ArgAction::SetTrue)
-```
-
-#### derive
+`bool` 型のフィールドは自動でフラグ扱いになり、渡さなければ `false`。
 
 ```rust
 #[arg(long)]
 force: bool,
 ```
 
-bool は自動でフラグ扱いで、引数として渡されなければ false となる。
-
 ### デフォルト値
-
-#### builder
-
-```rust
-.default_value("foo")
-```
-
-#### derive
 
 ```rust
 #[arg(default_value = "foo")]
 name: String,
 ```
 
-### 値を制限
-
-#### builder
-
-```rust
-.value_parser(["a", "b"])
-```
-
-#### derive
+### 値を制限する
 
 ```rust
 #[arg(value_parser = ["a", "b"])]
 mode: String,
 ```
 
-### help
+### help(説明文)
 
-#### builder
-
-```rust
-.help("説明")
-```
-
-#### derive
+`#[arg(help = "...")]` で指定するか、フィールドの直前に `///` コメントを書く方法もある。
 
 ```rust
 #[arg(help = "説明")]
+name: String,
 ```
-
-またはフィールドコメント(///)
 
 ### サブコマンドごとの引数
 
-#### builder
-
-```rust
-Command::new("add")
-    .arg(Arg::new("name"))
-```
-
-#### derive
+`enum` の各バリアントに直接フィールドを持たせる。
 
 ```rust
 #[derive(clap::Subcommand)]
@@ -221,52 +160,94 @@ enum Commands {
 }
 ```
 
-### サブコマンドの必須引数
+### サブコマンドを入れ子にする
 
-#### builder
+`app config get` のように、あるサブコマンドの下にさらにサブコマンドを持たせたい場合は、バリアント側にも `#[command(subcommand)]` フィールドを持たせて別の `enum` にネストする。
 
 ```rust
-.subcommand_required(true)
+#[derive(clap::Subcommand)]
+enum Commands {
+    Config {
+        #[command(subcommand)]
+        action: ConfigAction,
+    },
+}
+
+#[derive(clap::Subcommand)]
+enum ConfigAction {
+    Get {
+        key: String,
+    },
+    Set {
+        key: String,
+        value: String,
+    },
+}
 ```
 
-#### derive
+呼び出し方は `app config get <key>` / `app config set <key> <value>` のようになり、階層が深くなるほど `enum` を分けて積み重ねていけばよい。
+
+### サブコマンド or 引数(同じ階層で両方を許す)
+
+「サブコマンドを省略したら通常の引数として動く」「特定のサブコマンドが来たときだけ別の挙動にする」といったパターンは、サブコマンドを `Option` にして分岐する。
 
 ```rust
-#[command(subcommand_required = true)]
+#[derive(Parser)]
+struct Cli {
+    #[command(subcommand)]
+    command: Option<Commands>,
+
+    // サブコマンドが無いときに使う引数
+    #[arg(long)]
+    name: Option<String>,
+}
+
+#[derive(clap::Subcommand)]
+enum Commands {
+    Add {
+        #[arg(long)]
+        name: String,
+    },
+}
 ```
 
-### 引数の取得
-
-#### builder
-
 ```rust
-let matches = cmd.get_matches();
+match cli.command {
+    Some(Commands::Add { name }) => { /* サブコマンドあり */ }
+    None => { /* サブコマンド無し、cli.name を見る */ }
+}
 ```
 
-#### derive
+サブコマンド同士を共通の親でまとめつつ、共通オプションを親側に持たせたい場合は `#[command(flatten)]` で構造体を埋め込む方法もある。
 
 ```rust
-let cli = Cli::parse();
+#[derive(clap::Args)]
+struct CommonOpts {
+    #[arg(long)]
+    verbose: bool,
+}
+
+#[derive(clap::Subcommand)]
+enum Commands {
+    Add {
+        #[command(flatten)]
+        common: CommonOpts,
+
+        #[arg(long)]
+        name: String,
+    },
+}
 ```
 
 ---
 
 ## サンプル <a id="sample" data-name="サンプル"></a>
 
-### builder
-
-<pre><code class="example">Command::new("app")
-    .subcommand(
-        Command::new("add")
-            .arg(Arg::new("name").long("name").required(true))
-            .arg(Arg::new("force").long("force").action(ArgAction::SetTrue))
-    )</code></pre>
-
-### derive
-
-<pre><code class="example">use clap::{Parser, Subcommand};
+```rust
+use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
+#[command(name = "app", version = "1.0", about = "説明")]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -281,4 +262,38 @@ enum Commands {
         #[arg(long)]
         force: bool,
     },
-}</code></pre>
+}
+
+fn main() {
+    let cli = Cli::parse();
+
+    match cli.command {
+        Commands::Add { name, force } => {
+            println!("name: {name}, force: {force}");
+        }
+    }
+}
+```
+
+---
+
+## 参考: builder方式 <a id="builder" data-name="builder方式"></a>
+
+derive では対応しづらい、動的にコマンドを組み立てるようなケース向けの方式。普段はほぼ使わないが、対応関係だけ載せておく。
+
+| 意味 | derive | builder |
+| --- | --- | --- |
+| コマンド | `struct` | `Command` |
+| サブコマンド | `enum` | `subcommand` |
+| 引数 | フィールド | `Arg` |
+| 必須オプション | `Option`かどうか | `required(true)` |
+| 入力の取得 | `parse()` | `get_matches()` |
+
+```rust
+Command::new("app")
+    .subcommand(
+        Command::new("add")
+            .arg(Arg::new("name").long("name").required(true))
+            .arg(Arg::new("force").long("force").action(ArgAction::SetTrue))
+    )
+```
