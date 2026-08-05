@@ -24,21 +24,19 @@ UNIX系のシステムでは、ファイルのパーミッションビット **x
 
 ### 三項演算子
 
-条件が真のとき a となり、それ以外は b となる。
+条件が真のとき A となり、それ以外は B となる。
 
 ```python
-a if 条件 else b
+A if 条件 else B
 ```
 
 ### or
 
-a が truthy a を返し、さもなければ b を返す。
+A が truthy であれば A を返し、さもなければ B を返す。
 
 ```python
-result = a or b
+result = A or B
 ```
-
-
 
 ---
 

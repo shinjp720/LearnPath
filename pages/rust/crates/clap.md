@@ -34,7 +34,7 @@ cargo add clap@4.5 --features derive,env
 
 ## 基本 <a id="basic" data-name="基本"></a>
 
-deriveは、構造体・enumに `#[derive(Parser)]` や `#[derive(Subcommand)]` を付けるだけでCLIの定義ができる方式。
+deriveは、構造体・enumに `#[derive(Parser)]` や `#[derive(Subcommand)]` を付けるだけで CLIの 定義ができる方式。
 
 - コマンド全体 → `struct`
 - サブコマンド → `enum`
@@ -48,21 +48,31 @@ deriveは、構造体・enumに `#[derive(Parser)]` や `#[derive(Subcommand)]` 
 
 ## 実装 <a id="implement" data-name="実装"></a>
 
-### Command(ルート)
-
-CLI全体の入り口。`#[command(...)]` でアプリ名やバージョン、説明を指定する。
+### 基本構成
 
 ```rust
 use clap::Parser;
 
-#[derive(Parser)]
-#[command(
-    name = "app",
-    version = "1.0",
-    about = "説明"
-)]
+/// アプリケーションの説明 `///` ドキュメントコメントがヘルプの文章になる
+#[derive(Parser, Debug)]
+#[command(name = "my-app", version, about, long_about = None)]
 struct Cli {
+    // フィールドをここに定義
 }
+
+fn main() {
+    let cli = Cli::parse();
+    println!("{:?}", cli);
+}
+```
+
+### help(説明文)
+
+`#[arg(help = "...")]` で指定するか、フィールドの直前に `///` コメントを書く。
+
+```rust
+#[arg(help = "説明")]
+name: String,
 ```
 
 ### 引数の取得
@@ -71,9 +81,28 @@ struct Cli {
 let cli = Cli::parse();
 ```
 
-### サブコマンド
+### Command(ルート)
 
-`#[command(subcommand)]` を付けたフィールドに、`enum` で定義したサブコマンド一覧を紐付ける。
+CLI全体の入り口。`#[command(...)]` でアプリ名やバージョン、説明を指定する。
+
+```rust
+use clap::Parser;
+
+#[derive(Parser, Debug)]
+#[command(name = "my-app", version, about, long_about = None)]
+struct Cli {
+    // フィールドをここに定義
+}
+```
+
+<pre><code class="tips">version や about を引数なしで指定すると、Cargo.toml の version や description が自動適用される</code></pre>
+
+---
+
+## サブコマンド <a id="subcommand" data-name="サブコマンド"></a>
+
+`#[command(subcommand)]` を付けたフィールドに、 `enum` で定義したサブコマンド一覧を紐付ける。
+
 
 ```rust
 #[derive(Parser)]
@@ -98,52 +127,6 @@ struct Cli {
     #[command(subcommand)]
     command: Commands,
 }
-```
-
-### 引数・オプション
-
-フィールドとして書くだけで、名前がそのままオプション名になる。
-
-```rust
-#[derive(Parser)]
-struct Cli {
-    #[arg(short, long)]
-    name: String,
-}
-```
-
-`-n`(short)、`--name`(long)の両方で渡せるようになる。
-
-### フラグ(bool)
-
-`bool` 型のフィールドは自動でフラグ扱いになり、渡さなければ `false`。
-
-```rust
-#[arg(long)]
-force: bool,
-```
-
-### デフォルト値
-
-```rust
-#[arg(default_value = "foo")]
-name: String,
-```
-
-### 値を制限する
-
-```rust
-#[arg(value_parser = ["a", "b"])]
-mode: String,
-```
-
-### help(説明文)
-
-`#[arg(help = "...")]` で指定するか、フィールドの直前に `///` コメントを書く方法もある。
-
-```rust
-#[arg(help = "説明")]
-name: String,
 ```
 
 ### サブコマンドごとの引数
@@ -184,7 +167,6 @@ enum ConfigAction {
     },
 }
 ```
-
 呼び出し方は `app config get <key>` / `app config set <key> <value>` のようになり、階層が深くなるほど `enum` を分けて積み重ねていけばよい。
 
 ### サブコマンド or 引数(同じ階層で両方を許す)
@@ -238,6 +220,89 @@ enum Commands {
     },
 }
 ```
+
+---
+
+## 引数 <a id="argument" data-name="引数"></a>
+
+### 位置引数
+
+オプションフラグ指定 (- や --)なしで受け取る引数。
+
+```rust
+// 必須の位置引数
+file_path: String,
+
+// 任意の位置引数
+output_path: Option<String>,
+```
+
+### オプション
+
+`-n` や `--name` のような名前付き引数。
+
+構造体に `#[arg(short, long)]` を付けてフィールドとして書くだけで、名前がそのままオプション名になる。
+
+```rust
+#[derive(Parser)]
+struct Cli {
+    #[arg(short, long)]
+    name: String,
+}
+```
+
+`-n`(short)、`--name`(long)の両方で渡せるようになる。
+
+### フラグ(bool)
+
+`bool` 型のフィールドは自動でフラグ扱いになり、渡さなければ `false`となる。
+
+```rust
+#[arg(long)]
+force: bool,
+```
+
+### デフォルト値
+
+```rust
+#[arg(default_value = "foo")]
+name: String,
+```
+
+### 値を制限する
+
+```rust
+#[arg(value_parser = ["a", "b"])]
+mode: String,
+```
+
+またはValueEnum を利用すると安全。
+
+```rust
+use clap::{Parser, ValueEnum};
+
+#[derive(ValueEnum, Clone, Debug)]
+enum Mode {
+    Fast,
+    Safe,
+}
+
+#[derive(Parser)]
+struct Cli {
+    #[arg(value_enum, default_value_t = Mode::Safe)]
+    mode: Mode,
+}
+```
+
+### 環境変数連携
+
+```rust
+// 環境変数からの取得 (features = ["env"] が必要)
+#[arg(long, env = "DATABASE_URL")]
+db_url: String,
+```
+
+
 
 ---
 
