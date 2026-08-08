@@ -6,12 +6,81 @@ layout: default
 # Rust <a id="top" data-name="TOP"></a>
 
 ### コメント
+
 ```rust
 // 行末までコメント
 /* 複数行コメント可能 */
 ```
 
+---
+
+## 導入 <a id="introduction" data-name="導入"></a>
+
+### インストール
+
+#### ビルドツールの準備
+
+C言語のコンパイラやビルドツール群を予めインストールする。
+
+これがないと、多くの Rust用ライブラリがビルドエラーとなる。
+
+```bash
+sudo apt update
+sudo apt install -y build-essential curl gcc
+```
+
+#### rustup スクリプトの実行
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+#### 環境変数の反映
+
+```bash
+source "$HOME/.cargo/env"
+```
+
+#### 動作確認
+
+```bash
+rustc --version
+cargo --version
+```
+
+### 追加コンポーネント
+
+必須級の公式コンポーネント。
+
+```bash
+# コード自動整形ツール (rustfmt)
+rustup component add rustfmt
+
+# 静的解析・リンター (clippy)
+rustup component add clippy
+
+# IDE・エディタ向け言語サーバー (rust-analyzer)
+rustup component add rust-analyzer
+```
+
+---
+
+## rustup <a id="runsup" data-name="rustup"></a>
+
+Rust という言語・開発環境そのものを管理するツール。
+
+| --- | --- |
+| rustup update | Rust のツールチェーンを最新バージョンに更新する<br>定期的に更新した方がいい |
+| rustup show | インストールされている Rust のバージョンや、アクティブなツールチェーン、<br>追加コンポーネントの状態を確認 |
+| rustup component add rustfmt<br>rustup component add clippy<br>rustup component add rust-analyzer | 必須級のツール (コード整形、静的解析) を導入する |
+| rustup target add wasm32-unknown-unknown<br>`rustup target list --installed` | クロスコンパイル (他の OS/環境向けビルド) 用のターゲットの追加 |
+| rustup self update | rustup 自体のアップデート |
+
+---
+
 ## cargo <a id="cargo" data-name="cargo"></a>
+
+個別のプロジェクトやコードを管理するツール。
 
 | --- | --- |
 | cargo new プロジェクト名 | プロジェクト名で新たにプロジェクトディレクトリを作る |
@@ -19,6 +88,634 @@ layout: default
 | cargo run | プロジェクトのビルドと実行を1ステップで行う |
 | cargo build | プロジェクトをビルドする |
 | cargo check | バイナリを生成せずにビルドしてエラーチェックができる |
+
+---
+
+## 制御フロー <a id="control-flow" data-name="制御フロー"></a>
+
+### match
+
+match は、値のパターンで識別して、中身を取り出しながら分岐し、しかも漏れがないか確認できる仕組み。<br>
+上から順に評価されて、最初にマッチしたアームが選ばれるため、より具体的なものを先、より包括的なものを後に書く。
+
+if let は matchアーム の糖衣構文であり、構造はイコールだと思っていい。
+
+```rust
+let age = 15;
+
+match age {
+    0 => println!("新生児です"),
+    1 | 2 => println!("乳幼児です"), // 1 または 2
+    3..=12 => println!("子供です"),   // 3から12(12を含む)
+    13..=19 => println!("ティーンエイジャーです"),
+    _ => println!("大人です"),         // その他すべて
+}
+```
+
+アームのコードが短い場合、波括弧{} は使用しない。<br>
+複数行のコードがある場合は波括弧で囲い、カンマ( , ) は省略する。
+
+```rust
+fn value_in_cents(coin: Coin) -> u8 {
+    match coin {
+        Coin::Penny => {
+            println!("Lucky penny!");
+            1
+        }
+        Coin::Nickel => 5,
+        Coin::Dime => 10,
+        Coin::Quarter => 25,
+    }
+}
+```
+
+#### 変数束縛
+
+値を束縛して取り出す。ワイルドカード(_) と同様、全ての値にマッチする。
+
+```rust
+match x {
+    n => println!("{n}"),
+}
+```
+
+#### ワイルドカード
+
+全ての値にマッチするが、値を使わない。
+
+```rust
+if let _ = value {
+    println!("必ず実行");
+}
+```
+
+#### リテラル
+
+値そのものを比較する。
+
+```rust
+match x {
+    0 => {}
+    1 => {}
+    100 => {}
+    true => {}
+    'a' => {}
+}
+```
+
+#### 複数候補
+
+OR 条件。
+
+```rust
+match x {
+    1 | 2 | 3 => println!("small"),
+    _ => {}
+}
+
+// 文字もOK
+match c {
+    'a' | 'e' | 'i' | 'o' | 'u' => {}
+    _ => {}
+}
+```
+
+#### AND 条件
+
+```rust
+match (a, b) {
+    (Some(x), Ok(y))  => println!("両方成功: {x}, {y}"),
+    (Some(x), Err(e)) => println!("bだけ失敗: {e}"),
+    (None, _)         => println!("aが失敗"),
+}
+```
+
+#### 範囲
+
+```rust
+match x {
+    1..=5 => {}
+    _ => {}
+}
+
+// 文字もOK
+match c {
+    'a'..='z' => {}
+    _ => {}
+}
+```
+
+#### タプル
+
+```rust
+match point {
+    (0, 0) => {}
+    (x, y) => {}
+}
+
+// 一部無視
+match point {
+    (0, _) => {}
+    (_, 0) => {}
+    _ => {}
+}
+```
+
+#### 構造体
+
+```rust
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+match p {
+    Point { x, y } => {}
+}
+```
+
+```rust
+// 名前を変更
+match p {
+    Point { x: a, y: b } => {}
+}
+
+// 一部を取得
+match p {
+    Point { x, .. } => {}
+}
+```
+
+#### タプル構造体
+
+```rust
+struct Color(u8, u8, u8);
+
+match c {
+    Color(r, g, b) => {}
+}
+```
+
+#### enum
+
+```rust
+enum Message {
+    Quit,
+    Move(i32, i32),
+    Write(String),
+}
+
+match msg {
+    Message::Quit => {}
+    Message::Move(x, y) => {}
+    Message::Write(s) => {}
+}
+```
+
+#### ネスト
+
+```rust
+match value {
+    Some((x, y)) => {}
+    Some((0, _)) => {}
+    None => {}
+}
+// Some(Ok(x)) なども可能
+```
+
+#### Some
+
+```rust
+match value {
+    Some(x) => {
+        println!("{x}");
+    }
+    None => {
+        println!("None.")
+    }
+}
+```
+
+#### Ok / Err
+
+```rust
+match result {
+    Ok(v) => {}
+    Err(e) => {}
+}
+```
+
+#### @バインディング
+
+値を束縛しつつ、中身を判定。
+
+```rust
+match x {
+    n @ 1..=5 => println!("{n}"),
+    _ => {}
+}
+
+// enum
+match msg {
+    Message::Move(x @ 0..=100, y) => {}
+    _ => {}
+}
+```
+
+#### ref
+
+所有権を奪わない。
+
+こちらが一般的な書き方。
+
+```rust
+match &option {
+    Some(s) => {}
+    None => {}
+}
+```
+
+この書き方もある。
+
+```rust
+match option {
+    Some(ref s) => {
+        println!("{s}");
+    }
+    None => {}
+}
+```
+
+#### ref mut
+
+可変借用。
+
+こちらが一般的な書き方。
+
+```rust
+match &mut option {
+    Some(s) => {}
+    None => {}
+}
+```
+
+この書き方もある。
+
+```rust
+match option {
+    Some(ref mut s) => {
+        s.push_str("!");
+    }
+    None => {}
+}
+```
+
+#### &
+
+参照はがし。
+
+```rust
+let x = &5;
+
+match x {
+    &n => println!("{n}")
+}
+```
+
+#### &mut
+
+```rust
+match x {
+    &mut n => {}
+}
+```
+
+#### スライス
+
+```rust
+match slice {
+    [] => {} // 要素数が0
+    [x] => {} // 要素数が1
+    [x, y] => {} // 要素数が2
+    _ => {} // それ以外 (要素数が3以上)
+}
+```
+
+#### 可変長スライス
+
+```rust
+match slice {
+    [first, ..] => {}
+    [.., last] => {}
+    [first, .., last] => {}
+    [] => {}
+}
+```
+
+@バインディング。
+
+```rust
+match slice {
+    [head, tail @ ..] => {
+        // head : 先頭の1要素
+        // tail : 残りの要素全体（スライス）
+    }
+    _ => {} // 空のスライス（要素数 0）の場合
+}
+```
+
+#### 配列
+
+```rust
+match arr {
+    [1, 2, 3] => {}
+    [a, b, c] => {}
+}
+
+if let [1, .., 5] = numbers {
+    println!("1で始まって5で終わる配列です");
+}
+```
+
+#### ガード if
+
+追加条件を書ける。
+
+```rust
+match x {
+    n if n > 10 => {}
+    _ => {}
+}
+
+// enum
+match msg {
+    Message::Move(x, y) if x == y => {}
+    _ => {}
+}
+```
+
+#### let else
+
+Rust 1.65 以降。
+
+当てはまらない場合は後続の処理を行わないように記述する必要がある。
+
+```rust
+let Some(x) = option else {
+    return;
+};
+
+println!("{x}");
+```
+
+---
+
+### if
+
+```rust
+for i in 1..16 {
+    if (i % 3 == 0) && (i % 5 == 0) {
+        println!("FizzBuzz");
+    } else if i % 3 == 0 { // 基本は()括弧なし
+        println!("Fizz");
+    } else if i % 5 == 0 {
+        println!("Buzz");
+    } else {
+        println!("{}", i);
+    }
+}
+```
+
+#### 戻り値を持つ if
+
+ifは式なので、letの右辺に持ってきて、値を返して束縛することができる。
+
+```rust
+let number = if condition { 5 } else { 6 };
+```
+
+### if let
+
+<span class="code-like">if let</span> は <span class="code-like">match</span> のアームの糖衣構文であり、<span class="code-like">match</span> と同じ構文が使える。
+
+特定のパターンだった場合にのみ処理する時に有効。
+
+```rust
+// Noneの場合は何もしない
+if let Some(i) = some_value {
+    println!("値は {} です", i);
+}
+```
+
+else で包括的な処理も書けるが、アームが増えたら match が自然。
+
+```rust
+if let Some(i) = some_value {
+    println!("値は {} です", i);
+} else {
+    println!("Noneでした");
+}
+```
+
+### let チェーン
+
+共に条件を満たした場合。
+
+```rust
+if let Some(x) = a 
+    && let Ok(y) = b
+{
+    println!("{x}, {y}");
+}
+```
+
+### while let
+
+パターンにマッチし続ける限りループする。
+
+```rust
+let mut stack = vec![1, 2, 3];
+
+// pop()はOptionを返す。Someである限りループを回す
+while let Some(top) = stack.pop() {
+    println!("取り出した値: {}", top);
+}
+```
+
+### let else(ガード構文)
+
+Rust 1.65で 追加された機能で、パターンに一致すれば変数を取り出し、一致しなければ早期 return する。<br>
+else に return、brake/continue、panic! 等で、後続のマッチした場合の処理を行わないようにする必要がある。
+
+```rust
+fn get_user_id(id_str: &str) -> i32 {
+    // Okなら id を取り出す。Errなら関数の外に抜ける(panicさせる例)
+    let Ok(id) = id_str.parse::<i32>() else {
+        panic!("IDは数字である必要があります: {}", id_str);
+    };
+    // ここで id (i32型) が直接使える
+    id * 10 
+}
+```
+
+ダメな条件で次々と弾いていくガード節を使うことにより、過度なネストを防ぐことができる。
+
+```rust
+fn process_input(input: Option<&str>) {
+    // 1. 文字列が入っていなければ終了
+    let Some(s) = input else { return; };
+    // 2. 数値として解析できなければ終了
+    let Ok(n) = s.parse::<i32>() else { return; };
+    // 3. 0以下なら終了
+    if n <= 0 { return; }
+
+    // ネストがなく、変数 s や n がこのスコープで直接使える
+    println!("有効な数値です: {}", n);
+}
+```
+
+### for
+
+```rust
+for _i: i32 in 0..10 { // 0から9まで
+    println!("hello");
+}
+```
+
+```rust
+for _i: i32 in 0..=10 { // 0から10まで
+    println!("hello");
+}
+```
+
+#### 逆順
+
+```rust
+for num in (1..4).rev() {
+    println!("{num}"); // 3 2 1
+}
+```
+
+#### イテレータの要素を順番に取り出す
+
+```rust
+let a = [10, 20, 30, 40, 50];
+
+for elm in a {
+    println!("the value is: {elm}");
+}
+```
+
+| --- | ---|
+| iter() | 要素を借用する |
+| into_iter() | 要素をムーブする |
+| iter_mut() | 要素を可変借用する |
+
+<pre><code class="tips">デフォルトでinto_iterが適用されるため、for文は所有権を奪う。</code></pre>
+
+
+#### 使用例
+
+```rust
+fn main() {
+    let mut names = vec!["Bob", "Frank", "Ferris"];
+
+    for name in names.iter_mut() {
+        *name = match name {
+            &mut "Ferris" => "There is a rustacean among us!",
+            _ => "Hello",
+        }
+    }
+
+    println!("names: {:?}", names);
+}
+```
+
+### while
+
+条件がtrueの間ブロック内を繰り返す。
+
+```rust
+let mut number = 3;
+
+while number != 0 {
+    println!("{number}!");
+
+    number -= 1;
+}
+
+// 発射！
+println!("LIFTOFF!!!");
+```
+
+### loop
+
+無限ループをする場合はwhile trueではなくloopを使用する。
+
+```rust
+fn main() {
+    loop {
+        println!("again!");
+    }
+}
+```
+
+#### break
+
+ブロックを抜けるにはbreakを使う。<br>
+breakは値を返すこともできる。
+
+```rust
+let mut counter = 0;
+
+let result = loop {
+    counter += 1;
+
+    if counter == 10 {
+        break counter * 2;
+    }
+};
+
+println!("The result is {result}");
+```
+
+#### continue
+
+continueは、以降の処理を飛ばしてブロックの先頭にジャンプする。
+
+#### ネストとラベル
+
+ネストしたループを回している時に外側のループを`break`、または`continue`したい場合は`'label`を用いてラベルを貼り、break/continueにそのラベルを渡す。
+
+```rust
+fn main() {
+    'outer: loop {
+        println!("Entered the outer loop");
+        'inner: loop {
+            println!("Entered the inner loop");
+            // これは内側のループのみを中断
+            // break;
+            // こちらは外側を中断
+            break 'outer;
+        }
+        println!("This point will never be reached");
+    }
+    println!("Exited the outer loop");
+}
+```
+
+---
+
+## range <a id="range" data-name="range"></a>
+
+| 書き方 | 呼び方 | 意味 |
+| --- | --- | --- |
+| `1..5` | Range | `1以上、5未満` |
+| `1..=5` | RangeInclusive | `1以上、5以下` |
+| `..5` | RangeTo | `5未満` |
+| `..=5` | RangeToInclusive | `5以下` |
+| `1..` | RangeFrom | `1以上` |
+| `..` | RangeFull | 全範囲 |
 
 ---
 
@@ -1592,264 +2289,6 @@ asで型を変換する。
 
 ```rust
 let mut code = ch as i8;
-```
-
----
-
-## 制御フロー <a id="control-flow" data-name="制御フロー"></a>
-
-### match
-
-matchは、値のパターンで識別して、中身を取り出しながら分岐し、しかも漏れがないか確認できる仕組み。<br>
-上から順に評価されて、最初にマッチしたアームが選ばれるので、より具体的なものを先、より包括的なものを後に書く。
-
-```rust
-let age = 15;
-
-match age {
-    0 => println!("新生児です"),
-    1 | 2 => println!("乳幼児です"), // 1 または 2
-    3..=12 => println!("子供です"),   // 3から12(12を含む)
-    13..=19 => println!("ティーンエイジャーです"),
-    _ => println!("大人です"),         // その他すべて
-}
-```
-
-アームのコードが短い場合、波括弧{}は使用しない。<br>
-複数行のコードがある場合は波括弧で囲い、カンマ( , )は省略する。
-
-```rust
-fn value_in_cents(coin: Coin) -> u8 {
-    match coin {
-        Coin::Penny => {
-            println!("Lucky penny!");
-            1
-        }
-        Coin::Nickel => 5,
-        Coin::Dime => 10,
-        Coin::Quarter => 25,
-    }
-}
-```
-
-### if
-
-```rust
-for i in 1..16 {
-    if (i % 3 == 0) && (i % 5 == 0) {
-        println!("FizzBuzz");
-    } else if i % 3 == 0 { // 基本は()括弧なし
-        println!("Fizz");
-    } else if i % 5 == 0 {
-        println!("Buzz");
-    } else {
-        println!("{}", i);
-    }
-}
-```
-
-#### 戻り値を持つif
-
-ifは式なので、letの右辺に持ってきて、値を返して束縛することができる。
-
-```rust
-let number = if condition { 5 } else { 6 };
-```
-
-### if let
-
-特定のパターンだった場合にのみ処理する時に有効。
-
-```rust
-// Noneの場合は何もしない
-if let Some(i) = some_value {
-    println!("値は {} です", i);
-}
-```
-
-else で包括的な処理も書けるが、アームが増えてらmatchが自然。
-
-```rust
-if let Some(i) = some_value {
-    println!("値は {} です", i);
-} else {
-    println!("Noneでした");
-}
-```
-
-### while let
-
-パターンにマッチし続ける限りループする。
-
-```rust
-let mut stack = vec![1, 2, 3];
-
-// pop()はOptionを返す。Someである限りループを回す
-while let Some(top) = stack.pop() {
-    println!("取り出した値: {}", top);
-}
-```
-
-### let else(ガード構文)
-
-Rust1.65で追加された機能で、パターンに一致すれば変数を取り出し、一致しなければ早期returnする。<br>
-elseにreturn、brake/continue、panic!等で、後続のマッチした場合の処理を行わないようにする必要がある。
-
-```rust
-fn get_user_id(id_str: &str) -> i32 {
-    // Okなら id を取り出す。Errなら関数の外に抜ける(panicさせる例)
-    let Ok(id) = id_str.parse::<i32>() else {
-        panic!("IDは数字である必要があります: {}", id_str);
-    };
-    // ここで id (i32型) が直接使える
-    id * 10 
-}
-```
-
-ダメな条件で次々と弾いていくガード節を使うことにより、過度なネストを防ぐことができる。
-
-```rust
-fn process_input(input: Option<&str>) {
-    // 1. 文字列が入っていなければ終了
-    let Some(s) = input else { return; };
-    // 2. 数値として解析できなければ終了
-    let Ok(n) = s.parse::<i32>() else { return; };
-    // 3. 0以下なら終了
-    if n <= 0 { return; }
-
-    // ネストがなく、変数 s や n がこのスコープで直接使える
-    println!("有効な数値です: {}", n);
-}
-```
-
-### for
-
-```rust
-for _i: i32 in 0..10 { // 0から9まで
-    println!("hello");
-}
-```
-
-```rust
-for _i: i32 in 0..=10 { // 0から10まで
-    println!("hello");
-}
-```
-
-#### 逆順
-
-```rust
-for num in (1..4).rev() {
-    println!("{num}"); // 3 2 1
-}
-```
-
-#### イテレータの要素を順番に取り出す
-
-```rust
-let a = [10, 20, 30, 40, 50];
-
-for elm in a {
-    println!("the value is: {elm}");
-}
-```
-
-| --- | ---|
-| iter() | 要素を借用する |
-| into_iter() | 要素をムーブする |
-| iter_mut() | 要素を可変借用する |
-
-<pre><code class="tips">デフォルトでinto_iterが適用されるため、for文は所有権を奪う。</code></pre>
-
-
-#### 使用例
-
-```rust
-fn main() {
-    let mut names = vec!["Bob", "Frank", "Ferris"];
-
-    for name in names.iter_mut() {
-        *name = match name {
-            &mut "Ferris" => "There is a rustacean among us!",
-            _ => "Hello",
-        }
-    }
-
-    println!("names: {:?}", names);
-}
-```
-
-### while
-
-条件がtrueの間ブロック内を繰り返す。
-
-```rust
-let mut number = 3;
-
-while number != 0 {
-    println!("{number}!");
-
-    number -= 1;
-}
-
-// 発射！
-println!("LIFTOFF!!!");
-```
-
-### loop
-
-無限ループをする場合はwhile trueではなくloopを使用する。
-
-```rust
-fn main() {
-    loop {
-        println!("again!");
-    }
-}
-```
-
-#### break
-
-ブロックを抜けるにはbreakを使う。<br>
-breakは値を返すこともできる。
-
-```rust
-let mut counter = 0;
-
-let result = loop {
-    counter += 1;
-
-    if counter == 10 {
-        break counter * 2;
-    }
-};
-
-println!("The result is {result}");
-```
-
-#### continue
-
-continueは、以降の処理を飛ばしてブロックの先頭にジャンプする。
-
-#### ネストとラベル
-
-ネストしたループを回している時に外側のループを`break`、または`continue`したい場合は`'label`を用いてラベルを貼り、break/continueにそのラベルを渡す。
-
-```rust
-fn main() {
-    'outer: loop {
-        println!("Entered the outer loop");
-        'inner: loop {
-            println!("Entered the inner loop");
-            // これは内側のループのみを中断
-            // break;
-            // こちらは外側を中断
-            break 'outer;
-        }
-        println!("This point will never be reached");
-    }
-    println!("Exited the outer loop");
-}
 ```
 
 ---

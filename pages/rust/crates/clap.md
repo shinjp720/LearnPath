@@ -294,6 +294,16 @@ struct Cli {
 }
 ```
 
+### 他のオプションを必須にする
+
+```rust
+/// keyword が指定されている場合のみ使用可能なオプション
+#[arg(short, long, requires = "keyword")]
+verbose: bool,
+```
+
+
+
 ### 環境変数連携
 
 ```rust
