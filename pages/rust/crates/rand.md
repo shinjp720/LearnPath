@@ -112,3 +112,15 @@ let x: f64 = rng.random();        // 0.0～1.0未満
 let y = rng.random_range(0.0..5.0);
 ```
 
+### 真偽値
+
+```rust
+let b: bool = rand::random();
+
+println!("{b}");
+
+// 70%の確率でtrue
+if rng.gen_bool(0.7) {
+    println!("70%の確率に当選しました！");
+}
+```
