@@ -7,7 +7,27 @@ layout: default
 
 Axum は非同期ランタイムの Tokio と、HTTPライブラリの Hyper を利用しており、Rust らしい型安全な Webアプリケーションを作れる。
 
-## 最小構成
+---
+
+## 導入 <a id="introduction" data-name="導入"></a>
+
+### cargo add
+```rust
+cargo add axum
+cargo add tokio --features full
+```
+
+### Cargo.toml
+
+```rust
+[dependencies]
+axum = "0.7"
+tokio = { version = "1", features = ["full"] }
+```
+
+---
+
+## 最小構成 <a id="minimal" data-name="最小構成"></a>
 
 ```rust
 use axum::{
@@ -36,7 +56,13 @@ async fn root() -> &'static str {
 
 Axum は非同期処理を前提としているため、ほとんどのハンドラは async になる。
 
-## 基本
+### サーバーの起動
+
+```rust
+cargo run
+```
+
+## 基本 <a id="basic" data-name="基本"></a>
 
 ### HTTP メソッド
 

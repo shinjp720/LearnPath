@@ -24,7 +24,6 @@ swap=2GB         # スワップスペースのサイズを指定
 [experimental]
 autoMemoryReclaim=gradual    # メモリの自動解放
 networkingMode=mirrored      # ネットワークのミラーモード化
-autoVirtualDiskShrink=true   # 仮想ディスクの自動縮小
 ```
 
 完全にシャットダウンして更新。

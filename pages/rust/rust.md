@@ -20,9 +20,7 @@ layout: default
 
 #### ビルドツールの準備
 
-C言語のコンパイラやビルドツール群を予めインストールする。
-
-これがないと、多くの Rust用ライブラリがビルドエラーとなる。
+C言語のコンパイラやビルドツール群を予めインストールする。これがないと、多くの Rust用ライブラリがビルドエラーとなる。
 
 ```bash
 sudo apt update
@@ -1822,7 +1820,7 @@ fn main() {
 
 ---
 
-## enum <a id="enum" data-name="enum"></a>
+## enum <a id="enum-tag" data-name="enum"></a>
 
 IPアドレスのように、2つの規格(IPv4とIPv6)のいずれかの値(複数の中のいずれか)を持つものを表現するにはenumが適している。
 
@@ -2247,8 +2245,8 @@ i = 30; // ok
 
 #### const
 
-constで定数となりる。<br>
-constの場合はコンパイル時に値が決まっている必要がある。
+不変である点は let と同じだが、let はコンパイル時に値が決まっている必要がなく1度代入したら変更できないのに対して、<br>
+const の場合はコンパイル時に値が決まっている必要がある。
 
 ### シャドーイング
 
@@ -2617,7 +2615,6 @@ crates.io にパブリッシュして、自分のコードをクレートとし�
 - ルートの Cargo.toml で全体を管理し、小ディレクトリのクレート同士を path でつなぐ。
 - コンパイル結果(targetディレクトリ)を共有できるため、ビルド時間の短縮につながる。
 
-
 ---
 
 ## 開発 <a id="development" data-name="開発"></a>
@@ -2665,3 +2662,42 @@ cargo run --bin tool_a
 | 全部まとめて | 上記すべて | `#![allow(unused)]` |
 
 ---
+
+## WSL2でWindows開発 <a id="WSL2-for-windows" data-name="WSL2でWindows開発"></a>
+
+### 初期セットアップ (初回のみ)
+
+Rustターゲットとリンカをインストール。
+
+```bash
+# RustにWindows用ターゲットを追加
+rustup target add x86_64-pc-windows-gnu
+
+# C/C++リンカ（MinGW）をWSL2にインストール
+sudo apt update
+sudo apt install -y mingw-w64
+```
+
+設定用ディレクトリ・ファイルを作成。
+
+```bash
+mkdir -p .cargo
+touch .cargo/config.toml
+```
+
+<span class="code-like">.cargo/config.toml</span> に以下を設定。
+
+```toml
+[build]
+# cargo build や cargo run のデフォルトターゲットをWindows(MinGW)に固定
+target = "x86_64-pc-windows-gnu"
+
+[target.x86_64-pc-windows-gnu]
+# リンカに x86_64-w64-mingw32-gcc を指定
+linker = "x86_64-w64-mingw32-gcc"
+```
+
+<pre><code class="tips">プロジェクトごとではなくWSL2上の全ての Rustプロジェクト で有効化したい場合は
+<span class="code-like">~/.cargo/config.toml</span> で上記の内容を記述する。</code></pre>
+
+ビルドして実行すると Windows側 で実行される。
