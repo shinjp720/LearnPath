@@ -56,17 +56,17 @@ use clap::Parser;
 /// アプリケーションの説明 `///` ドキュメントコメントがヘルプの文章になる
 #[derive(Parser, Debug)]
 #[command(name = "my-app", version, about, long_about = None)]
-struct Cli {
+struct Args {
     // フィールドをここに定義
 }
 
 fn main() {
-    let cli = Cli::parse();
-    println!("{:?}", cli);
+    let args = Args::parse();
+    println!("{:?}", args);
 }
 ```
 
-### help(説明文)
+### 説明文
 
 `#[arg(help = "...")]` で指定するか、フィールドの直前に `///` コメントを書く。
 
@@ -78,7 +78,7 @@ name: String,
 ### 引数の取得
 
 ```rust
-let cli = Cli::parse();
+let args = Args::parse();
 ```
 
 ### Command(ルート)
@@ -90,7 +90,7 @@ use clap::Parser;
 
 #[derive(Parser, Debug)]
 #[command(name = "my-app", version, about, long_about = None)]
-struct Cli {
+struct Args {
     // フィールドをここに定義
 }
 ```
@@ -106,7 +106,7 @@ struct Cli {
 
 ```rust
 #[derive(Parser)]
-struct Cli {
+struct Args {
     #[command(subcommand)]
     command: Commands,
 }
@@ -123,7 +123,7 @@ enum Commands {
 ```rust
 #[derive(Parser)]
 #[command(subcommand_required = true)]
-struct Cli {
+struct Args {
     #[command(subcommand)]
     command: Commands,
 }
@@ -167,7 +167,9 @@ enum ConfigAction {
     },
 }
 ```
-呼び出し方は `app config get <key>` / `app config set <key> <value>` のようになり、階層が深くなるほど `enum` を分けて積み重ねていけばよい。
+
+呼び出し方は `app config get <key> / app config set <key> <value>` 
+のようになり、階層が深くなるほど `enum` を分けて積み重ねていけばいい。
 
 ### サブコマンド or 引数(同じ階層で両方を許す)
 
@@ -175,7 +177,7 @@ enum ConfigAction {
 
 ```rust
 #[derive(Parser)]
-struct Cli {
+struct  {
     #[command(subcommand)]
     command: Option<Commands>,
 
@@ -194,9 +196,9 @@ enum Commands {
 ```
 
 ```rust
-match cli.command {
+match args.command {
     Some(Commands::Add { name }) => { /* サブコマンドあり */ }
-    None => { /* サブコマンド無し、cli.name を見る */ }
+    None => { /* サブコマンド無し、args.name を見る */ }
 }
 ```
 
@@ -245,7 +247,7 @@ output_path: Option<String>,
 
 ```rust
 #[derive(Parser)]
-struct Cli {
+struct Args {
     #[arg(short, long)]
     name: String,
 }
@@ -288,7 +290,7 @@ enum Mode {
 }
 
 #[derive(Parser)]
-struct Cli {
+struct Args {
     #[arg(value_enum, default_value_t = Mode::Safe)]
     mode: Mode,
 }
@@ -323,7 +325,7 @@ use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
 #[command(name = "app", version = "1.0", about = "説明")]
-struct Cli {
+struct Args {
     #[command(subcommand)]
     command: Commands,
 }
@@ -340,11 +342,78 @@ enum Commands {
 }
 
 fn main() {
-    let cli = Cli::parse();
+    let args = Args::parse();
 
-    match cli.command {
+    match args.command {
         Commands::Add { name, force } => {
             println!("name: {name}, force: {force}");
+        }
+    }
+}
+```
+
+### help / version のメッセージを上書きする
+
+```rust
+use clap::{ArgAction, CommandFactory, Parser, Subcommand};
+
+#[derive(Parser)]
+#[command(
+    name = "my_app",
+    version = "1.0",
+    about = "アプリの説明",
+    disable_help_flag = true,
+    // ヘルプはデフォルトでサブコマンド扱いなので無効化
+    disable_help_subcommand = true,
+    disable_version_flag = true
+)]
+
+struct Args {
+    #[command(subcommand)]
+    /// サブコマンド
+    command: Option<Commands>,
+
+    /// ヘルプを表示
+    #[arg(short, long, action=ArgAction::SetTrue)]
+    help: bool,
+
+    /// バージョンを表示
+    #[arg(short, long, action=ArgAction::SetTrue)]
+    version: bool,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// サブコマンド
+    Command,
+}
+
+fn main() {
+    let args = Args::parse();
+
+    match args {
+        // ヘルプのオプション
+        Args { help: true, .. } => {
+            Args::command().print_help().unwrap();
+            println!();
+        }
+
+        // バージョンのオプション
+        Args { version: true, .. } => {
+            let version_text = Args::command().render_version();
+            println!("{version_text}");
+        }
+
+        // コマンドが渡された
+        Args {
+            command: Some(cmd), ..
+        } => {
+            match cmd {
+                // Analyze
+                Commands::Command => {
+                    // サブコマンドの処理
+                }
+            }
         }
     }
 }

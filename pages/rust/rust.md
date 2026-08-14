@@ -2678,7 +2678,15 @@ sudo apt update
 sudo apt install -y mingw-w64
 ```
 
-設定用ディレクトリ・ファイルを作成。
+ターゲットを指定してビルド。
+
+```bash
+cargo build --target x86_64-pc-windows-gnu --release
+```
+
+---
+
+または設定用ディレクトリ・ファイルを作成することで通常通りビルドできる。
 
 ```bash
 mkdir -p .cargo
