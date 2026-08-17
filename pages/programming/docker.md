@@ -120,7 +120,7 @@ docker start -ia myub
 | コマンド | 説明 |
 |---|---|
 | `docker exec -it コンテナID sh`(または `bash`) | 稼働中コンテナにシェルで入る |
-| `docker inspect -f '{{.NetworkSettings.IPAddress}}' コンテナID` | コンテナのIPアドレスだけを抽出表示 |
+| {% raw %} docker inspect -f {{.NetworkSettings.IPAddress}} コンテナID {% endraw %}| コンテナのIPアドレスだけを抽出表示 |
 | `docker diff コンテナID` | 起動後に変更/追加/削除されたファイルを表示 |
 | `docker top コンテナID` | コンテナ内で実行中のプロセス一覧を表示 |
 | `docker cp [オプション] コンテナID:パス ホスト側パス` | コンテナ内ファイルをホストへコピー |
@@ -450,7 +450,7 @@ VS Codeの「Dev Containers」拡張機能を使うと、コンテナ内を直�
 |---|---|
 | `docker save イメージ名 -o file.tar` | イメージをtarファイルとして保存 |
 | `docker load -i file.tar` | tarファイルからイメージを読み込む |
-| `docker inspect -f '{{.NetworkSettings.IPAddress}}' コンテナID` | コンテナIPアドレスの抽出表示 |
+| {% raw %} docker inspect -f {{.NetworkSettings.IPAddress}} コンテナID {% endraw %} | コンテナIPアドレスの抽出表示 |
 | `docker diff コンテナID` | 変更/追加/削除ファイルを表示 |
 | `docker top コンテナID` | 実行中プロセス一覧を表示 |
 

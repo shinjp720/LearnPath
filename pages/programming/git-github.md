@@ -430,33 +430,45 @@ HEAD~ は1つ前のコミットという意味。
 
 ### `git push --tags`
 
+---
 
+## git worktree <a id="worktree" data-name="git worktree"></a>
 
+1つの git リポジトリから、複数の作業ディレクトリを作って、別々のブランチを同時に作業できる機能。
 
+あくまで .git/ が複製されるわではなく、1つの .git/ を使うため高速で安全。
 
+### worktree を追加
 
+```bash
+git worktree add ../feature-a feature-a
+```
 
+### 新しいブランチを作りつつ追加
 
+```bash
+git worktree add -b feature-b ../feature-b
+```
 
+### worktree の一覧
 
+```bash
+git worktree list
+```
 
+### 作業が終わったら
 
+大元の .git/ があるディレクトリから、
 
+```bash
+git worktree remove ../project-hotfix
+```
 
+またはディレクトリごと削除して、
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+```bash
+git worktree prune
+```
 
 ---
 

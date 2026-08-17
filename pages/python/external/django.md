@@ -286,6 +286,22 @@ path(route, view, kwargs=None, name=None)
 
 ---
 
+## Modelインスタンス と QuerySet <a id="model-queryset" data-name="Model と QuerySet"></a>
+
+基本はメソッドにより戻り値が決まる。
+
+
+| メソッド | 戻り値 | 説明 |
+| --- | --- | --- |
+| get() | インスタンス1つ | ピンポイントに1つ |
+| first() / last() | インスタンス1つ | 先頭/最後の1つ |
+| create() | インスタンス1つ | データを作って返す |
+| all() | クエリセット | 全件まとめて |
+| filter() | クエリセット | 条件に合うものをまとめて |
+| exclude() | クエリセット | 条件以外をまとめて |
+
+---
+
 ## Model <a id="model" data-name="Model"></a>
 
 Model = データベース。
@@ -1073,6 +1089,112 @@ user.post_set.all()
 ```python
 user.refresh_from_db()
 ```
+
+---
+
+## Django shell <a id="django-shell" data-name="Django shell"></a>
+
+Django shell とは Django を起動した状態の Python で、直接 ORM が使える。
+
+### 起動
+
+このように起動して、
+
+```bash
+python manage.py shell
+```
+
+Pythonコード から ORM がそのまま使える。
+
+```python
+from users.models import User
+
+user = User(...)
+user.save()
+```
+
+### 基本は create
+
+```python
+from app.models import User
+
+User.objects.create(
+    name="test-user",
+    email="test@example.com",
+)
+```
+
+### バリデーションを通す
+
+バリデーションをきちんと通したい場合は、
+
+```python
+user = User(
+    name="test-user",
+    email="invalid",
+)
+
+user.full_clean()
+user.save()
+```
+
+### ForeignKeyも使える
+
+```python
+class Order(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    amount = models.IntegerField()
+```
+
+であれば、
+
+```python
+user = User.objects.get(id=1)
+
+Order.objects.create(
+    user=user,
+    amount=1000,
+)
+```
+
+ID だけ指定したかったら、
+
+```python
+Order.objects.create(
+    user_id=1,
+    amount=1000,
+)
+```
+
+でもOK。
+
+### 検証データ投入用スクリプト
+
+```python
+User.objects.create(...)
+User.objects.create(...)
+Order.objects.create(...)
+```
+
+のように毎回打つなら、例えば <code class="code-like">seed_test_data.py</code> というスクリプトを作って、
+
+```text
+app/
+├── models.py
+└── management/
+    ├── __init__.py
+    └── commands/
+        ├── __init__.py
+        └── seed_test_data.py
+```
+
+このようなディレクトリ構造にしておけば、
+
+```bash
+python manage.py seed_test_data
+```
+
+で Django環境 で実行できる。
 
 ---
 
