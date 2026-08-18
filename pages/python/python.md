@@ -911,3 +911,50 @@ except Exception as e:
 意図的に例外を発生させる。
 
 <pre><code class="example">raise ValueError('Sequence arguments must be non-empty')</code></pre>
+
+---
+
+## Traceback <a id="traceback" data-name="Traceback"></a>
+
+traceback はサーバーなどのトレースバックが教示できない状況で非常に役に立つ。
+
+```python
+import traceback
+```
+
+### 基本的な使い方
+
+```python
+import traceback
+
+try:
+    1 / 0
+except:
+    traceback.print_exc()
+```
+
+### エラーを整形して表示
+
+```python
+import traceback
+
+try:
+    1 / 0
+except:
+    error_text = traceback.format_exc()
+    print(error_text)
+```
+
+### logging との組み合わせ
+
+```python
+import logging
+import traceback
+
+logger = logging.getLogger(__name__)
+
+try:
+    ...
+except Exception:
+    logger.error(traceback.format_exc())
+```

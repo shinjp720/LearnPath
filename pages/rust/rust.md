@@ -706,14 +706,70 @@ fn main() {
 
 ## range <a id="range" data-name="range"></a>
 
-| 書き方 | 呼び方 | 意味 |
-| --- | --- | --- |
-| `1..5` | Range | `1以上、5未満` |
-| `1..=5` | RangeInclusive | `1以上、5以下` |
-| `..5` | RangeTo | `5未満` |
-| `..=5` | RangeToInclusive | `5以下` |
-| `1..` | RangeFrom | `1以上` |
-| `..` | RangeFull | 全範囲 |
+イテレータが作られる (Python の Range() と同じ)。
+
+| 書き方 | 意味 |
+| --- | --- |
+| `1..5` | 1以上、5未満 |
+| `1..=5` | 1以上、5以下 |
+| `..5` | 5未満 |
+| `..=5` | 5以下 |
+| `1..` | 1以上 |
+| `..` | 全範囲 |
+| 'a'..='z' | 小文字のアルファベット |
+| 'A'..='Z' | 大文字のアルファベット |
+| '0'..='9' | 数字 (char) |
+
+### if 文で範囲チェック
+
+```rust
+let score = 85;
+
+// score が 80 から 100 の間（100を含む）にあるか判定
+if (80..=100).contains(&score) {
+    println!("優秀な成績です！");
+}
+
+// または matches! マクロを使うパターン
+if matches!(score, 80..=100) {
+    println!("優秀な成績です！");
+}
+```
+
+### match 文での条件分岐
+
+```rust
+let age = 18;
+
+match age {
+    0..=12 => println!("子供料金です"),
+    13..=19 => println!("中人・学生料金です"),
+    20..=64 => println!("大人料金です"),
+    65.. => println!("シニア料金です"), // 65以上すべて
+}
+```
+
+### range はイテレータ
+
+イテレータであるためこういった操作もできる。
+
+```rust
+// 0から始まる無限のループから、最初の5つだけ取り出す (0, 1, 2, 3, 4)
+for i in (0..).take(5) {
+    println!("{}", i);
+}
+
+// 3, 2, 1, 0 とカウントダウンする
+for i in (0..=3).rev() {
+    println!("{}!", i);
+}
+
+// 0から始まる偶数だけを列挙 (0, 2, 4, 6, 8)
+for i in (0..10).step_by(2) {
+    println!("{}", i);
+}
+```
+
 
 ---
 
@@ -728,6 +784,196 @@ fn func([argument...]) -> return_value {
 }
 ```
 
+### 高階関数
+
+| 関数 | 役割 |
+| --- | --- |
+| `map` | 各要素を変換 |
+| `filter` | 条件に合う要素だけ残す |
+| `filter_map` | 変換＋不要なものを除外 |
+| `fold` | 全要素を1つにまとめる |
+| `flat_map` | 変換して平坦化 |
+| `reduce` | 要素同士をまとめる |
+| `for_each` | 各要素に処理を行う |
+| `find` | 条件に合う最初の要素を探す |
+| `any` | 1つでも条件を満たすか |
+| `all` | 全て条件を満たすか |
+| `position` | 条件に合う要素の位置を探す |
+| `enumerate` | `(index, value)` にする |
+| `zip` | 2つのIteratorを組み合わせる |
+| `take` | 先頭からN個だけ |
+| `skip` | 先頭N個を飛ばす |
+| `collect` | Iteratorをコレクションにする |
+
+#### map
+
+全部の要素を変換する。
+
+```rust
+let nums = vec![1, 2, 3, 4];
+
+let result: Vec<_> = nums
+    .iter()
+    .map(|x| x * 2)
+    .collect();
+    // [2, 4, 6, 8]
+```
+
+#### filter
+
+条件で絞る。クロージャがbool を返すのがポイント。
+
+```rust
+let nums = vec![1, 2, 3, 4, 5, 6];
+
+let result: Vec<_> = nums
+    .iter()
+    .filter(|x| **x % 2 == 0)
+    .collect();
+    // [2, 4, 6]
+```
+
+#### filter_map
+
+要素の変換 (map) と不要な要素の除外 (filter) を同時に行う。<br>
+クロージャが Some(value) を返した要素を残して None を返した要素を無視する。<br>
+`FnMut(Self::Item) -> Option<B>` というトレイトを実装したものであれば関数も渡せる。
+
+```rust
+fn main() {
+    let data = vec!["1", "apple", "3", "orange", "5"];
+
+    let numbers: Vec<i32> = data
+        .into_iter()
+        .filter_map(|s| s.parse::<i32>().ok()) // ok() で Result から Option に変換
+        .collect();
+        // [1, 3, 5]
+}
+```
+
+#### fold
+
+集約する (JavaScript の reduce と同じ)。
+
+```rust
+let nums = vec![1, 2, 3, 4];
+
+let sum = nums
+    .iter()
+    .fold(0, |acc, x| acc + x);
+
+println!("{}", sum);
+// 10
+```
+
+```text
+acc = 0
+
+0 + 1 → 1
+1 + 2 → 3
+3 + 3 → 6
+6 + 4 → 10
+```
+
+#### for_each
+
+各要素に処理を行う。<br>
+値を変換するのではなく、副作用を起こすのが目的であるため map とは役割が違う。
+
+```rust
+let nums = vec![1, 2, 3];
+
+nums.iter().for_each(|x| {
+    println!("{}", x);
+});
+```
+
+#### find
+
+最初に条件を満たしたものを返す。
+
+```rust
+let nums = vec![1, 3, 5, 8, 10];
+
+let result = nums.iter().find(|x| **x % 2 == 0);
+
+println!("{:?}", result);
+// Some(8)
+```
+
+#### any / all
+
+##### any
+
+ひとつでも条件を満たすか。
+
+```rust
+let nums = vec![1, 3, 5, 8];
+
+let result = nums.iter().any(|x| **x % 2 == 0);
+// true
+```
+
+##### all
+
+すべて条件を満たすか。
+
+```rust
+let nums = vec![2, 4, 6, 8];
+
+let result = nums.iter().all(|x| **x % 2 == 0);
+// true
+```
+
+#### enumerate
+
+要素にインデックスを付ける。
+
+```rust
+let names = vec!["Alice", "Bob", "Carol"];
+
+for (i, name) in names.iter().enumerate() {
+    println!("{}: {}", i, name);
+}
+// 0: Alice
+// 1: Bob
+// 2: Carol
+```
+
+#### zip
+
+2つの Iterator を組み合わせる。
+
+```rust
+let names = vec!["Alice", "Bob", "Carol"];
+let ages = vec![20, 30, 40];
+
+let result: Vec<_> = names
+    .iter()
+    .zip(ages.iter())
+    .collect();
+```
+
+この場合はタプルの参照となる。
+
+#### flat_map
+
+平坦化する。
+
+```rust
+let nums = vec![1, 2, 3];
+
+let result: Vec<_> = nums
+    .iter()
+    .flat_map(|x| 0..*x)
+    .collect();
+    // [0, 0, 1, 0, 1, 2]
+```
+
+```rust
+// 普通のmapだとこうなる
+[[0], [0, 1], [0, 1, 2]]
+```
 
 ---
 
@@ -826,7 +1072,9 @@ trait Iterator {
 
 ### アダプタ
 
-アダプタはイテレータを返す。
+Iteratorアダプタ はイテレータを返す。
+
+lazy によりひとつずつ値を評価して繋いでいく。
 
 ```rust
 v.iter()
@@ -852,14 +1100,6 @@ v.iter()
 // FnMut(T) -> U
 ```
 
-#### collect
-
-collect でコレクションに変換する。
-
-```rust
-let v: Vec<_> = iter.collect();
-```
-
 #### for_each
 
 ```rust
@@ -870,6 +1110,14 @@ iter.for_each(|x| println!("{}", x));
 
 ```rust
 let sum: i32 = v.iter().sum();
+```
+
+#### collect
+
+collect で Iterator をコレクションに変換する (collect はアダプタではない)。
+
+```rust
+let v: Vec<_> = iter.collect();
 ```
 
 ---
@@ -1883,7 +2131,7 @@ m.call();
 
 ---
 
-## OptionとResult <a id="option-result" data-name="OptionとResult"></a>
+## Option と Result <a id="option-result" data-name="Option と Result"></a>
 
 ### Option
 
@@ -1899,8 +2147,8 @@ enum Option<T> {
 
 ### Result
 
-Resultは、結果の値を持つ、または失敗してerrorを持つ状態を表現するenum。<br>
-preludeに含まれているため、明示的にRsult::と書かなくてもOkとErrを使える。
+Result は、結果の値を持つ、または失敗して error を持つ状態を表現する enum。<br>
+prelude に含まれているため、明示的に Result:: と書かなくても Ok と Err を使える。
 
 ```rust
 enum Result<T, E> {
@@ -1909,23 +2157,23 @@ enum Result<T, E> {
 }
 ```
 
-#### 中身を取り出す
+### 中身を取り出す
 
 | 手法 | Option | Result | 備考 |
 | --- | --- | --- | --- |
 | パターンマッチ | match opt { Some(v) => ..., None => ... } | match res { Ok(v) => ..., Err(e) => ... } | すべてのケースを網羅する最も安全な方法 |
 | 簡易マッチ | if let Some(v) = opt { ... } | if let Ok(v) = res { ... } | 片方のケースだけ必要な場合 |
-| デフォルト値 | opt.unwrap_or(default) | res.unwrap_or(dafault) | 失敗時に変わりの値を使う |
+| デフォルト値 | opt.unwrap_or(default) | res.unwrap_or(default) | 失敗時に変わりの値を使う |
 | 強制取り出し | opt.unwrap() | res.unwrap() | パニック。テスト以外は非推奨 |
 
-#### 値を包んだまま操作する
+### 値を包んだまま操作する
 
 | 関数 | 例 | 説明 |
 | --- | --- | --- |
 | map() | opt.map(\|x\| x*2), NoneならNoneのまま | 中身がSomeやOkの時だけ関数を適用し、結果を箱に戻す |
 | and_then() | res.and_then(check_condition) | 処理の結果がさらにOptionやResultを返す場合に使う(ネストを防ぐ) |
 
-#### ?演算子による伝播
+### ?演算子による伝播
 
 | --- | --- |
 | Optionを返す関数内 | Noneだったら return None; |
@@ -1935,6 +2183,45 @@ enum Result<T, E> {
     let entry = entry?; // ここでResultをはがす(Errならreturn (Err(e)))
     println!("{:?}", entry.path()); 
 }</code></pre>
+
+### 相互に変換
+
+#### Result から Option へ
+
+<code class="code-like">ok()</code> エラーの内容は破棄される。
+
+```rust
+let success: Result<i32, &str> = Ok(42);
+let failure: Result<i32, &str> = Err("エラー発生");
+
+assert_eq!(success.ok(), Some(42));
+assert_eq!(failure.ok(), None); // 破棄される
+```
+
+#### Option から Result へ
+
+None だった場合にはエラー (err) を指定する必要がある。
+
+<code class="code-like">ok_or()</code> &str (リテラル) でいい。
+
+```rust
+let empty_num: Option<i32> = None;
+
+let res: Result<i32, &str> = empty_num.ok_or("値が空です");
+
+assert_eq!(res, Err("値が空です"));
+```
+
+<code class="code-like">ok_or_else()</code> 所有権を持ちたいが、必要な時だけ。
+
+```rust
+let empty_num: Option<i32> = None;
+
+// None のときだけ String が生成される（無駄なメモリ確保を防ぐ）
+let res = empty_num.ok_or_else(|| format!("エラーが発生しました: {}", 404)); 
+
+assert_eq!(res, Err("エラーが発生しました: 404".to_string()));
+```
 
 ---
 
@@ -2557,14 +2844,15 @@ debug_assert!(x > 0);
 
 | 用語 | 意味 |
 | --- | --- |
-| トレイト(Trait) | 型が持つべき振る舞いの定義。多言語のinterfaceに近い |
-| ジェネリクス(Generics) | 型を抽象化すること |
-| ライフタイム(Lifetime) | 参照が有効である期間 |
-| パッケージ(Package) | Cargoで管理されるプロジェクト単位 |
-| クレート(Crate) | Rustのコンパイル単位で、バイナリクレートとライブラリクレートの2種類がある |
+| トレイト (Trait) | 型が持つべき振る舞いの定義。多言語のinterfaceに近い |
+| プレリュード (Prelude) | インポートせずに使えるRustの機能 |
+| ジェネリクス (Generics) | 型を抽象化すること |
+| ライフタイム (Lifetime) | 参照が有効である期間 |
+| パッケージ (Package) | Cargoで管理されるプロジェクト単位 |
+| クレート (Crate) | Rustのコンパイル単位で、バイナリクレートとライブラリクレートの2種類がある |
 | バイナリクレート | 実行可能ファイルとなる |
 | ライブラリクレート | 再利用されるコード |
-| モジュール(Module) | コードの整理・名前空間管理 |
+| モジュール (Module) | コードの整理・名前空間管理 |
 | アトリビュート | `#[...]`という記述でコンパイラに情報を与える |
 
 ---
