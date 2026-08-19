@@ -2580,7 +2580,7 @@ let mut code = ch as i8;
 
 ## トレイト <a id="trait" data-name="トレイト"></a>
 
-RustにおけるTraitは他の言語で言うところのインターフェースのようなもので、特定の型が共通して持つべき振る舞いを定義するために使う。
+Rust における Trait は他の言語で言うところのインターフェースのようなもので、特定の型が共通して持つべき振る舞いを定義する。
 
 ### トレイトの定義
 
@@ -2598,7 +2598,7 @@ trait Greet {
 
 ### トレイトの実装
 
-定義したトレイトを特定の構造体やenumに実装する。
+定義したトレイトを特定の構造体や enum に実装する。
 
 ```rust
 struct Person {
@@ -2607,14 +2607,14 @@ struct Person {
 
 struct Robot;
 
-// Person型にGreetを実装
+// Person 型に Greet を実装
 impl Greet for Person {
     fn say_hello(&self) -> String {
         format!("こんにちは、私は{}です。", self.name)
     }
 }
 
-// Robot型にGreetを実装
+// Robot 型に Greet を実装
 impl Greet for Robot {
     fn say_hello(&self) -> String {
         String::from("ピポパ。私はロボットです。")
@@ -2639,7 +2639,7 @@ fn main() {
 ### トレイト境界
 
 トレイト境界とは、ジェネリック型に対する制約の事を言う。<br>
-トレイト境界を指定すると、ジェネリック型パラメータに特定のTraitが実装されていることを保証できる。
+トレイト境界を指定すると、ジェネリック型パラメータに特定の Trait が実装されていることを保証できる。
 
 書き方は3パターンある。
 
@@ -2662,6 +2662,210 @@ where
     println!("{}", x);
 }
     ```
+
+### 様々なトレイト
+
+#### Clone
+
+値を明示的に複製する。
+
+```rust
+trait Clone {
+    fn clone(&self) -> Self;
+}
+```
+
+Rust ではコピーと複製が区別されるた重要。
+
+```rust
+let a = String::from("hello");
+let b = a.clone();
+```
+
+#### Copy
+
+```rust
+#[derive(Copy, Clone)]
+struct Point {
+    x: i32,
+    y: i32,
+}
+```
+
+Copy になれる型には厳格なルールがある。
+
+- i32, u64, bool, char などのプリミティブ型
+- 不変な参照 ＆T (共有参照はいくつあっても安全)
+- 関数のポインタ
+- すべての要素が Copy である構造体、タプル、列挙型
+
+#### PartialEq
+
+```rust
+#[derive(PartialEq)]
+struct User {
+    id: u32,
+}
+```
+
+== と != を使えるようにする。
+
+#### Eq
+
+PartialEq よりも厳格に完全な同値関係。<br>
+
+
+```rust
+#[derive(PartialEq, Eq)]
+struct User {
+    id: u32,
+}
+```
+
+Eq になるには非数 (NaN) 以外である必要がある。
+
+#### PartialOrd
+
+大小の比較。
+
+#### Ord
+
+完全な順序関係。
+
+sort() などでも重要。
+
+#### Debug
+
+開発者向けの表示で通常 `#[derive(Debug)]` で実装する。
+
+```rust
+#[derive(Debug)]
+struct User {
+    name: String,
+    age: u32,
+}
+
+println!("{:?}", user);
+```
+
+#### Display
+
+人間向けの表示。
+
+```rust
+impl std::fmt::Display for User {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "User: {}", self.name)
+    }
+}
+```
+
+write! で実装しないと余計なコストがかかる。
+
+#### Default
+
+デフォルト値を作る。
+
+```rust
+#[derive(Default)]
+struct Config {
+    port: u16,
+    debug: bool,
+}
+
+let config = Config::default();
+```
+
+プリミティブなどはデフォルト値が決まっている。
+
+独自に定義する場合。
+
+```rust
+struct Config {
+    port: u16,
+    debug: bool,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Config {
+            port: 8080,   // 独自のデフォルト値
+            debug: false, // 通常通り false
+        }
+    }
+}
+```
+
+##### From / Into
+
+From はある型から別の型をつくる。
+
+```rust
+impl From<String> for MyType {
+    fn from(value: String) -> Self {
+        // ...
+    }
+}
+
+let x = MyType::from(string);
+```
+
+Intoは逆方向から見るトレイトで、From を実装すると Into も自動で実装される。
+
+```rust
+let x: MyType = string.into();
+```
+
+#### Error
+
+Errorトレイト は、「この型はエラーを表すオブジェクトである」ということをコンパイラや他のライブラリに伝えるための標準インターフェース。
+
+Errorトレイト を実装するには Debug と Display を実装する必要がある。<br>
+Errorトレイト の中身はデフォルト実装が用意されているため、impl するだけで実装できる。
+
+```rust
+use std::fmt;
+use std::error::Error;
+
+#[derive(Debug)] // Debugを導出
+enum MyError {
+    NetworkFailed,
+    InvalidInput(String),
+}
+
+// Displayを実装（ユーザー向けメッセージ）
+impl fmt::Display for MyError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            MyError::NetworkFailed => write!(f, "ネットワーク接続に失敗しました"),
+            MyError::InvalidInput(msg) => write!(f, "不正な入力です: {}", msg),
+        }
+    }
+}
+
+impl Error for MyError {
+    // 中身は空っぽでOK（標準の挙動が自動で適用される）
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ---
 

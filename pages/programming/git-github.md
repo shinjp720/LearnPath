@@ -151,14 +151,41 @@ commit した時に保存されるのは add した時の状態。add した後�
 
 ドット(.) を使うとカレントディレクトリ以下のものを全て一括して追加する。
 
-<pre><code class="tips">すでに git で管理中だが、ローカルでの変更を <span class="code-like">git add .</span> した時に無視したい場合は、
-<span class="code-like">git update-index --skip-worktree &lt;ファイル名&gt;</span> とする</code></pre>
+### add でステージングに含めたくない
 
+#### 既に git で追跡中のファイル
 
+自分のローカル環境だけの設定を Github に上げたくないような場合。
 
-<pre><code class="tips">追跡中ファイルではない、かつ .gitignore を変更できないが <span class="code-like">git add .</span> した時に含めたくないファイルがある場合は、
-.git/info/exclude に .gitignore の要領で無視するファイル/ディレクトリを追記することにより、ローカル環境でだけ無視できる。
-追記するだけならこれでもOK <span class="code-like">echo "ファイル名" >> .git/info/exclude</span></code></pre>
+```bash
+git update-index --skip-worktree <ファイル名>
+```
+
+スキップされているファイルと現在追跡中のファイルの一覧。
+
+```bash
+# Ｈが追跡中のファイル、Ｓがスキップ中のファイル
+git ls-files -v
+# スキップ中のファイルを抽出する
+git ls-files -v | grep "^S"
+```
+
+スキップを解除して追跡ファイルとする。
+
+```bash
+git update-index --no-skip-worktree <ファイル名>
+```
+
+#### 追跡ファイルではない場合
+
+未追跡なファイルをステージングせずに無視したい。
+
+```bash
+echo "ファイル名" >> .git/info/exclude
+```
+
+.gitignore の要領で <code class="code-like">.git/info/exclude</code> に列挙するといい。
+
 
 ---
 
