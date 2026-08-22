@@ -2596,6 +2596,18 @@ trait Greet {
 }
 ```
 
+
+
+
+
+
+
+
+
+
+
+
+
 ### トレイトの実装
 
 定義したトレイトを特定の構造体や enum に実装する。
@@ -2878,6 +2890,24 @@ for x in v {
 }
 ```
 
+#### FromIterator
+
+FromIterator により
+
+```rust
+let v: Vec<_> = iterator.collect();
+```
+
+ができる。
+
+#### Extend
+
+既存のコレクションにイテレータの要素を追加する。
+
+```rust
+collection.extend(iterator);
+```
+
 #### AsRef
 
 `AsRef<U>` を実装している型であれば、&U (Uの参照) として扱うことができるという意味。
@@ -2968,7 +2998,52 @@ struct User {
 
 #### Sized
 
+コンパイル時にサイズが判っている型で、普通の型は基本的に Sized。一方、
 
+```rust
+str
+[T]
+dyn Trait
+```
+
+などはサイズがコンパイル時に決まらない。
+
+#### Send / Sync
+
+Send は値を別スレッドに送れることを表す。
+
+Sync はある型への参照を複数スレッドから共有できることを表す。
+
+#### Fn / FnMut / FnOnce
+
+Fn はクロージャ (関数) で何度でも呼べる。
+
+FnMut はクロージャ (関数) 内部で状態を変更できる。
+
+FnOnce はクロージャ (関数) を1度だけ呼べる。
+
+#### Add / Sub / Mul / Div / Rem / Neg / Not / BitAnd
+
+```rust
+// Add
+a + b
+// Sub
+a - b
+// Mul
+a * b
+// Div
+a / b
+// Rem
+a % b
+// Neg
+-a
+// Not
+!a
+// BitAnd
+a &b
+```
+
+など。
 
 
 
