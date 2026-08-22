@@ -1942,9 +1942,9 @@ println!("{subject} {verb} {object}",
     verb="jumps over"); 
 ``` 
 
-####     : によるフォーマット
-    
-(コロン): の後にフォーマット文字を指定して、異なるフォーマットにする。
+#### : によるフォーマット
+
+:(コロン) の後にフォーマット文字を指定して、異なるフォーマットにする。
 
 ```rust
 println!("Base 10:               {}",   69420); // 69420
@@ -2848,15 +2848,125 @@ impl Error for MyError {
 }
 ```
 
+#### Iterator
+#### IntoIterator
 
+Rust で重要なトレイトで、for文 やアダプタとなる。
 
+IntoIterator はイテレータを取り出せる。
 
+Iterator は次の要素を取り出せる。
 
+```rust
+// 範囲オブジェクトはすでにIterator
+let mut iter = 1..=3; 
 
+assert_eq!(iter.next(), Some(1));
+assert_eq!(iter.next(), Some(2));
+assert_eq!(iter.next(), Some(3));
+assert_eq!(iter.next(), None); // 空っぽ
+```
 
+Iterator は自動的に IntoIteratorを実装する。
 
+```rust
+let v = vec![1, 2, 3]; // v自体はIntoIteratorを実装している
 
+// forループに渡すと裏で自動的に v.into_iter() が呼ばれる
+for x in v {
+    println!("{}", x);
+}
+```
 
+#### AsRef
+
+`AsRef<U>` を実装している型であれば、&U (Uの参照) として扱うことができるという意味。
+
+```rust
+fn foo<T: AsRef<str>>(value: T) {
+    println!(value.as_ref());
+}
+```
+
+```rust
+// どちらでも呼べる
+foo("hello");
+foo(String::from("hello"));
+```
+
+#### AsMut
+
+`AsRef<T>` の 可変参照版。
+
+#### Deref
+
+AsRef が .as_ref() による手動変換なら、Deref は *x または自動変換。
+
+通常、参照の前に *(アスタリスク) を付けると、その参照の実態にアクセスできるが (参照外し) 、<br>
+自作の構造体に Deref を実装すると、 *my_struct と書いたときに、構造体そのものではなく、<br>
+内部にある別のデータにアクセスできるようになる。
+
+```rust
+use std::ops::Deref;
+
+struct BoxedString {
+    inner: String,
+}
+
+// BoxedString を参照外しした時、内部の String (さらにその先の str) を指すようにする
+impl Deref for BoxedString {
+    type Target = str; // 変換先の型を指定
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+```
+
+明示的に * を書かなくても、Deref型強制により自動的に変換してくれる。
+
+```rust
+fn print_msg(msg: &str) { // 引数は &str を要求している
+    println!("{}", msg);
+}
+
+fn main() {
+    let s = String::from("hello");
+    
+    // &String を渡しているが、String は Deref<Target = str> を実装しているため
+    // コンパイラが自動的に &s から &s[..] (&str) へと型を強制 (変換) してくれる
+    print_msg(&s); 
+}
+```
+
+可読性が悪くなるため、スマートポインタに対してのみ実装するのが Rust の鉄則。
+
+#### DerefMut
+
+Deref の可変参照版。
+
+#### Borrow
+
+コレクションやジェネリックAPIなどで、「この型は別の型を借用する形で扱えます」という関係を表す。
+
+```rust
+Borrow<T>
+```
+
+#### Hash
+
+ハッシュ値を生成できることを表す。
+
+例えば HashMap のキーには Hash が必要。
+
+```rust
+#[derive(Hash)]
+struct User {
+    id: u32,
+}
+```
+
+#### Sized
 
 
 

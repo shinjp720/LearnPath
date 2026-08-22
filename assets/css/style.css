@@ -469,3 +469,39 @@ pre code {
         display: block;
     }
 }
+
+/* コピーボタン */
+/* コードブロック全体の親要素を基準にする */
+div.highlight,
+pre.highlight {
+    position: relative !important;
+}
+
+/* コピーボタンのスタイル */
+.copy-code-button {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 4px 10px;
+    font-size: 12px;
+    line-height: 1.2;
+    color: #ffffff;
+    background-color: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+    z-index: 10;
+}
+
+.copy-code-button:hover {
+    opacity: 1;
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+/* コピー完了時のスタイル（少し緑っぽく変化） */
+.copy-code-button.copied {
+    background-color: #28a745;
+    color: #ffffff;
+}
