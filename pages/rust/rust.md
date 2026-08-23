@@ -161,9 +161,7 @@ match x {
 }
 ```
 
-#### 複数候補
-
-OR 条件。
+#### OR 条件
 
 ```rust
 match x {
@@ -562,8 +560,10 @@ fn get_user_id(id_str: &str) -> i32 {
 fn process_input(input: Option<&str>) {
     // 1. 文字列が入っていなければ終了
     let Some(s) = input else { return; };
+
     // 2. 数値として解析できなければ終了
     let Ok(n) = s.parse::<i32>() else { return; };
+    
     // 3. 0以下なら終了
     if n <= 0 { return; }
 
@@ -784,7 +784,59 @@ fn func([argument...]) -> return_value {
 }
 ```
 
+### メソッド
+
+メソッドを定義するにはimplブロックで始める。
+
+```rust
+#[derive(Debug)]
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+impl Rectangle {
+    fn area(&self) -> u32 { // インスタンスに関連づいているため &self と書く
+        self.width * self.height
+    }
+}
+```
+
+メソッドを呼び出す場合は、`インスタンス.関数名()`と記述する。
+
+```rust
+let rect = Rectangle {
+    width: 25,
+    height: 10,
+};
+println!("{}", rect.area()); // 250
+```
+
+### 関連関数
+
+対象とするインスタンスを必要としないために self を第1引数として持たない (つまりメソッドではない) 関連関数を定義することもできる (多言語の静的関数) 。<br>
+関連関数は、構造体の新規インスタンスを返すコンストラクタによく使用される。
+
+```rust
+impl Rectangle {
+    fn square(size: u32) -> Self { // selfを取らない
+        Self {
+            width: size,
+            height: size,
+        }
+    }
+}
+```
+
+この関数を呼び出すには、`構造体名::関数名()`と記述する。
+
+```rust
+Rectangle::square(3);
+```
+
 ### 高階関数
+
+関数を引数として受け取る関数で、関数またはクロージャを受け取る。
 
 | 関数 | 役割 |
 | --- | --- |
@@ -853,7 +905,7 @@ fn main() {
 
 #### fold
 
-集約する (JavaScript の reduce と同じ)。
+集約する (JavaScript の reduce と同じ) 。
 
 ```rust
 let nums = vec![1, 2, 3, 4];
@@ -975,6 +1027,56 @@ let result: Vec<_> = nums
 [[0], [0, 1], [0, 1, 2]]
 ```
 
+### アダプタ
+
+Iteratorアダプタ はイテレータを返す。
+
+lazy によりひとつずつ値を評価して繋いでいく。
+
+```rust
+v.iter()
+    .filter(|x| *x % 2 == 0)
+    .map(|x| x * 2)
+```
+
+#### filter
+
+値を選別する。
+
+```rust
+.filter(|x| 条件)
+// FnMut(&T) -> bool
+```
+
+#### map
+
+値を変換する。
+
+```rust
+.map(|x| 新しい値)
+// FnMut(T) -> U
+```
+
+#### for_each
+
+```rust
+iter.for_each(|x| println!("{}", x));
+```
+
+#### sum
+
+```rust
+let sum: i32 = v.iter().sum();
+```
+
+#### collect
+
+collect で Iterator をコレクションに変換する (collect はアダプタではない) 。
+
+```rust
+let v: Vec<_> = iter.collect();
+```
+
 ---
 
 ## クロージャ <a id="closure" data-name="クロージャ"></a>
@@ -1069,56 +1171,6 @@ trait Iterator {
     - ムーブ
     - 型：`T`
     - 元のイテレータは使えなくなる
-
-### アダプタ
-
-Iteratorアダプタ はイテレータを返す。
-
-lazy によりひとつずつ値を評価して繋いでいく。
-
-```rust
-v.iter()
-    .filter(|x| *x % 2 == 0)
-    .map(|x| x * 2)
-```
-
-#### filter
-
-値を選別する。
-
-```rust
-.filter(|x| 条件)
-// FnMut(&T) -> bool
-```
-
-#### map
-
-値を変換する。
-
-```rust
-.map(|x| 新しい値)
-// FnMut(T) -> U
-```
-
-#### for_each
-
-```rust
-iter.for_each(|x| println!("{}", x));
-```
-
-#### sum
-
-```rust
-let sum: i32 = v.iter().sum();
-```
-
-#### collect
-
-collect で Iterator をコレクションに変換する (collect はアダプタではない)。
-
-```rust
-let v: Vec<_> = iter.collect();
-```
 
 ---
 
@@ -1355,31 +1407,31 @@ for _ in 0..10 {
 
 ## 型 <a id="type" data-name="型"></a>
 
-Rustは静的型付き言語であり、コンパイル時に型が決まっている必要がある。
+Rust は静的型付き言語であり、コンパイル時に型が決まっている必要がある。
 
 ### use
 
-use宣言を使用すると、名前にアクセスするために完全なモジュールパスを入力する必要がなくなる。
+use宣言 を使用すると、名前にアクセスするために完全なモジュールパスを入力する必要がなくなる。
 
 #### ライブラリ
-Rustには、利用可能な機能が3つの層に分かれている。
+Rust には、利用可能な機能が3つの層に分かれている。
 
 | --- | --- |
-| prelude | useせずに使える(Vec, String, Option, Result, panic!など) |
-| 標準ライブラリ(std) | フルパスで書くか、useする必要がある(std::io, std::Collections::HashMapなど) |
-| 外部ライブラリ(Crates) | Dependenciesに加えて、かつフルパスで書くか、useが必要(rand, regexなど) |
+| prelude | use せずに使える(Vec, String, Option, Result, panic! など) |
+| 標準ライブラリ (std) | フルパスで書くか、 use する必要がある (std::io, std::Collections::HashMap など) |
+| 外部ライブラリ (Crates) | Dependencies に加えて、かつフルパスで書くか、use が必要 (rand, regexなど) |
 
 ### type
 
-型エイリアス(type)を用いると型の名前があまりに長かったり、あまりに一般的だったりで改名したい場合に役立つ。<br>
-命名する名前はUpperCamelCaseである必要がある。唯一の例外は基本型(usize, f32など)。<br>
+型エイリアス (type) を用いると型の名前があまりに長かったり、あまりに一般的だったりで改名したい場合に役立つ。<br>
+命名する名前は UpperCamelCase である必要がある。唯一の例外は基本型 (usize, f32 など) 。<br>
 あくまでエイリアスであり新たな型を定義しているわけではないことに注意。
 
 ### 型キャスト
 
-Rustは暗黙的に型変換を行うことはほとんどない(Derefによる強制変換はある)。
+Rust は暗黙的に型変換を行うことはほとんどない (Deref による強制変換はある)。
 
-#### asによる明示的キャスト
+#### as による明示的キャスト
 
 プリミティブ型同士の変換に使う。
 
@@ -1447,7 +1499,7 @@ fn main() {
     // From を使った呼び出し
     let num = Number::from(30);
 
-    // Into が自動的に実装されるので、こう書くこともできる
+    // Into が自動的に実装されるためこう書ける
     let num2: Number = 50.into();
     
     println!("Value: {}", num.value);
@@ -1638,8 +1690,13 @@ let one = x.2;
 
 ### ユニット型
 
-値をひとつも持たないタプルはユニットという特別な名前を持ち、()と書き表され、空の値や空の戻り値を表現する。<br>
+値をひとつも持たないタプルはユニットという特別な名前を持ち、() と書き表され、空の値や空の戻り値を表現する。<br>
 式が値を返さなければ暗黙的にユニット値を返す。
+
+```rust
+// 値を返さない場合、実際はこうなっている
+fn main() -> () {}
+```
 
 ---
 
@@ -1983,7 +2040,7 @@ println!("{number:0>width$}", number=1, width=5);
 
 インスタンスが可変かどうかはmutキーワードで可変となるが、そのインスタンス全体が可変となり、一部のフィールドのみを可変にすることはできない。 
 
-#### 定義
+### 定義
 
 ```rust
 struct User {
@@ -1994,26 +2051,28 @@ struct User {
 }
 ```
 
-#### 生成
+### 生成
 
 ```rust
 fn main() {
     let mut user1 = User {
         active: true,
-        username: String::from("someusername123"),
+        username: String::from("some_username123"),
         email: String::from("someone@example.com"),
         sign_in_count: 1,
     };
 }
 ```
 
-#### アクセス
+### アクセス
 
 ```rust
 user1.email = String::from("anotheremail@example.com");
 ```
 
-#### フィールド初期化省略記法
+### フィールド初期化省略記法
+
+仮引数とフィールド名が同じ場合はフィールド初期化省略ができる。
 
 ```rust
 fn build_user(email: String, username: String) -> User {
@@ -2026,9 +2085,9 @@ fn build_user(email: String, username: String) -> User {
 }
 ```
 
-仮引数とフィールド名が同じなのでフィールド初期化省略ができる。
+### 構造体更新記法
 
-#### 構造体更新記法
+このように <code class="code-like">..user1</code> で同じ値の代入を簡単に書ける。
 
 ```rust
 let user2 = User {
@@ -2037,11 +2096,9 @@ let user2 = User {
 };
 ```
 
-このように同じ値の代入を簡単に書ける。
+### タプル構造体
 
-#### タプル構造体
-
-タプル構造体は、タプル全体に名前を付け、そのタプルを他のタプルとは異なる型にしたいが、各フィールドに名前を与えるのは冗長である場合などに有効。
+タプル構造体は、タプル全体に名前を付け、そのタプルを他のタプルとは異なる型にしたいが、各フィールドに名前を与えるのは冗長な場合などに有効。
 
 ```rust 
 struct Color(i32, i32, i32);
@@ -2054,7 +2111,7 @@ fn main() {
 // このblackとoriginは型が異なる
 ```
 
-#### ユニット様構造体
+### ユニット様構造体
 
 一切フィールドを持たない構造体も定義でき、ある型にトレイトを実装するが、型自体に保持させるデータがない場合に有用。
 
@@ -2066,13 +2123,30 @@ fn main() {
 }
 ```
 
+### メソッド
+
+```rust
+#[derive(Debug)]
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+impl Rectangle {
+    fn area(&self) -> u32 { // インスタンスに関連づいているため &self と書く
+        self.width * self.height
+    }
+}
+```
+
+
 ---
 
 ## enum <a id="enum-tag" data-name="enum"></a>
 
-IPアドレスのように、2つの規格(IPv4とIPv6)のいずれかの値(複数の中のいずれか)を持つものを表現するにはenumが適している。
+IPアドレス のように、2つの規格 (IPv4 と IPv6) のいずれかの値 (複数の中のいずれか) を持つものを表現するには enum が適している。
 
-#### 宣言
+### 宣言
 
 ```rust
 enum IpAddrKind {
@@ -2081,16 +2155,16 @@ enum IpAddrKind {
 }
 ```
 
-#### 生成
+### 生成
 
 ```rust
 let four = IpAddrKind::V4;
 let six = IpAddrKind::V6;
 ```
 
-#### enumにデータを持たせる
+### enumにデータを持たせる
 
-enumはタグ(列挙子)に加えて直接データを持てる。
+enum はタグ (列挙子) に加えて直接データを持てる。
 
 ```rust
 enum IpAddr {
@@ -2103,7 +2177,7 @@ let home = IpAddr::V4(127, 0, 0, 1);
 let loopback = IpAddr::V6(String::from("::1"));
 ```
 
-enumを利用してこのような表現もできる
+enum を利用してこのような表現もできる。
 
 ```rust
 enum Message {
@@ -2116,7 +2190,7 @@ enum Message {
 
 ### メソッド
 
-enumは構造体と同様にメソッドを定義できる。
+enum は構造体と同様にメソッドを定義できる。
 
 ```rust
 impl Message {
@@ -2135,8 +2209,8 @@ m.call();
 
 ### Option
 
-Optionは、何らかの値を持つ、または何もない状態を表現するenum。<br>
-preludeに含まれているため、明示的にOption::と書かなくてもSomeとNoneを使える。
+Option は、何らかの値を持つ、または何もない状態を表現する enum。<br>
+prelude に含まれているため、明示的に Option:: と書かなくても Some と None を使える。
 
 ```rust
 enum Option<T> {
@@ -2221,60 +2295,6 @@ let empty_num: Option<i32> = None;
 let res = empty_num.ok_or_else(|| format!("エラーが発生しました: {}", 404)); 
 
 assert_eq!(res, Err("エラーが発生しました: 404".to_string()));
-```
-
----
-
-## メソッド <a id="method" data-name="メソッド"></a>
-
-メソッドを定義するにはimplブロックで始める。
-
-### メソッド
-
-```rust
-#[derive(Debug)]
-struct Rectangle {
-    width: u32,
-    height: u32,
-}
-
-impl Rectangle {
-    fn area(&self) -> u32 { // インスタンスに関連づいているため&selfと書く
-        self.width * self.height
-    }
-}
-```
-
-メソッドを呼び出す場合は、`インスタンス.関数名()`と記述する。
-
-```rust
-let rect = Rectangle {
-    width: 25,
-    height: 10,
-};
-println!("{}", rect.area()); // 250
-```
-
-### 関連関数
-
-対象とするインスタンスを必要としないためにselfを第1引数として持たない(つまりメソッドではない)関連関数を定義することもできる。<br>
-関連関数は、構造体の新規インスタンスを返すコンストラクタによく使用される。
-
-```rust
-impl Rectangle {
-    fn square(size: u32) -> Self { // selfを取らない
-        Self {
-            width: size,
-            height: size,
-        }
-    }
-}
-```
-
-この関数を呼び出すには、`構造体名::関数名()`と記述する。
-
-```rust
-Rectangle::square(3);
 ```
 
 ---
@@ -2632,7 +2652,6 @@ trait Container {
 trait Converter<T> {
     fn convert(&self) -> T;
 }
-
 ```
 
 1つの構造体に対して `Converter<String>` と `Converter<i32>` の両方を同時実装できる。
@@ -3083,22 +3102,14 @@ sort() などでも重要。
 演算子をオーバーロードするためのトレイト。
 
 ```rust
-// Add
-a + b
-// Sub
-a - b
-// Mul
-a * b
-// Div
-a / b
-// Rem
-a % b
-// Neg
--a
-// Not
-!a
-// BitAnd
-a &b
+a + b // Add
+a - b // Sub
+a * b // Mul
+a / b // Div
+a % b // Rem
+-a // Neg
+!a // Not
+a &b // BitAnd
 ```
 
 など。
@@ -3110,7 +3121,7 @@ a &b
 アトリビュートはモジュール、クレート、要素に対すメタデータで、
 
 - コンパイル時の条件分岐
-- クレート名、バージョン、種類(バイナリか、ライブラリか)の設定
+- クレート名、バージョン、種類 (バイナリか、ライブラリか) の設定
 - リントの無効化
 - コンパイラ付属の機能(マクロ、グロブ、インポートなど)の使用
 - 外部ライブラリへのリンク
@@ -3120,9 +3131,9 @@ a &b
 の用途がある。
 
 アトリビュートがクレート全体に適用される場合は<br>
-<span class="code-like">#![crate_attribute]</span><br>
+`#![crate_attribute]`<br>
 と書き、モジュールや要素に適用される場合は<br>
-<span class="code-like">#[item_attribute]</span><br>
+`#[item_attribute]`<br>
 と書く。
 
 ---
@@ -3134,7 +3145,7 @@ a &b
 
 ### fmt::Debug
 
-主に開発用の機能で、構造体やenum定義の前に以下のようにアトリビュート追加するだけで
+主に開発用の機能で、構造体や enum 定義の前に以下のようにアトリビュート追加するだけで
 
 ```rust
 #[derive(Debug)]
@@ -3151,7 +3162,7 @@ println!("{:?}", rect);
 // Rectangle { width: 30, height: 50 }
 ```
 
-または`"{:#?}"`により、整形され読みやすい形で出力される。
+または `"{:#?}"` により、整形され読みやすい形で出力される。
 
 ```rust
 println!("{:#?}", rect);
@@ -3163,7 +3174,7 @@ println!("{:#?}", rect);
 
 ### fmt::Display
 
-エンドユーザー(アプリ利用者)のための機能で、自由に表示形式を定義できる。
+エンドユーザー (アプリ利用者) のための機能で、自由に表示形式を定義できる。
 
 ```rust
 use std::fmt;
@@ -3173,7 +3184,7 @@ struct User {
     name: String,
 }
 
-// Displayトレイトを手動で実装する
+// Display トレイトを手動で実装する
 impl fmt::Display for User {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // ユーザーに id は見せず、名前だけを表示したい
@@ -3196,7 +3207,7 @@ println!("{u}"); // User: Alice
 
 ### テストの書き方
 
-`#[cfg(test)]` アトリビュートによってコンパイラに、test時のみモジュールを有効にするように指定する。
+`#[cfg(test)]` アトリビュートによってコンパイラに、test時 のみモジュールを有効にするように指定する。
 
 ```rust
 #[cfg(test)]
@@ -3214,7 +3225,7 @@ mod tests {
 
 #### assert!
 
-trueならOk。falseならpanic。
+true なら Ok 。false なら panic 。
 
 ```rust
 assert!(x > 0);
@@ -3222,7 +3233,7 @@ assert!(x > 0);
 
 #### assert_eq!
 
-左辺と右辺が等しいならOk。等しくなければpanic。
+左辺と右辺が等しいなら Ok 。等しくなければ panic。
 
 ```rust
 assert_eq!(add(2, 3), 5);
@@ -3230,7 +3241,7 @@ assert_eq!(add(2, 3), 5);
 
 #### assert_ne!
 
-左辺と右辺が等しくないならOk。等しければpanic。
+左辺と右辺が等しくないなら Ok 。等しければ panic。
 
 ```rust
 assert_ne!(add(2, 2), 5);
@@ -3238,7 +3249,7 @@ assert_ne!(add(2, 2), 5);
 
 #### should_panic
 
-panicすることが正しいケース。
+panic することが正しいケース。
 
 ```rust
 #[test]
@@ -3263,7 +3274,7 @@ fn test_result() -> Result<(), String> {
 
 #### カスタムメッセージ
 
-assertはメッセージを付けられる。
+assert はメッセージを付けられる。
 
 ```rust
 assert_eq!(a, b, "計算結果がおかしい");
@@ -3284,12 +3295,12 @@ debug_assert!(x > 0);
 
 | 用語 | 意味 |
 | --- | --- |
-| トレイト (Trait) | 型が持つべき振る舞いの定義。多言語のinterfaceに近い |
-| プレリュード (Prelude) | インポートせずに使えるRustの機能 |
+| トレイト (Trait) | 型が持つべき振る舞いの定義。多言語の interface に近い |
+| プレリュード (Prelude) | インポートせずに使える Rust の機能 |
 | ジェネリクス (Generics) | 型を抽象化すること |
 | ライフタイム (Lifetime) | 参照が有効である期間 |
-| パッケージ (Package) | Cargoで管理されるプロジェクト単位 |
-| クレート (Crate) | Rustのコンパイル単位で、バイナリクレートとライブラリクレートの2種類がある |
+| パッケージ (Package) | Cargo で管理されるプロジェクト単位 |
+| クレート (Crate) | Rust のコンパイル単位で、バイナリクレートとライブラリクレートの2種類がある |
 | バイナリクレート | 実行可能ファイルとなる |
 | ライブラリクレート | 再利用されるコード |
 | モジュール (Module) | コードの整理・名前空間管理 |
@@ -3303,7 +3314,7 @@ debug_assert!(x > 0);
 
 #### cargo addコマンド
 
-2022年(Rust 1.62)から標準搭載された cargo の機能で、最新バージョンの検索、Cargo.toml への追記、依存関係の解決まで行ってくれる。<br>
+2022年(Rust 1.62) から標準搭載された cargo の機能で、最新バージョンの検索、Cargo.toml への追記、依存関係の解決まで行ってくれる。<br>
 基本的に add コマンドを使い、細かい調整が必要な時は Cargo.toml を編集するのが一般的。
 
 #### Cargo.toml に直接書く
@@ -3341,7 +3352,7 @@ crates.io にパブリッシュして、自分のコードをクレートとし�
 複数の関連するクレートをひとつのプロジェクト(ディレクトリ)内で管理する方法。
 
 - ルートの Cargo.toml で全体を管理し、小ディレクトリのクレート同士を path でつなぐ。
-- コンパイル結果(targetディレクトリ)を共有できるため、ビルド時間の短縮につながる。
+- コンパイル結果 (targetディレクトリ) を共有できるため、ビルド時間の短縮につながる。
 
 ---
 
@@ -3349,10 +3360,10 @@ crates.io にパブリッシュして、自分のコードをクレートとし�
 
 ### 複数のバイナリクレートを切り替える
 
-同じプロジェクト内でバイナリクレート(実行ファイル)のコンパイルを切り替えるには、
+同じプロジェクト内でバイナリクレート (実行ファイル) のコンパイルを切り替えるには、
 通常 `src/bin/` ディレクトリに複数の `.rs` ファイルを作成して、
 
-```
+```text
 my_project/
 ├── Cargo.toml
 ├── src/
@@ -3391,7 +3402,7 @@ cargo run --bin tool_a
 
 ---
 
-## WSL2でWindows開発 <a id="WSL2-for-windows" data-name="WSL2でWindows開発"></a>
+## WSL2 で Windows開発 <a id="WSL2-for-windows" data-name="WSL2でWindows開発"></a>
 
 ### 初期セットアップ (初回のみ)
 
@@ -3433,7 +3444,7 @@ target = "x86_64-pc-windows-gnu"
 linker = "x86_64-w64-mingw32-gcc"
 ```
 
-<pre><code class="tips">プロジェクトごとではなくWSL2上の全ての Rustプロジェクト で有効化したい場合は
+<pre><code class="tips">プロジェクトごとではなく WSL2 上の全ての Rustプロジェクト で有効化したい場合は
 <span class="code-like">~/.cargo/config.toml</span> で上記の内容を記述する。</code></pre>
 
 ビルドして実行すると Windows側 で実行される。

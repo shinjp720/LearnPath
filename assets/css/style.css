@@ -37,8 +37,7 @@
 
 * {
     font-size: 1.1rem;
-    font-family: 'Noto Sans', Arial, sans-serif;
-    /* 'UDEV Gothic', 'Segoe UI',Helvetica,'HackGen', */
+    font-family: "Osaka-mono", "BIZ UDPGothic", "MS Gothic", ;
 }
 
 body {
@@ -219,6 +218,8 @@ code {
 
 pre code {
     display: block;
+    white-space: pre;
+    font-family: inherit;
     color: var(--text);
     background-color: var(--bg-alt);
     padding: 1.0rem;
