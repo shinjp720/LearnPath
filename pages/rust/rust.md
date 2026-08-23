@@ -87,6 +87,49 @@ Rust という言語・開発環境そのものを管理するツール。
 | cargo build | プロジェクトをビルドする |
 | cargo check | バイナリを生成せずにビルドしてエラーチェックができる |
 
+### 自作ツールをインストールする
+
+Rustアプリケーション (バイナリ cate) を cargo install でインストールする方法は大別して２つある。
+
+#### GitHubからインストール
+
+```bash
+cargo install --git https://github.com/username/repository_name.git
+```
+
+#### ローカルディレクトリからインストール
+
+プロジェクトのルートディレクトリで以下を実行。
+
+```bash
+cargo install --path .
+```
+
+<div class="subtitle2">インストールするディレクトリを指定する</div>
+
+```bash
+// ホームディレクトリ直下の bin/
+cargo install --path . --root ~
+```
+
+<div class="subtitle2">既に同じ名前でインストールされているものを上書き</div>
+
+`--force` オプションで上書き
+
+```bash
+cargo install --path . --root ~ --force
+```
+
+
+- Cargo.toml にバイナリ設定がある必要がある
+    - プロジェクトがライブラリではなく実行ファイルとして構成されている
+    - または `[[bin]]` タグが定義されている
+- デフォルトで `/.cargo/bin` に実行ファイルが配置される
+- アンインストールは Cargo.toml に記載のパッケージ名を指定する
+    ```bash
+    cargo uninstall <パッケージ名>
+    ```
+
 ---
 
 ## 制御フロー <a id="control-flow" data-name="制御フロー"></a>
@@ -318,6 +361,17 @@ match msg {
 }
 ```
 
+```rust
+match slice {
+    [head, tail @ ..] => {
+        // head : 先頭の1要素
+        // tail : 残りの要素全体（スライス）
+    }
+    _ => {} // 空のスライス（要素数 0）の場合
+}
+```
+
+
 #### ref
 
 所有権を奪わない。
@@ -408,18 +462,6 @@ match slice {
 }
 ```
 
-@バインディング。
-
-```rust
-match slice {
-    [head, tail @ ..] => {
-        // head : 先頭の1要素
-        // tail : 残りの要素全体（スライス）
-    }
-    _ => {} // 空のスライス（要素数 0）の場合
-}
-```
-
 #### 配列
 
 ```rust
@@ -450,20 +492,6 @@ match msg {
 }
 ```
 
-#### let else
-
-Rust 1.65 以降。
-
-当てはまらない場合は後続の処理を行わないように記述する必要がある。
-
-```rust
-let Some(x) = option else {
-    return;
-};
-
-println!("{x}");
-```
-
 ---
 
 ### if
@@ -484,7 +512,7 @@ for i in 1..16 {
 
 #### 戻り値を持つ if
 
-ifは式なので、letの右辺に持ってきて、値を返して束縛することができる。
+if は式なので、let の右辺に持ってきて、値を返して束縛することができる。
 
 ```rust
 let number = if condition { 5 } else { 6 };
@@ -541,7 +569,7 @@ while let Some(top) = stack.pop() {
 ### let else(ガード構文)
 
 Rust 1.65で 追加された機能で、パターンに一致すれば変数を取り出し、一致しなければ早期 return する。<br>
-else に return、brake/continue、panic! 等で、後続のマッチした場合の処理を行わないようにする必要がある。
+else に return 、brake/continue、panic! 等で後続のマッチした場合の処理を行わないようにする必要がある。
 
 ```rust
 fn get_user_id(id_str: &str) -> i32 {
@@ -563,7 +591,7 @@ fn process_input(input: Option<&str>) {
 
     // 2. 数値として解析できなければ終了
     let Ok(n) = s.parse::<i32>() else { return; };
-    
+
     // 3. 0以下なら終了
     if n <= 0 { return; }
 
@@ -609,7 +637,7 @@ for elm in a {
 | into_iter() | 要素をムーブする |
 | iter_mut() | 要素を可変借用する |
 
-<pre><code class="tips">デフォルトでinto_iterが適用されるため、for文は所有権を奪う。</code></pre>
+<pre><code class="tips">デフォルトで into_iter (move) が適用されるため、for文 は所有権を奪う。</code></pre>
 
 
 #### 使用例
@@ -631,7 +659,7 @@ fn main() {
 
 ### while
 
-条件がtrueの間ブロック内を繰り返す。
+条件が true の間ブロック内を繰り返す。
 
 ```rust
 let mut number = 3;
@@ -648,7 +676,7 @@ println!("LIFTOFF!!!");
 
 ### loop
 
-無限ループをする場合はwhile trueではなくloopを使用する。
+無限ループをする場合は while true ではなく loop を使用する。
 
 ```rust
 fn main() {
@@ -660,8 +688,8 @@ fn main() {
 
 #### break
 
-ブロックを抜けるにはbreakを使う。<br>
-breakは値を返すこともできる。
+ブロックを抜けるには break を使う。<br>
+break は値を返すこともできる。
 
 ```rust
 let mut counter = 0;
@@ -679,11 +707,11 @@ println!("The result is {result}");
 
 #### continue
 
-continueは、以降の処理を飛ばしてブロックの先頭にジャンプする。
+continue は、以降の処理を飛ばしてブロックの先頭にジャンプする。
 
 #### ネストとラベル
 
-ネストしたループを回している時に外側のループを`break`、または`continue`したい場合は`'label`を用いてラベルを貼り、break/continueにそのラベルを渡す。
+ネストしたループを回している時に外側のループを `break` 、または `continue` したい場合は `'label` を用いてラベルを貼り、 break/continue にそのラベルを渡す。
 
 ```rust
 fn main() {
@@ -786,7 +814,7 @@ fn func([argument...]) -> return_value {
 
 ### メソッド
 
-メソッドを定義するにはimplブロックで始める。
+メソッドを定義するには impl ブロックで始める。
 
 ```rust
 #[derive(Debug)]
