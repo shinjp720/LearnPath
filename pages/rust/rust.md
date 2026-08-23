@@ -2584,29 +2584,73 @@ Rust における Trait は他の言語で言うところのインターフェ�
 
 ### トレイトの定義
 
+代表的なトレイトの定義のパターン
+
+- シグネチャのみ
+
+実装側は必ずこのメソッドを実装する必要がある。
+
 ```rust
 trait Greet {
-    // メソッドのシグネチャのみを定義
-    fn say_hello(&self) -> String;
+    fn greet(&self) -> String;
+}
+```
 
-    // デフォルトの実装を持つこともできる
-    fn say_goodbye(&self) {
-        println!("さようなら！");
+- デフォルト実装付きのパターン
+
+```rust
+trait Greet {
+    // 必須で実装してもらうメソッド
+    fn name(&self) -> &str;
+
+    // デフォルト実装（name() を利用して自動的に動く）
+    fn greet(&self) -> String {
+        format!("こんにちは、{}さん！", self.name())
     }
 }
 ```
 
+- 関連型 (type) を使うパターン
 
+Iterator のように取り出す要素の型が1つに決まる場合。
 
+```rust
+trait Container {
+    type Item; // 使う側が具体的な型（i32 や String など）を指定する
 
+    fn add(&mut self, item: Self::Item);
+    fn get(&self) -> Option<&Self::Item>;
+}
+```
 
+- ジェネリクス `<T>` を使うパターン
 
+異なる型に対して同じトレイトを何パターンも実装できるようにしたい場合。
 
+```rust
+// T という任意の型を受け取る能力
+trait Converter<T> {
+    fn convert(&self) -> T;
+}
 
+```
 
+1つの構造体に対して `Converter<String>` と `Converter<i32>` の両方を同時実装できる。
 
+- スーパートレイト (依存関係) パターン
 
+このトレイトを実装するには、別のトレイトも実装していないとダメという場合。
 
+```rust
+use std::fmt::Display;
+
+// Loggable を実装するには、先に Display を実装していないとエラーになる
+trait Loggable: Display {
+    fn log(&self) {
+        println!("[LOG]: {}", self); // Display があるから {} で出せると保証されている
+    }
+}
+```
 
 ### トレイトの実装
 
@@ -2677,6 +2721,34 @@ where
 
 ### 様々なトレイト
 
+#### Debug
+
+開発者向けの表示で通常 `#[derive(Debug)]` で実装する。
+
+```rust
+#[derive(Debug)]
+struct User {
+    name: String,
+    age: u32,
+}
+
+println!("{:?}", user);
+```
+
+#### Display
+
+人間向けの表示。
+
+```rust
+impl std::fmt::Display for User {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "User: {}", self.name)
+    }
+}
+```
+
+write! で実装しないと余計なコストがかかる。
+
 #### Clone
 
 値を明示的に複製する。
@@ -2711,69 +2783,6 @@ Copy になれる型には厳格なルールがある。
 - 関数のポインタ
 - すべての要素が Copy である構造体、タプル、列挙型
 
-#### PartialEq
-
-```rust
-#[derive(PartialEq)]
-struct User {
-    id: u32,
-}
-```
-
-== と != を使えるようにする。
-
-#### Eq
-
-PartialEq よりも厳格に完全な同値関係。<br>
-
-
-```rust
-#[derive(PartialEq, Eq)]
-struct User {
-    id: u32,
-}
-```
-
-Eq になるには非数 (NaN) 以外である必要がある。
-
-#### PartialOrd
-
-大小の比較。
-
-#### Ord
-
-完全な順序関係。
-
-sort() などでも重要。
-
-#### Debug
-
-開発者向けの表示で通常 `#[derive(Debug)]` で実装する。
-
-```rust
-#[derive(Debug)]
-struct User {
-    name: String,
-    age: u32,
-}
-
-println!("{:?}", user);
-```
-
-#### Display
-
-人間向けの表示。
-
-```rust
-impl std::fmt::Display for User {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "User: {}", self.name)
-    }
-}
-```
-
-write! で実装しないと余計なコストがかかる。
-
 #### Default
 
 デフォルト値を作る。
@@ -2806,6 +2815,120 @@ impl Default for Config {
         }
     }
 }
+```
+
+#### Iterator / IntoIterator
+
+Rust で重要なトレイトで、for文 やアダプタとなる。
+
+Iterator は次の要素を取り出せる。
+
+IntoIterator はイテレータを取り出せる。
+
+```rust
+// 範囲オブジェクトはすでにIterator
+let mut iter = 1..=3; 
+
+assert_eq!(iter.next(), Some(1));
+assert_eq!(iter.next(), Some(2));
+assert_eq!(iter.next(), Some(3));
+assert_eq!(iter.next(), None); // 空っぽ
+```
+
+Iterator は自動的に IntoIteratorを実装する。
+
+```rust
+let v = vec![1, 2, 3]; // v自体はIntoIteratorを実装している
+
+// forループに渡すと裏で自動的に v.into_iter() が呼ばれる
+for x in v {
+    println!("{}", x);
+}
+```
+
+#### FromIterator
+
+FromIterator により
+
+```rust
+let v: Vec<_> = iterator.collect();
+```
+
+ができる。
+
+#### Extend
+
+既存のコレクションにイテレータの要素を追加する。
+
+```rust
+collection.extend(iterator);
+```
+
+#### Deref
+
+AsRef が .as_ref() による手動変換なら、Deref は *x または自動変換。
+
+通常、参照の前に *(アスタリスク) を付けると、その参照の実態にアクセスできるが (参照外し) 、<br>
+自作の構造体に Deref を実装すると、 *my_struct と書いたときに、構造体そのものではなく、<br>
+内部にある別のデータにアクセスできるようになる。
+
+```rust
+use std::ops::Deref;
+
+struct BoxedString {
+    inner: String,
+}
+
+// BoxedString を参照外しした時、内部の String (さらにその先の str) を指すようにする
+impl Deref for BoxedString {
+    type Target = str; // 変換先の型を指定
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+```
+
+明示的に * を書かなくても、Deref型強制により自動的に変換してくれる。
+
+```rust
+fn print_msg(msg: &str) { // 引数は &str を要求している
+    println!("{}", msg);
+}
+
+fn main() {
+    let s = String::from("hello");
+    
+    // &String を渡しているが、String は Deref<Target = str> を実装しているため
+    // コンパイラが自動的に &s から &s[..] (&str) へと型を強制 (変換) してくれる
+    print_msg(&s); 
+}
+```
+
+可読性が悪くなるため、スマートポインタに対してのみ実装するのが Rust の鉄則。
+
+#### DerefMut
+
+Deref の可変参照版。
+
+#### Drop
+
+値がスコープから消えて破棄されるときに呼ばれる。
+
+```rust
+impl Drop for MyType {
+    fn drop(&mut self) {
+        println!("destroy");
+    }
+}
+```
+
+#### Future
+
+非同期関数が返すものを表す。
+
+```rust
+Future<Output = T>
 ```
 
 ##### From / Into
@@ -2860,55 +2983,7 @@ impl Error for MyError {
 }
 ```
 
-#### Iterator
-#### IntoIterator
-
-Rust で重要なトレイトで、for文 やアダプタとなる。
-
-IntoIterator はイテレータを取り出せる。
-
-Iterator は次の要素を取り出せる。
-
-```rust
-// 範囲オブジェクトはすでにIterator
-let mut iter = 1..=3; 
-
-assert_eq!(iter.next(), Some(1));
-assert_eq!(iter.next(), Some(2));
-assert_eq!(iter.next(), Some(3));
-assert_eq!(iter.next(), None); // 空っぽ
-```
-
-Iterator は自動的に IntoIteratorを実装する。
-
-```rust
-let v = vec![1, 2, 3]; // v自体はIntoIteratorを実装している
-
-// forループに渡すと裏で自動的に v.into_iter() が呼ばれる
-for x in v {
-    println!("{}", x);
-}
-```
-
-#### FromIterator
-
-FromIterator により
-
-```rust
-let v: Vec<_> = iterator.collect();
-```
-
-ができる。
-
-#### Extend
-
-既存のコレクションにイテレータの要素を追加する。
-
-```rust
-collection.extend(iterator);
-```
-
-#### AsRef
+#### AsRef / AsMut
 
 `AsRef<U>` を実装している型であれば、&U (Uの参照) として扱うことができるという意味。
 
@@ -2924,56 +2999,7 @@ foo("hello");
 foo(String::from("hello"));
 ```
 
-#### AsMut
-
-`AsRef<T>` の 可変参照版。
-
-#### Deref
-
-AsRef が .as_ref() による手動変換なら、Deref は *x または自動変換。
-
-通常、参照の前に *(アスタリスク) を付けると、その参照の実態にアクセスできるが (参照外し) 、<br>
-自作の構造体に Deref を実装すると、 *my_struct と書いたときに、構造体そのものではなく、<br>
-内部にある別のデータにアクセスできるようになる。
-
-```rust
-use std::ops::Deref;
-
-struct BoxedString {
-    inner: String,
-}
-
-// BoxedString を参照外しした時、内部の String (さらにその先の str) を指すようにする
-impl Deref for BoxedString {
-    type Target = str; // 変換先の型を指定
-
-    fn deref(&self) -> &Self::Target {
-        &self.inner
-    }
-}
-```
-
-明示的に * を書かなくても、Deref型強制により自動的に変換してくれる。
-
-```rust
-fn print_msg(msg: &str) { // 引数は &str を要求している
-    println!("{}", msg);
-}
-
-fn main() {
-    let s = String::from("hello");
-    
-    // &String を渡しているが、String は Deref<Target = str> を実装しているため
-    // コンパイラが自動的に &s から &s[..] (&str) へと型を強制 (変換) してくれる
-    print_msg(&s); 
-}
-```
-
-可読性が悪くなるため、スマートポインタに対してのみ実装するのが Rust の鉄則。
-
-#### DerefMut
-
-Deref の可変参照版。
+AsMut は `AsRef<T>` の 可変参照版。
 
 #### Borrow
 
@@ -3022,7 +3048,39 @@ FnMut はクロージャ (関数) 内部で状態を変更できる。
 
 FnOnce はクロージャ (関数) を1度だけ呼べる。
 
+#### PartialEq / Eq
+
+PartialEq は == と != を使えるようにする。
+
+```rust
+#[derive(PartialEq)]
+struct User {
+    id: u32,
+}
+```
+
+Eq は PartialEq よりも厳格に完全な同値関係。<br>
+
+```rust
+#[derive(PartialEq, Eq)]
+struct User {
+    id: u32,
+}
+```
+
+Eq になるには非数 (NaN) 以外である必要がある。
+
+#### PartialOrd / Ord
+
+PartialOrd は大小の比較 (Order)。
+
+Prd は完全な順序関係。
+
+sort() などでも重要。
+
 #### Add / Sub / Mul / Div / Rem / Neg / Not / BitAnd
+
+演算子をオーバーロードするためのトレイト。
 
 ```rust
 // Add
@@ -3044,13 +3102,6 @@ a &b
 ```
 
 など。
-
-
-
-
-
-
-
 
 ---
 

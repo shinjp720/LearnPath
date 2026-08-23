@@ -500,7 +500,7 @@ pre.highlight {
     background-color: rgba(0, 0, 0, 0.8);
 }
 
-/* コピー完了時のスタイル（少し緑っぽく変化） */
+/* コピー完了時のスタイル */
 .copy-code-button.copied {
     background-color: #28a745;
     color: #ffffff;
