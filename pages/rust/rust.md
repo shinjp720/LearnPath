@@ -107,6 +107,8 @@ cargo install --path .
 
 <div class="subtitle2">インストールするディレクトリを指定する</div>
 
+`--root` でディレクトリを指定。
+
 ```bash
 // ホームディレクトリ直下の bin/
 cargo install --path . --root ~
@@ -114,7 +116,7 @@ cargo install --path . --root ~
 
 <div class="subtitle2">既に同じ名前でインストールされているものを上書き</div>
 
-`--force` オプションで上書き
+`--force` オプションで上書き。
 
 ```bash
 cargo install --path . --root ~ --force

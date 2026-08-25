@@ -52,6 +52,17 @@ class BookSerializer(serializers.ModelSerializer):
 
 などが決まる。
 
+### 独自のバリデーション
+
+| メソッド名 / 命名規則 | 自動で呼ばれるタイミング | 役割 |
+| --- | --- | --- |
+| `to_internal_value(data)` | `is_valid()` の最初 | 受信データの型変換・加工 |
+| `validate(attrs)` | `to_internal_value` の直後 | 複数項目を組み合わせた全体の検証 |
+| `validate_<フィールド名>(value)` | `validate()` の前 | 特定のフィールド専用の検証 (例: `validate_product_code_key`) |
+| `get_<フィールド名>(obj)` | `serializer.data` を参照した時 | `SerializerMethodField` の値を取得する |
+| `to_representation(instance)` | `serializer.data` を参照した時 | 返却用データ (JSON) への変換 |
+
+
 ### ライフサイクル
 
 Serializer にはライフサイクルがある。
