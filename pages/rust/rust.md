@@ -89,13 +89,28 @@ Rust という言語・開発環境そのものを管理するツール。
 
 ### 自作ツールをインストールする
 
-Rustアプリケーション (バイナリ cate) を cargo install でインストールする方法は大別して２つある。
+<code class="code-like">cargo install</code> で バイナリcrate を PATH の通った場所にインストールすることにより、その時点での実行ファイルをリリースでビルドしてターミナルから使用することができるようになる。
+
+- Cargo.toml にバイナリ設定がある必要がある
+    - プロジェクトがライブラリではなく実行ファイルとして構成されている
+    - または `[[bin]]` タグが定義されている
+- デフォルトで `/.cargo/bin` に実行ファイルが配置される
+
+Rustアプリケーション (バイナリcrate) を cargo install でインストールする方法は大別して２つある。
 
 #### GitHubからインストール
 
 ```bash
 cargo install --git https://github.com/username/repository_name.git
 ```
+
+<div class="subtitle2">特定のコミットやブランチやタグを指定するオプション</div>
+
+| 指定したい対象 | オプション | コマンド例 |
+| --- | --- | --- |
+| 特定のコミット | --rev | `cargo install --git <URL> --rev 1a2b3c4d` |
+| 特定のブランチ | --branch | `cargo install --git <URL> --branch develop` |
+| 特定のタグ | --tag | `cargo install --git <URL> --tag v1.0.0` |
 
 #### ローカルディレクトリからインストール
 
@@ -122,15 +137,111 @@ cargo install --path . --root ~
 cargo install --path . --root ~ --force
 ```
 
+<div class="subtitle2">アンインストール</div>
 
-- Cargo.toml にバイナリ設定がある必要がある
-    - プロジェクトがライブラリではなく実行ファイルとして構成されている
-    - または `[[bin]]` タグが定義されている
-- デフォルトで `/.cargo/bin` に実行ファイルが配置される
-- アンインストールは Cargo.toml に記載のパッケージ名を指定する
-    ```bash
-    cargo uninstall <パッケージ名>
-    ```
+Cargo.toml に記載してあるパッケージ名を指定する
+
+```bash
+cargo uninstall <パッケージ名>
+```
+
+---
+
+## パッケージ <a id="package" data-name="パッケージ"></a>
+
+パッケージは 3階層 (package, crate, module) に分かれる。
+
+```text
+Cargo package
+│
+├─ library crate
+│   └─ modules...
+│
+└─ binary crate
+     └─ modules...
+```
+
+- package：Cargoプロジェクト全体
+- crate：コンパイル単位
+- module：crateの中を整理する名前空間
+
+```text
+my_app/
+├─ Cargo.toml
+└─ src/
+     ├─ lib.rs
+     └─ main.rs
+```
+
+であれば
+
+```text
+package: my_app
+├─ library crate → lib.rs
+└─ binary crate  → main.rs
+```
+
+となる。
+
+### crate root
+
+crate には必ず根 (root) があり、library crate であれば lib.rs が root 、binary crate であれば main.rs が root となる。
+
+### mod モジュール名 により 子module を宣言する
+
+例えば lib.rs における mod search は、この module の中に search という module がある という宣言になる。
+
+```rust
+// lib.rs
+mod search;
+```
+
+```text
+crate
+└─ search
+```
+
+### 同名の .rs とディレクトリを作って 子module を定義する
+
+子module を定義するにはこのように ファイルとディレクトリを作って、
+
+```text
+src/
+├─ lib.rs
+├─ search.rs
+└─ search/
+    └─ file.rs
+```
+
+```rust
+// lib.rs
+mod search;
+```
+
+```text
+crate
+└─ search
+```
+
+さらに
+
+```rust
+// search.rs
+mod file;
+```
+
+```text
+crate
+└─ search
+     └─ file
+```
+
+となる。
+
+### バイナリクレートとライブラリクレート
+
+バイナリクレートとライブラリクレートを分割する設計にすることにより、エントリーポイントの変更が容易になり、結合テストの記述が書きやすくなり、
+ビルド・コンパイルの高速化が期待でき、汎用的で拡張性の高い設計となる。
 
 ---
 
@@ -148,8 +259,8 @@ let age = 15;
 
 match age {
     0 => println!("新生児です"),
-    1 | 2 => println!("乳幼児です"), // 1 または 2
-    3..=12 => println!("子供です"),   // 3から12(12を含む)
+    1 | 2 => println!("乳幼児です"),   // 1 または 2
+    3..=12 => println!("子供です"),    // 3から12(12を含む)
     13..=19 => println!("ティーンエイジャーです"),
     _ => println!("大人です"),         // その他すべて
 }
