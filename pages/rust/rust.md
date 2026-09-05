@@ -911,10 +911,9 @@ for i in (0..10).step_by(2) {
 }
 ```
 
-
 ---
 
-## 関数 <a id="function" data-name="関数"></a>
+## 関数 / メソッド<a id="function" data-name="関数 / メソッド"></a>
 
 #### 構文
 
@@ -952,6 +951,22 @@ let rect = Rectangle {
 };
 println!("{}", rect.area()); // 250
 ```
+
+<pre><code class="tips">// 明示的に所有権を表す書き方
+impl MyStruct {
+    fn by_ref(&self) { }
+    fn by_mut(&mut self) { }
+}
+
+let mut obj = MyStruct;
+
+// ドット演算子の場合
+obj.by_ref();
+obj.by_mut();
+
+// クラスの関数として呼び出しインスタンスを渡す
+MyStruct::by_ref(&obj);       // & を明示的に付ける必要がある
+MyStruct::by_mut(&mut obj);   // &mut を明示的に付ける必要がある</code></pre>
 
 ### 関連関数
 

@@ -166,6 +166,9 @@ git update-index --skip-worktree <ファイル名>
 ```bash
 # Ｈが追跡中のファイル、Ｓがスキップ中のファイル
 git ls-files -v
+```
+
+```bash
 # スキップ中のファイルを抽出する
 git ls-files -v | grep "^S"
 ```
@@ -343,7 +346,6 @@ git push origin --delete feature-abc
 
 追跡を指定して、以降ブランチ名の記述が不要になる。
 
-
 ### `git pull <リモート名> <取り込みたいブランチ名>`
 
 フェッチとマージを同時に行う。<br>
@@ -354,6 +356,20 @@ git push origin --delete feature-abc
 <pre><code class="caution">ファイルをコミットしていない状態で  <span class="code-like">pull</span> しようとすると
 ファイルが混ざるのを防ぐために <span class="code-like">pull</span> が拒否されることがあるのでその場合は、
 <span class="code-like">git stash</span> <span class="code-like">git pull</span> <span class="code-like">git stash pop</span> を行う。</code></pre>
+
+### リモートから特定のディレクトリを取り込む
+
+#### 単一のフィルを取り込む
+
+```bash
+git restore --source=origin/<ブランチ名> -- <ファイルパス>
+```
+
+#### ディレクトリごと取り込む
+
+```bash
+git restore --source=origin/<ブランチ名> -- <ディレクトリパス>/
+```
 
 ---
 
