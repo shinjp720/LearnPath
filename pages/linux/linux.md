@@ -104,7 +104,7 @@ updateでインデックスを更新して、upgradeで実際にインストー�
 
 ---
 
-## プロセス管理 <a id="" data-name=""></a>
+## プロセス管理 <a id="prosece" data-name="プロセス"></a>
 
 ### ps
 ### top
