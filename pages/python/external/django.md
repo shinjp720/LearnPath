@@ -607,6 +607,8 @@ users = User.objects.filter(age=20)
 
 複数条件。
 
+`filter()` にカンマ (`,`) 区切りで複数の条件を渡すと、デフォルトで `AND` 条件になる。
+
 ```sql
 SELECT *
 FROM user
@@ -686,6 +688,23 @@ WHERE age != 20;
 
 ```python
 users = User.objects.exclude(age=20)
+```
+
+#### Qオブジェクト
+
+`Q` オブジェクトを使用することにより、 `OR` 条件 (`|`) や複雑な条件を組み合わせたクエリを作成できる。
+
+```python
+from django.db.models import Q
+
+# OR 条件
+users = User.objects.filter(Q(age=20) | Q(name="田中"))
+
+# AND 条件
+users = User.objects.filter(Q(age=20) & Q(name="田中"))
+
+# NOT 条件
+users = User.objects.filter(~Q(age=20))
 ```
 
 #### 1件取得

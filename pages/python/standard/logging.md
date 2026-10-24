@@ -32,9 +32,48 @@ logger.setLevel(logging.DEBUG) # DEBUG以上を出力
 
 ### ハンドラを作成
 
+- `logging` では、標準出力やファイル出力以外にもさまざまな `handlers` が用意されている。
+
+| ハンドラクラス | 説明 |
+| --- | --- |
+| `logging.StreamHandler` | コンソール ( 標準出力 / 標準エラー出力 ) に出力する |
+| `logging.FileHandler` | ファイルに出力する |
+| `logging.handlers.RotatingFileHandler` | ファイルサイズに応じてローテーションする |
+| `logging.handlers.TimedRotatingFileHandler` | 時間間隔に応じてローテーションする |
+
+<div class="subtitle">標準出力ハンドラの作成</div>
+
 ```python
 console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.WARNING) # WARNING以上を出力
+```
+
+<div class="subtitle">ローテーション機能を持つハンドラの追加</div>
+
+- ファイルサイズや時間に応じてログファイルを自動で切り替える `handlers` も利用できる。
+
+##### `RotatingFileHandler` (サイズ指定)
+```python
+from logging.handlers import RotatingFileHandler
+
+# 最大 1MB、バックアップファイル数 3 つまで保持
+rotating_handler = RotatingFileHandler("app_rotating.log", maxBytes=1024 * 1024, backupCount=3, encoding="utf-8")
+rotating_handler.setLevel(logging.INFO)
+rotating_handler.setFormatter(formatter)
+
+logger.addHandler(rotating_handler)
+```
+
+##### `TimedRotatingFileHandler` (時間指定)
+```python
+from logging.handlers import TimedRotatingFileHandler
+
+# 毎日深夜 0 時 (midnight) にローテーション、バックアップ 7 日分保持
+timed_handler = TimedRotatingFileHandler("app_timed.log", when="midnight", interval=1, backupCount=7, encoding="utf-8")
+timed_handler.setLevel(logging.INFO)
+timed_handler.setFormatter(formatter)
+
+logger.addHandler(timed_handler)
 ```
 
 ### フォーマッタを作成・設定
