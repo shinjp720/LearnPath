@@ -7,6 +7,18 @@
 
     <title>{{ page.title }} | {{ site.title }}</title>
     <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/style.css">
+    <!-- Highlight.js (GitHub Dark theme) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            document.querySelectorAll('pre code').forEach((el) => {
+                if (!el.classList.contains('example') && !el.classList.contains('caution') && !el.classList.contains('tips')) {
+                    hljs.highlightElement(el);
+                }
+            });
+        });
+    </script>
     <script src="{{ site.baseurl }}/assets/js/script.js" defer></script>
     <link rel="icon" href="{{ site.baseurl }}/favicon.ico" type="image/x-icon">
 

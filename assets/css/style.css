@@ -219,7 +219,7 @@ code {
     word-wrap: break-word;
 }
 
-pre code {
+pre code:not(.example):not(.caution):not(.tips) {
     display: block;
     white-space: pre;
     font-family: inherit;
@@ -235,51 +235,65 @@ pre code {
 /* 注釈ボックス（例・注意・ヒント）共通スタイル */
 .example,
 .caution,
-.tips {
+.tips,
+pre code.example,
+pre code.caution,
+pre code.tips {
     display: block;
     color: #ffffff;
     font-weight: 500;
     border-radius: 6px;
     padding: 1.2rem 1.6rem;
     margin: 1rem 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
 
 .example::before,
 .caution::before,
-.tips::before {
+.tips::before,
+pre code.example::before,
+pre code.caution::before,
+pre code.tips::before {
     display: block;
     margin-bottom: 0.5rem;
 }
 
-.example {
+.example,
+pre code.example {
     background-color: var(--accent-green-bg);
     border: 1px solid var(--accent-green);
     border-left: 6px solid var(--accent-green);
 }
 
-.example::before {
+.example::before,
+pre code.example::before {
     content: "✂️ 例:";
     color: var(--accent-green);
 }
 
-.caution {
+.caution,
+pre code.caution {
     background-color: var(--accent-red-bg);
     border: 1px solid var(--accent-red);
     border-left: 6px solid var(--accent-red);
 }
 
-.caution::before {
+.caution::before,
+pre code.caution::before {
     content: "⚠️ 注意:";
     color: var(--accent-red);
 }
 
-.tips {
+.tips,
+pre code.tips {
     background-color: var(--accent-yellow-bg);
     border: 1px solid var(--accent-yellow);
     border-left: 6px solid var(--accent-yellow);
 }
 
-.tips::before {
+.tips::before,
+pre code.tips::before {
     content: "💡 ヒント:";
     color: var(--bg);
     font-weight: 600;
