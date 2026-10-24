@@ -37,7 +37,7 @@
 
 * {
     font-size: 1.1rem;
-    font-family: "Osaka-mono", "BIZ UDPGothic", "MS Gothic", ;
+    font-family: "Osaka-mono", "BIZ UDPGothic", "MS Gothic", monospace;
 }
 
 body {
@@ -214,22 +214,35 @@ tr:hover {
 
 /* コード */
 code {
-    font-family: inherit;
+    font-family: Consolas, Monaco, "Courier New", "BIZ UDGothic", monospace;
     white-space: pre-wrap;
     word-wrap: break-word;
+}
+
+pre {
+    white-space: pre;
+    overflow-x: auto;
+}
+
+pre:not(.highlight):not(:has(code.example)):not(:has(code.caution)):not(:has(code.tips)) {
+    background-color: var(--bg-alt);
+    border: 1px solid var(--border-alt);
+    border-radius: 6px;
+    padding: 1.0rem;
+    margin: 1rem 0;
 }
 
 pre code:not(.example):not(.caution):not(.tips) {
     display: block;
     white-space: pre;
-    font-family: inherit;
+    font-family: Consolas, Monaco, "Courier New", "BIZ UDGothic", monospace;
     color: var(--text);
-    background-color: var(--bg-alt);
-    padding: 1.0rem;
-    border-radius: 6px;
-    border: 1px solid var(--border-alt);
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+    border: none;
     font-size: 1.0rem;
-    line-height: 1.2;
+    line-height: 1.4;
 }
 
 /* 注釈ボックス（例・注意・ヒント）共通スタイル */
@@ -493,33 +506,68 @@ pre code.tips::before {
 div.highlight,
 pre.highlight {
     position: relative !important;
+    background-color: var(--bg-alt);
+    border: 1px solid var(--border-alt);
+    border-radius: 6px;
+    padding: 1.0rem;
+    margin: 1rem 0;
+    overflow-x: auto;
+    white-space: pre;
+    font-family: Consolas, Monaco, "Courier New", "BIZ UDGothic", monospace;
+    font-size: 1.0rem;
+    line-height: 1.4;
+}
+
+div.highlight > pre.highlight {
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    margin: 0;
+}
+
+pre.highlight code,
+div.highlight code {
+    font-family: inherit;
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    white-space: pre;
+    color: var(--text);
+}
+
+pre.highlight span,
+div.highlight span {
+    font-family: inherit;
+    font-weight: normal;
 }
 
 /* コピーボタンのスタイル */
 .copy-code-button {
     position: absolute;
-    top: 8px;
-    right: 8px;
-    padding: 4px 10px;
-    font-size: 12px;
+    top: 6px;
+    right: 6px;
+    padding: 3px 8px;
+    font-size: 11px;
     line-height: 1.2;
-    color: #ffffff;
-    background-color: rgba(0, 0, 0, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text);
+    background-color: var(--bg);
+    border: 1px solid var(--border-alt);
     border-radius: 4px;
     cursor: pointer;
-    opacity: 0.7;
+    opacity: 0.8;
     transition: opacity 0.2s ease, background-color 0.2s ease;
     z-index: 10;
 }
 
 .copy-code-button:hover {
     opacity: 1;
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: var(--bg-alt);
 }
 
 /* コピー完了時のスタイル */
 .copy-code-button.copied {
     background-color: #28a745;
     color: #ffffff;
+    border-color: #28a745;
 }

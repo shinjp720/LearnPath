@@ -43,8 +43,8 @@ overlay.addEventListener('click', () => {
 
 // コピーボタン
 document.addEventListener('DOMContentLoaded', () => {
-    // Jekyllが出力するコードブロックを取得（.highlight または pre）
-    const codeBlocks = document.querySelectorAll('div.highlight, pre.highlight');
+    // Jekyllが出力するコードブロックを取得（div.highlight または親を持たない pre.highlight）
+    const codeBlocks = document.querySelectorAll('div.highlight, pre.highlight:not(div.highlight *)');
 
     codeBlocks.forEach((block) => {
         // 既存の要素構造に合わせてボタンを作成
