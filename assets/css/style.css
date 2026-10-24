@@ -76,16 +76,31 @@ h3 {
     margin: 2rem 0 0;
 }
 
+
 h4 {
     font-size: 1.3rem;
     color: var(--accent-blue-lighter);
     margin: 0;
     padding: 0;
+
+    &::before {
+        content: "▪️";
+        color: var(--accent-blue);
+        margin-right: 0.4rem;
+    }
 }
 
 h5 {
     color: var(--accent-blue-pale);
     font-size: 1rem;
+    margin: 0 2rem;
+    padding: 0;
+
+    &::before {
+        content: "▪";
+        color: var(--accent-blue);
+        margin-right: 0.6rem;
+    }
 }
 
 p {
@@ -518,7 +533,7 @@ pre.highlight {
     line-height: 1.4;
 }
 
-div.highlight > pre.highlight {
+div.highlight>pre.highlight {
     background-color: transparent;
     border: none;
     border-radius: 0;

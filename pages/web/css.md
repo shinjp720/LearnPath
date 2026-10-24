@@ -12,7 +12,7 @@ layout: default
 - CSS (CascadingStyleSheet) は、ウェブサイト、ウェブアプリの見た目を整えるための言語で、
 HTML が骨組みや内容を作るのに対し、CSS は色、レイアウト、フォントなどのデザインを作る。
 
-#### 基本構文
+### 基本構文
 
 ```css
 selector {
@@ -33,7 +33,7 @@ h1, h2 {
 }
 ```
 
-#### ボックスモデル
+### ボックスモデル
 
 全ての要素は箱 (ボックス) として扱われる。
 
@@ -47,20 +47,20 @@ h1, h2 {
 └───────────────────────┘
 ```
 
-#### margin, padding の複数指定
+### margin, padding の複数指定
 
 ```css
 /* 四辺すべてに適用 */
 margin: -3px;
-/* 上下 | 左右 */
+/* 上下 左右 */
 margin: 5% auto;
-/* 上 | 左右 | 下 */
+/* 上 左右 下 */
 margin: 1em auto 2em;
-/* 上 | 右 | 下 | 左 */
+/* 上 右 下 左 */
 margin: 2px 1em 0 auto;
 ```
 
-#### HTML への適用
+### HTML への適用
 
 1. **外部ファイル**: .css ファイルを作成し、HTML の &lt;head&gt; タグ内で読み込む。<br>
 `<link rel="stylesheet" href="style.css">`
@@ -68,7 +68,7 @@ margin: 2px 1em 0 auto;
 3. **インライン**: タグに直接書く。<br>
 `<p style="color: red;">`
 
-#### コメント
+### コメント
 
 ```css
 /* コメント */
@@ -408,85 +408,89 @@ table の枠線の重なりを指定する。
 1次元方向に子要素を並べる、Flex レイアウトが有効になる。<br>
 デフォルトで横方向。
 
-### flex-direction
+#### flex-direction
 
 要素の方向を決める。
 
-#### row
+##### row
 
 横方向 (デフォルト)。
 
-#### column
+##### column
 
 縦方向。
 
-### justify-content
+#### justify-content
 
 メイン方向の配置を決める。
 
-#### center
+##### center
 
 中央に寄せる。
 
-#### flex-start
+##### flex-start
 
 左寄せ。
 
-#### flex-end
+##### flex-end
 
 右寄せ。
 
-#### space-between
+##### space-between
 
 両端揃え。
 
-#### space-around
+##### space-around
 
 均等。
 
-### align-items
+#### align-items
 
 交差軸の配置。
 
-#### center
+##### center
 
 中央。
 
-#### stretch
+##### stretch
 
 引き伸ばす。
 
-#### flex-start
+##### flex-start
 
 上。
 
-#### flex-end;
+##### flex-end;
 
 下。
 
-### flex
+#### flex
 
-余ったスペースを埋める。子要素で指定する。<br>
-他の要素で指定された幅 (高さ) の余った分を埋める。<br>
-割合で指定することもできる。
+`flex-grow` (伸びる割合) 、 `flex-shrink` (縮む割合) 、 `flex-basis` (基準の大きさ) の一括指定 (ショートハンド) プロパティ。子要素に指定する。
+
+- `flex: 1` (`1 1 0%`) : 伸縮し、空きスペースを均等に埋める。
+- `flex: initial` (`0 1 auto`) : 初期値。縮むことはできるが伸びない。
+- `flex: auto` (`1 1 auto`) : 伸縮し、コンテンツのサイズを基準にする。
+- `flex: none` (`0 0 auto`) : 伸縮しない。
 
 ```css
-flex: 1;
+/* 成長係数 | 縮小係数 | 基準サイズ */
+flex: 1 1 200px;
 ```
 
-### gap
+#### gap
 
 要素同士の隙間。
 
-### flex-wrap
+#### flex-wrap
 
 折り返し。
 
-#### wrap
+##### wrap
 
 折り返す。
 
-#### nowrap
+##### nowrap
 
 折り返さない。
 
@@ -520,7 +524,11 @@ grid-row: 1 / 3;
 grid-column: span 2;
 ```
 
-### grid-template-areas
+#### gap
+
+要素同士の隙間。
+
+#### grid-template-areas
 
 要素の配置を文字で書くことができる。
 
@@ -559,13 +567,82 @@ HTML
 </div>
 ```
 
-要素をなにも置かない場合は.(ドット)を使う。
+要素をなにも置かない場合は (ドット) を使う。
 
 ```
 grid-template-areas:
     "header header header"
     ".      main   ."
     "footer footer footer";
+```
+
+---
+
+## 単位と関数 <a id="units" data-name="単位と関数"></a>
+
+CSS で使用される主な単位と関数について。
+
+- `px` : ピクセル。絶対単位で画面の解像度に依存する。
+- `rem` : ルート (根要素の `<html>`) のフォントサイズに対する相対単位。レイアウト設計の基本としてよく使われる。
+- `em` : 親要素のフォントサイズに対する相対単位。
+- `%` : 親要素のサイズに対する割合。
+- `vw` / `vh` : ビューポート (画面領域) の幅 (`vw`) と高さ (`vh`) に対する割合 (1 `vw` は画面幅の 1%)。
+
+#### `calc()` 関数
+
+計算式を使ってプロパティ値を指定できる。
+
+```css
+width: calc(100% - 80px);
+```
+
+---
+
+## 位置指定 <a id="position" data-name="位置指定"></a>
+
+要素の配置方法を指定する。
+
+- `static` : 通常の配置 (デフォルト)。
+- `relative` : 相対配置。通常の配置位置を基準に移動する。
+- `absolute` : 絶対配置。親要素のうち `position` が `static` 以外の要素を基準に配置する。
+- `fixed` : 固定配置。ビューポート (画面) を基準に固定され、スクロールしても動かない。
+- `sticky` : スティッキー配置。スクロール位置に応じて `relative` と `fixed` が切り替わる。
+
+#### `z-index`
+
+重なり順を指定する。数値が大きいほど手前に表示される (`position` が `static` 以外の要素で有効)。
+
+---
+
+## カスタムプロパティ (変数) <a id="variables" data-name="カスタムプロパティ"></a>
+
+値を再利用するための変数定義。 `--` で始めて定義し、 `var()` 関数で呼び出す。
+
+```css
+:root {
+    --main-color: #3498db;
+    --main-padding: 16px;
+}
+
+.button {
+    background-color: var(--main-color);
+    padding: var(--main-padding);
+}
+```
+
+---
+
+## メディアクエリ (レスポンシブデザイン) <a id="media-queries" data-name="メディアクエリ"></a>
+
+画面サイズやデバイスの特性に応じて異なるスタイルを適用する。
+
+```css
+/* 画面幅が 768px 以上の場合に適用 */
+@media (min-width: 768px) {
+    .container {
+        display: flex;
+    }
+}
 ```
 
 

@@ -98,20 +98,6 @@ Rust という言語・開発環境そのものを管理するツール。
 
 Rustアプリケーション (バイナリcrate) を cargo install でインストールする方法は大別して２つある。
 
-#### GitHubからインストール
-
-```bash
-cargo install --git https://github.com/username/repository_name.git
-```
-
-<div class="subtitle2">特定のコミットやブランチやタグを指定するオプション</div>
-
-| 指定したい対象 | オプション | コマンド例 |
-| --- | --- | --- |
-| 特定のコミット | --rev | `cargo install --git <URL> --rev 1a2b3c4d` |
-| 特定のブランチ | --branch | `cargo install --git <URL> --branch develop` |
-| 特定のタグ | --tag | `cargo install --git <URL> --tag v1.0.0` |
-
 #### ローカルディレクトリからインストール
 
 プロジェクトのルートディレクトリで以下を実行。
@@ -144,6 +130,20 @@ Cargo.toml に記載してあるパッケージ名を指定する
 ```bash
 cargo uninstall <パッケージ名>
 ```
+
+#### GitHubからインストール
+
+```bash
+cargo install --git https://github.com/username/repository_name.git
+```
+
+<div class="subtitle2">特定のコミットやブランチやタグを指定するオプション</div>
+
+| 指定したい対象 | オプション | コマンド例 |
+| --- | --- | --- |
+| 特定のコミット | --rev | `cargo install --git <URL> --rev 1a2b3c4d` |
+| 特定のブランチ | --branch | `cargo install --git <URL> --branch develop` |
+| 特定のタグ | --tag | `cargo install --git <URL> --tag v1.0.0` |
 
 ---
 

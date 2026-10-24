@@ -341,7 +341,7 @@ constexpr int square(int x) {
 
 ### ポインタ
 
-基本的に[C言語]({{ site.baseurl }}/pages/c/c#pointer)と同じ。
+基本的に[C言語]({{ site.baseurl }}/pages/c/c.html#pointer)と同じ。
 
 ---
 
@@ -1713,7 +1713,7 @@ int val3 = opt.value_or(0);  // 値がなければ0
 |可変引数マクロ|C++11以降|
 |`__func__`|C++11以降|
 
-その他は[C言語]({{ site.baseurl }}/pages/c/c#preprocessor)を参照。
+その他は[C言語]({{ site.baseurl }}/pages/c/c.html#preprocessor)を参照。
 
 ---
 
