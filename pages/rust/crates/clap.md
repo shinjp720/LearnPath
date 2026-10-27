@@ -44,6 +44,47 @@ deriveは、構造体・enumに `#[derive(Parser)]` や `#[derive(Subcommand)]` 
 
 普通のCLIを作るならほぼこれで十分。動的にコマンドを組み立てたい・プラグイン的に増減させたいなど特殊な事情がある場合だけ、後述の builder 方式を検討する。
 
+### 設計の考え方
+
+まずは「引数(オプション)で足りるか」を考え、処理そのものを切り替えたくなったらサブコマンドを使う。
+
+```bash
+# 引数だけで足りる
+myapp --input input.txt --output output.txt
+
+# 処理を切り替えたい → サブコマンド
+myapp add
+myapp remove
+myapp list
+
+# サブコマンドごとに必要な引数が違う → サブコマンド + 専用の引数
+myapp add --name Alice
+myapp remove --id 10
+```
+
+「引数かサブコマンドか」の二択ではなく、**親の構造体の中にサブコマンドを持たせる**ことができる。
+
+| やりたいこと | 使うもの |
+| --- | --- |
+| `--input` `--output` `-v` などを受け取る | 引数(`#[arg]`) |
+| `add` `remove` `list` のように処理を切り替える | サブコマンド(`enum`) |
+| サブコマンドごとに別のオプションを受け取る | サブコマンド + 専用の引数 |
+| CLI全体で共通のオプションを受け取る | 親の構造体のフィールド |
+
+### 登場する型・マクロの役割
+
+| 型 / マクロ | 役割 |
+| --- | --- |
+| `Parser` | CLI全体の引数を解析する。ルートの構造体に付ける |
+| `Subcommand` | コマンドの種類を定義する。`enum` に付ける |
+| `Args` | 引数・オプションをひとまとめにする。構造体に付ける |
+| `ValueEnum` | 選択肢を `enum` で表す |
+
+### `#[command(...)]` と `#[arg(...)]` の違い
+
+- `#[command(...)]` → CLI全体・サブコマンドの設定(名前、バージョン、説明など)
+- `#[arg(...)]` → 個々の引数・オプションの設定
+
 ---
 
 ## 実装 <a id="implement" data-name="実装"></a>
@@ -118,6 +159,15 @@ enum Commands {
 }
 ```
 
+`enum` なので `match` で分岐でき、コマンドごとに処理を整理しやすい。
+
+```rust
+match args.command {
+    Commands::Add => println!("追加処理"),
+    Commands::Remove => println!("削除処理"),
+}
+```
+
 ### サブコマンドを必須にする
 
 ```rust
@@ -142,6 +192,59 @@ enum Commands {
     },
 }
 ```
+
+### サブコマンドの引数を構造体に切り出す
+
+引数が増えてきたら、バリアントに構造体を1つ持たせて、引数はそちらにまとめる。`#[derive(clap::Args)]` を付けた構造体は、そのままサブコマンドの引数になる。
+
+```rust
+use clap::{Args, Parser, Subcommand};
+
+#[derive(Parser, Debug)]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand, Debug)]
+enum Commands {
+    Add(AddArgs),
+    Remove(RemoveArgs),
+    List(ListArgs),
+}
+
+#[derive(Args, Debug)]
+struct AddArgs {
+    #[arg(long)]
+    name: String,
+}
+
+#[derive(Args, Debug)]
+struct RemoveArgs {
+    #[arg(long)]
+    id: u32,
+}
+
+#[derive(Args, Debug)]
+struct ListArgs {
+    #[arg(long)]
+    all: bool,
+}
+
+fn main() {
+    let cli = Cli::parse();
+
+    match cli.command {
+        Commands::Add(args) => println!("追加: {}", args.name),
+        Commands::Remove(args) => println!("削除: {}", args.id),
+        Commands::List(args) => println!("すべて表示: {}", args.all),
+    }
+}
+```
+
+呼び出し方は `myapp add --name Alice` / `myapp remove --id 10` / `myapp list --all` のようになる。
+
+<pre><code class="tips">use clap::Args をするとルートの構造体名 Args と衝突するので、この書き方のときはルートを Cli などにしておくと楽。Args は clap の必須の型名ではなく、あくまで構造体に付ける名前(マクロは #[derive(Args)])</code></pre>
 
 ### サブコマンドを入れ子にする
 
@@ -177,7 +280,7 @@ enum ConfigAction {
 
 ```rust
 #[derive(Parser)]
-struct  {
+struct Args {
     #[command(subcommand)]
     command: Option<Commands>,
 
@@ -202,6 +305,8 @@ match args.command {
 }
 ```
 
+### 共通オプションを持たせる
+
 サブコマンド同士を共通の親でまとめつつ、共通オプションを親側に持たせたい場合は `#[command(flatten)]` で構造体を埋め込む方法もある。
 
 ```rust
@@ -223,6 +328,25 @@ enum Commands {
 }
 ```
 
+CLI全体で共通のオプションは、親の構造体にフィールドとして置く方法もある。
+
+```rust
+#[derive(Parser)]
+struct Cli {
+    #[arg(long)]
+    verbose: bool,
+
+    #[command(subcommand)]
+    command: Commands,
+}
+```
+
+```bash
+myapp --verbose add --name Alice
+```
+
+<pre><code class="tips">親に置いたオプションは、デフォルトではサブコマンドより前に書く必要がある。サブコマンドの後ろ (myapp add --verbose) でも受け付けたい場合は #[arg(long, global = true)] を付ける</code></pre>
+
 ---
 
 ## 引数 <a id="argument" data-name="引数"></a>
@@ -239,6 +363,8 @@ file_path: String,
 output_path: Option<String>,
 ```
 
+`myapp input.txt output.txt` のように、フィールドの定義順で受け取る。
+
 ### オプション
 
 `-n` や `--name` のような名前付き引数。
@@ -253,7 +379,7 @@ struct Args {
 }
 ```
 
-`-n`(short)、`--name`(long)の両方で渡せるようになる。
+`-n`(short)、`--name`(long)の両方で渡せるようになる。フィールド名にアンダースコアが含まれる場合は、ハイフンに変換される (`log_level` → `--log-level`)。
 
 ### フラグ(bool)
 
@@ -264,11 +390,57 @@ struct Args {
 force: bool,
 ```
 
+`bool` には `action = ArgAction::SetTrue` が自動で設定されるため、通常は明示する必要はない。
+
+### 回数を数える
+
+`-v` `-vv` `-vvv` のように、指定された回数で挙動を変えたいときは `ArgAction::Count` を使う。型は `u8` など整数にする。
+
+```rust
+#[arg(short, long, action = clap::ArgAction::Count)]
+verbose: u8,
+```
+
+```bash
+myapp -vv   # verbose は 2
+```
+
 ### デフォルト値
 
 ```rust
 #[arg(default_value = "foo")]
 name: String,
+```
+
+```rust
+#[arg(short, long, default_value = "8080", help = "ポート番号")]
+port: u16,
+```
+
+`default_value` を指定したフィールドは省略可能になるので、`required = true` と併用することは基本的にない。
+
+### 複数の値を受け取る
+
+`Vec` にすると、複数回の指定をまとめて受け取れる。
+
+```rust
+#[arg(short, long)]
+include: Vec<String>,
+```
+
+```bash
+myapp --include src --include tests
+```
+
+一度の指定で決まった個数の値を受け取りたい場合は `num_args` を使う。
+
+```rust
+#[arg(long, num_args = 2)]
+coordinates: Vec<i32>,
+```
+
+```bash
+myapp --coordinates 10 20
 ```
 
 ### 値を制限する
@@ -296,6 +468,8 @@ struct Args {
 }
 ```
 
+許可されていない値を渡すと、clapが自動でエラーにしてくれる。
+
 ### 他のオプションを必須にする
 
 ```rust
@@ -304,7 +478,21 @@ struct Args {
 verbose: bool,
 ```
 
+### 同時指定を禁止する
 
+`conflicts_with` で、別の引数との同時指定をエラーにできる。
+
+```rust
+#[arg(long, conflicts_with = "yaml")]
+json: bool,
+
+#[arg(long)]
+yaml: bool,
+```
+
+```bash
+myapp --json --yaml   # エラー
+```
 
 ### 環境変数連携
 
@@ -314,7 +502,34 @@ verbose: bool,
 db_url: String,
 ```
 
+### `#[arg(...)]` 属性まとめ
 
+数が多いので、まずは優先度の高いものから覚える。
+
+| 指定 | 意味 | 優先度 |
+| --- | --- | --- |
+| `long` | 長いオプションを作る (`--input`) | ★★★ |
+| `short` | 短いオプションを作る (`-i`) | ★★★ |
+| `default_value = "..."` | デフォルト値 | ★★★ |
+| `help = "..."` | ヘルプの説明文 | ★★★ |
+| `value_parser = ...` | 入力値の解析・制限 | ★★ |
+| `required = true` | 必須にする | ★★ |
+| `env = "..."` | 環境変数から受け取る | ★★ |
+| `action = ...` | フラグ・回数・複数回指定の制御 | ★★ |
+| `conflicts_with = "..."` | 同時指定の禁止 | ★★ |
+| `requires = "..."` | 別の引数の指定を要求 | ★★ |
+| `num_args = N` | 一度に受け取る値の個数 | ★ |
+| `value_name = "..."` | ヘルプに表示する値の名前 | ★ |
+| `hide = true` | ヘルプ一覧から隠す | ★ |
+| `global = true` | サブコマンドにもオプションを適用する | ★ |
+| `index = N` | 位置引数の位置を指定する | ★ |
+| `trailing_var_arg = true` | 残りの引数をまとめて受け取る | ★ |
+| `group = "..."` | 引数をグループ化する | ★ |
+
+公式ドキュメント
+
+- [Derive Tutorial](https://docs.rs/clap/latest/clap/_derive/_tutorial/index.html)
+- [Arg](https://docs.rs/clap/latest/clap/struct.Arg.html)
 
 ---
 
@@ -414,6 +629,12 @@ fn main() {
                     // サブコマンドの処理
                 }
             }
+        }
+
+        // 何も渡されなかった
+        Args { command: None, .. } => {
+            Args::command().print_help().unwrap();
+            println!();
         }
     }
 }
