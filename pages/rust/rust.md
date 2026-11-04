@@ -3359,6 +3359,377 @@ println!("{u}"); // User: Alice
 
 ---
 
+## CLIでよく使うエコシステム <a id="ecosystem" data-name="CLIでよく使うエコシステム"></a>
+
+###  引数パース
+
+`std::env::args()` は生の文字列しか返さないため、`--help` の生成、サブコマンド、型変換、バリデーションを自前で書くことになります。
+
+- **clap**: 事実上の標準。`derive` 機能を使うと、構造体を定義するだけでパーサー・ヘルプ・補完スクリプトまで得られる。
+- **lexopt / pico-args**: 依存を極力増やしたい小規模ツール向けの軽量な選択肢。
+
+```rust
+use clap::Parser;
+
+/// 簡単な挨拶ツール
+#[derive(Parser, Debug)]
+#[command(version, about)]
+struct Cli {
+    /// 挨拶する相手の名前
+    name: String,
+
+    /// 繰り返す回数
+    #[arg(short, long, default_value_t = 1)]
+    count: u8,
+
+    /// 詳細ログを出す（環境変数 VERBOSE でも指定可）
+    #[arg(short, long, env = "VERBOSE")]
+    verbose: bool,
+}
+
+fn main() {
+    let cli = Cli::parse();
+    for _ in 0..cli.count {
+        println!("こんにちは、{}さん！", cli.name);
+    }
+}
+```
+
+`env = "..."` を指定すると、`std::env::var` で行っていた環境変数のフォールバックも宣言的に書けます（`Cargo.toml` では `clap = { version = "4", features = ["derive", "env"] }`）。
+
+### エラーハンドリング
+
+`main` が `Result` を返せるようになっても、エラー型の定義や文脈の付与には手間がかかります。まずは `std` だけで自作エラーを書く方法を押さえ、そのあとに手間を減らすクレートを見ていきます。
+
+#### `std::error::Error` トレイトの基本
+
+自作のエラー型を「エラーとして扱える」ようにするには、次の3点を満たします。
+
+- `Debug` を実装する（通常は `#[derive(Debug)]`）
+- `Display` を実装する（ユーザーに見せるメッセージ）
+- `std::error::Error` を実装する（中身が空でもよい）
+
+`Error` トレイトの `source()` は、原因となった下位のエラーを返すメソッドです。これを実装しておくと、エラーの連鎖（チェーン）をたどれます。なお、旧来の `description()` は非推奨なので実装しません。
+
+最小の例は次のとおりです。
+
+```rust
+use std::error::Error;
+use std::fmt;
+
+#[derive(Debug)]
+struct EmptyInputError;
+
+impl fmt::Display for EmptyInputError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "入力が空です")
+    }
+}
+
+impl Error for EmptyInputError {} // source() は既定で None
+```
+
+#### 実用的なパターン: enum + `From` + `source()`
+
+実際のCLIでは、「IOエラー」「パースエラー」「独自の検証エラー」など複数の失敗要因があるため、1つの enum にまとめるのが定番です。
+
+```rust
+use std::error::Error;
+use std::fmt;
+use std::fs;
+use std::io;
+use std::num::ParseIntError;
+
+#[derive(Debug)]
+enum ConfigError {
+    // どのファイルかを持たせたいので、フィールド付きにする
+    Io { path: String, source: io::Error },
+    InvalidPort(ParseIntError),
+    MissingKey(&'static str),
+}
+
+impl fmt::Display for ConfigError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ConfigError::Io { path, .. } => write!(f, "{path} を読み込めませんでした"),
+            ConfigError::InvalidPort(_) => write!(f, "ポート番号が不正です"),
+            ConfigError::MissingKey(key) => write!(f, "設定キー `{key}` がありません"),
+        }
+    }
+}
+
+impl Error for ConfigError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            ConfigError::Io { source, .. } => Some(source),
+            ConfigError::InvalidPort(e) => Some(e),
+            ConfigError::MissingKey(_) => None,
+        }
+    }
+}
+
+// `?` で ParseIntError を自動変換するための実装
+impl From<ParseIntError> for ConfigError {
+    fn from(e: ParseIntError) -> Self {
+        ConfigError::InvalidPort(e)
+    }
+}
+
+fn load_port(path: &str) -> Result<u16, ConfigError> {
+    // パス情報を足したいので、From ではなく map_err で包む
+    let text = fs::read_to_string(path).map_err(|source| ConfigError::Io {
+        path: path.to_string(),
+        source,
+    })?;
+
+    let value = text
+        .lines()
+        .find_map(|line| line.strip_prefix("port="))
+        .ok_or(ConfigError::MissingKey("port"))?;
+
+    Ok(value.trim().parse::<u16>()?) // ここで From<ParseIntError> が使われる
+}
+```
+
+ポイントは次のとおりです。
+
+- **`?` の仕組み**: `?` はエラー時に `From::from(e)` を呼んで型を変換します。つまり `impl From<X> for MyError` を書くと、`?` だけで `X` を `MyError` に変換できます。
+- **`From` を実装するか `map_err` を使うか**: 追加情報（ファイルパスなど）を載せたいときは `map_err` で包みます。同じ `io::Error` でも「どのファイルか」を区別できるようになります。
+- **`Display` と `source()` の役割分担**: `Display` には「この層で何が失敗したか」だけを書きます。原因のメッセージは `source()` 側に任せます。両方に同じ内容を入れると、チェーンを表示したときに二重になります。
+- **メッセージの書式**: 慣例として、英語なら小文字始まり・末尾にピリオドなしにします。上位層が `: ` でつなぐ前提だからです。
+
+エラーチェーンを自分で表示するには、`source()` をたどります。終了コードを制御したいので、`ExitCode` を返す形にしています。
+
+```rust
+use std::error::Error;
+use std::process::ExitCode;
+
+fn run() -> Result<(), ConfigError> {
+    let port = load_port("config.txt")?;
+    println!("port = {port}");
+    Ok(())
+}
+
+fn main() -> ExitCode {
+    if let Err(e) = run() {
+        eprintln!("error: {e}");
+        let mut cause = e.source();
+        while let Some(c) = cause {
+            eprintln!("  caused by: {c}");
+            cause = c.source();
+        }
+        return ExitCode::from(2);
+    }
+    ExitCode::SUCCESS
+}
+```
+
+#### `Box<dyn Error>`: 型を定義せずに済ませる
+
+小さなツールなら、エラー型を定義せず `Box<dyn Error>` で受ける方法もあります。`Error` を実装した型なら何でも `?` で変換され、`&str` や `String` も `.into()` でエラーにできます。
+
+```rust
+use std::error::Error;
+
+fn run() -> Result<(), Box<dyn Error>> {
+    let n: i32 = "abc".parse()?; // ParseIntError が自動で Box 化される
+    if n < 0 {
+        return Err("負の値は指定できません".into()); // &str から変換
+    }
+    Ok(())
+}
+```
+
+注意点は次のとおりです。
+
+- **`main` が `Err` を返した場合の表示は `Debug` 形式**です。自作エラーを `Box<dyn Error>` で返すと、`Display` ではなく `Debug` の出力（`MissingKey("port")` のような形）が出ます。見せ方を整えたいなら、上の `main` のように自前で表示します。
+- **マルチスレッドで渡すなら `Box<dyn Error + Send + Sync>`** にします。
+- 呼び出し側で種類を判定したいときは、`downcast_ref` で元の型に戻せます。ただし多用するなら、素直に enum にしたほうが網羅性チェックが効きます。
+
+```rust
+if let Some(ConfigError::MissingKey(key)) = e.downcast_ref::<ConfigError>() {
+    eprintln!("`{key}` を設定してください");
+}
+```
+
+#### `thiserror` で定型コードを減らす
+
+2-2 の `Display` / `Error` / `From` の実装は、`thiserror` を使うとほぼ属性だけで書けます。
+
+```rust
+use std::io;
+use std::num::ParseIntError;
+
+#[derive(Debug, thiserror::Error)]
+enum ConfigError {
+    #[error("{path} を読み込めませんでした")]
+    Io {
+        path: String,
+        #[source]
+        source: io::Error,
+    },
+
+    #[error("ポート番号が不正です")]
+    InvalidPort(#[from] ParseIntError), // From と source() を同時に生成
+
+    #[error("設定キー `{0}` がありません")]
+    MissingKey(&'static str),
+}
+```
+
+- `#[error("...")]` が `Display` を生成します。`{0}` やフィールド名で値を埋め込めます。
+- `#[from]` は `From` の実装と `source()` の両方を生成します。
+- `#[source]` は `source()` だけを生成します（`source` という名前のフィールドは自動で認識されます）。
+
+生成されるのは通常の `std::error::Error` の実装なので、2-2 の `main` のチェーン表示や `downcast_ref` はそのまま使えます。
+
+#### `anyhow` との使い分け
+
+| 状況 | 向いているもの |
+|---|---|
+| ライブラリ。呼び出し側がエラーの種類で分岐する | 自作 enum（`thiserror` または手書き） |
+| アプリのトップレベル。ユーザーに表示して終了するだけ | `anyhow::Result` + `.context(...)` |
+| 外部依存を増やしたくない小さなツール | `Box<dyn Error>` |
+
+実際には、**下位のモジュールは `thiserror` で型を定義し、`main` 付近では `anyhow` で束ねる**組み合わせがよく使われます。`thiserror` のエラーは `Error` を実装しているため、そのまま `?` で `anyhow::Error` に変換されます。
+
+```rust
+use anyhow::{Context, Result};
+
+fn main() -> Result<()> {
+    let port = load_port("config.txt")
+        .context("設定の読み込みに失敗しました")?; // ConfigError を anyhow で包む
+    println!("port = {port}");
+    Ok(())
+}
+```
+
+`main` から `Err` が返ると、プロセスは終了コード 1 で終了し、エラーチェーンが stderr に出力されます。`process::exit` を直接呼ばなくて済むため、デストラクタも正しく実行されます。終了コードを細かく制御したい場合は `std::process::ExitCode` を返す形が便利です。
+
+### シリアライズ・設定ファイル
+
+- **serde**: シリアライズ／デシリアライズのフレームワーク。ほぼすべてのフォーマット系クレートの土台。
+- **serde_json / toml / serde_yaml**: JSON・TOML・YAML の読み書き。CLIの出力を `--json` で機械可読にする用途でも多用される。
+- **directories**（または `dirs`）: OSごとの設定・キャッシュディレクトリ（`~/.config` や `%APPDATA%` など）を取得する。
+
+### ターミナル出力・対話
+
+- **owo-colors / colored**: 文字色・装飾。
+- **indicatif**: プログレスバーやスピナー。
+- **dialoguer / inquire**: 確認プロンプト、選択式メニュー、パスワード入力などの対話UI。
+- **comfy-table**: 表形式の整形出力。
+
+色付き出力は、パイプやリダイレクト時には無効にするのがマナーです。標準ライブラリの `std::io::IsTerminal`（Rust 1.70 以降）で、出力先が端末かどうかを判定できます。
+
+```rust
+use std::io::{self, IsTerminal};
+
+let use_color = io::stdout().is_terminal();
+```
+
+### 補足: ファイル読み込み手法の使い分け
+
+ファイルを読む方法は大きく3つあり、「何をどの単位で処理したいか」で選び分けます。
+
+| 手法 | 内部動作・仕組み | メリット | デメリット・注意点 |
+|---|---|---|---|
+| `fs::read_to_string` / `fs::read` | ファイルを開いてメタデータからサイズを取得し、その分の容量を `String` / `Vec<u8>` に事前確保して、全データを読み切る。 | ・コードが最も簡潔（1行）<br>・サイズを事前に把握するため再アロケーションが起きにくい | ・ファイルサイズに比例してメモリを消費する<br>・全体を読み終えるまで処理を始められない<br>・`read_to_string` は UTF-8 でないと `InvalidData` エラーになる |
+| `File::open` + `Read` | 呼び出し側が用意したバッファ（配列など）に対し、`read` のたびに OS のシステムコールを発行する。`File` 自体にはバッファがない。 | ・一度に読むサイズを細かく制御できる<br>・バイナリ形式のヘッダ解析など、読む範囲が決まっている用途に向く | ・数B〜数KBの小さな読み込みをループで繰り返すと、システムコールのオーバーヘッドで極端に遅くなる<br>・`read` は要求より少ないバイト数しか返さないことがあるため、`read_exact` や `read_to_end` の使い分けが必要 |
+| `BufReader` | 内部に固定サイズのバッファ（標準8KiB）を持ち、まとめて読み込んでメモリ上から少しずつ切り出して返す。 | ・1行単位や小さな塊での繰り返し読み込みが圧倒的に速い<br>・巨大ファイルでもメモリ使用量が一定（バッファサイズ分）<br>・`lines()` や `read_line()` など `BufRead` の便利なメソッドが使える | ・全体を一括で読むだけなら、`fs::read_to_string` のほうが簡潔で、バッファ分のコピーも発生しない<br>・`lines()` は1行ごとに新しい `String` を確保する |
+
+#### 選び方の目安
+
+- **設定ファイルなど小さなファイルを丸ごと読む** → `fs::read_to_string`
+- **ログのような大きなファイルを1行ずつ処理する** → `BufReader` + `lines()`
+- **バイナリを決まったサイズで読む** → `File` + `read_exact`
+- **途中で処理を打ち切りたい（先頭だけ見たい、`grep` 的な検索など）** → `BufReader`（全体を読み込まずに済む）
+
+```rust
+use std::fs::File;
+use std::io::{self, BufRead, BufReader};
+
+fn count_matching_lines(path: &str, keyword: &str) -> io::Result<usize> {
+    let file = File::open(path)?;
+    let reader = BufReader::new(file);
+
+    let mut count = 0;
+    for line in reader.lines() {
+        // 行ごとに io::Result<String> が返る（UTF-8 でない行はここでエラーになる）
+        if line?.contains(keyword) {
+            count += 1;
+        }
+    }
+    Ok(count)
+}
+```
+
+行ごとの `String` 確保が気になる大量データの処理では、1つの `String` を使い回す `read_line` のほうが効率的です。ただし、使い回す場合は毎回 `clear()` が必要です（呼ばないと前の行に追記されます）。
+
+```rust
+let mut reader = BufReader::new(File::open(path)?);
+let mut line = String::new();
+while reader.read_line(&mut line)? > 0 {
+    // line を処理する（末尾に改行が含まれる点に注意）
+    line.clear();
+}
+```
+
+#### 知っておくと役立つ点
+
+- **標準入力はすでにバッファ付き**: `io::stdin()` は内部でバッファリングされており、`stdin().lock()` は `BufRead` を実装しています。そのため、標準入力に `BufReader` をかぶせる必要はありません（前述のミニマム実装例で `stdin.lock().read_line(...)` が使えるのはこのためです）。
+- **書き込み側も同じ発想**: `File` への書き込みも、小さな `write!` を繰り返すとシステムコールが増えます。大量に書く場合は `BufWriter` で包み、最後に `flush()` するか、スコープを抜けて `drop` させます。`stdout` は行バッファのため、1行ごとに出力が走る点も同様に意識しておくと安心です。
+- **`BufReader` は大きな読み込みをバイパスする**: バッファより大きなサイズを一度に要求した場合、内部バッファを経由せず直接読み込まれます。そのため、「`BufReader` を使うと必ず余分なコピーが入る」というわけではなく、小さな読み込みを多数行うケースで効果が出る仕組みです。
+- **エラー文脈の付与**: ファイル読み込みのエラーは `No such file or directory` だけでは、どのファイルか分かりません。先ほどの **anyhow** の `.context(format!("{path} を読み込めませんでした"))` を併用すると、原因の特定が格段に楽になります。
+
+
+### ログ・トレーシング
+
+- **log + env_logger**: `RUST_LOG=debug` のように環境変数でレベルを切り替える、最もシンプルな構成。
+- **tracing + tracing-subscriber**: 構造化ログや非同期処理の追跡が必要な場合に。
+
+### ファイル探索・テキスト処理
+
+- **walkdir**: ディレクトリの再帰走査。
+- **ignore**: `.gitignore` を尊重した走査（ripgrep と同じ実装）。
+- **glob / globset**: ワイルドカードによるパスのマッチング。
+- **regex**: 正規表現。線形時間で動作する安全な実装。
+
+### 並列・非同期・シグナル
+
+- **rayon**: `iter()` を `par_iter()` に変えるだけでデータ並列化できる。
+- **tokio**: 非同期ランタイム。ネットワークを多用するCLIで利用する。
+- **reqwest**: HTTP クライアント（`blocking` 機能なら非同期ランタイム不要）。
+- **ctrlc**: `Ctrl+C`（SIGINT）を捕捉して、後始末をしてから終了できる。
+
+### テスト
+
+- **assert_cmd**: ビルドしたバイナリを実際に起動し、終了コードや出力を検証する。
+- **predicates**: `assert_cmd` と組み合わせる出力の判定条件（部分一致・正規表現など）。
+- **assert_fs / tempfile**: テスト用の一時ファイル・ディレクトリを安全に用意する。
+
+```rust
+use assert_cmd::Command;
+
+#[test]
+fn prints_greeting() {
+    Command::cargo_bin("mytool")
+        .unwrap()
+        .arg("しん")
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("こんにちは、しんさん"));
+}
+```
+
+### 補足: 依存を選ぶときの目安
+
+- 1ファイルで済む小さなツールなら、まず `std` だけで書き、引数が複雑になった時点で **clap** を足す。
+- バイナリ配布を意識するなら、依存の多さはビルド時間とバイナリサイズに直結するため、`clap` の `default-features = false` や軽量クレートの選択も検討する。
+- Rust 2024 エディションでは `std::env::set_var` / `remove_var` が `unsafe` になっています（マルチスレッド環境でのデータ競合を避けるため）。環境変数の変更は、他スレッドを起動する前の `main` 冒頭で行うか、そもそも子プロセスに渡す形（`Command::env`）で済ませるのが安全です。
+
+
+---
+
 ## テスト <a id="test" data-name="テスト"></a>
 
 ### テストの書き方
