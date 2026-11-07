@@ -12,11 +12,18 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', (event) => {
-            document.querySelectorAll('pre code').forEach((el) => {
-                if (!el.classList.contains('example') && !el.classList.contains('caution') && !el.classList.contains('tips')) {
-                    hljs.highlightElement(el);
-                }
-            });
+            const runHighlight = () => {
+                document.querySelectorAll('pre code').forEach((el) => {
+                    if (!el.classList.contains('example') && !el.classList.contains('caution') && !el.classList.contains('tips')) {
+                        hljs.highlightElement(el);
+                    }
+                });
+            };
+            if ('requestIdleCallback' in window) {
+                requestIdleCallback(runHighlight);
+            } else {
+                setTimeout(runHighlight, 0);
+            }
         });
     </script>
     <script src="{{ site.baseurl }}/assets/js/script.js" defer></script>

@@ -43,34 +43,42 @@ overlay.addEventListener('click', () => {
 
 // コピーボタン
 document.addEventListener('DOMContentLoaded', () => {
-    // Jekyllが出力するコードブロックを取得（div.highlight または親を持たない pre.highlight）
-    const codeBlocks = document.querySelectorAll('div.highlight, pre.highlight:not(div.highlight *)');
+    const initCopyButtons = () => {
+        // Jekyllが出力するコードブロックを取得（div.highlight または親を持たない pre.highlight）
+        const codeBlocks = document.querySelectorAll('div.highlight, pre.highlight:not(div.highlight *)');
 
-    codeBlocks.forEach((block) => {
-        // 既存の要素構造に合わせてボタンを作成
-        const button = document.createElement('button');
-        button.className = 'copy-code-button';
-        button.type = 'button';
-        button.innerText = 'Copy';
+        codeBlocks.forEach((block) => {
+            // 既存の要素構造に合わせてボタンを作成
+            const button = document.createElement('button');
+            button.className = 'copy-code-button';
+            button.type = 'button';
+            button.innerText = 'Copy';
 
-        // クリック時のコピー処理
-        button.addEventListener('click', () => {
-            const code = block.querySelector('code')?.innerText || block.innerText;
+            // クリック時のコピー処理
+            button.addEventListener('click', () => {
+                const code = block.querySelector('code')?.innerText || block.innerText;
 
-            navigator.clipboard.writeText(code).then(() => {
-                button.innerText = 'Copied!';
-                button.classList.add('copied');
+                navigator.clipboard.writeText(code).then(() => {
+                    button.innerText = 'Copied!';
+                    button.classList.add('copied');
 
-                setTimeout(() => {
-                    button.innerText = 'Copy';
-                    button.classList.remove('copied');
-                }, 2000);
-            }).catch((err) => {
-                console.error('Failed to copy: ', err);
+                    setTimeout(() => {
+                        button.innerText = 'Copy';
+                        button.classList.remove('copied');
+                    }, 2000);
+                }).catch((err) => {
+                    console.error('Failed to copy: ', err);
+                });
             });
-        });
 
-        // ボタンをコードブロック内に追加
-        block.appendChild(button);
-    });
+            // ボタンをコードブロック内に追加
+            block.appendChild(button);
+        });
+    };
+
+    if ('requestIdleCallback' in window) {
+        requestIdleCallback(initCopyButtons);
+    } else {
+        setTimeout(initCopyButtons, 0);
+    }
 });
