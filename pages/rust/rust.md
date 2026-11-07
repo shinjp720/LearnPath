@@ -68,7 +68,7 @@ rustup component add rust-analyzer
 Rust という言語・開発環境そのものを管理するツール。
 
 | --- | --- |
-| rustup update | Rust のツールチェーンを最新バージョンに更新する<br>定期的に更新した方がいい |
+| rustup update | Rust のツールチェーンを最新バージョンに更新する<br>定期的に更新した方がよい |
 | rustup show | インストールされている Rust のバージョンや、アクティブなツールチェーン、<br>追加コンポーネントの状態を確認 |
 | rustup component add rustfmt<br>rustup component add clippy<br>rustup component add rust-analyzer | 必須級のツール (コード整形、静的解析) を導入する |
 | rustup target add wasm32-unknown-unknown<br>`rustup target list --installed` | クロスコンパイル (他の OS/環境向けビルド) 用のターゲットの追加 |
@@ -252,7 +252,7 @@ crate
 match は、値のパターンで識別して、中身を取り出しながら分岐し、しかも漏れがないか確認できる仕組み。<br>
 上から順に評価されて、最初にマッチしたアームが選ばれるため、より具体的なものを先、より包括的なものを後に書く。
 
-if let は matchアーム の糖衣構文であり、構造はイコールだと思っていい。
+if let は matchアーム の糖衣構文であり、構造はイコールである。
 
 ```rust
 let age = 15;
@@ -478,9 +478,9 @@ match msg {
 match slice {
     [head, tail @ ..] => {
         // head : 先頭の1要素
-        // tail : 残りの要素全体（スライス）
+        // tail : 残りの要素全体 (スライス) 
     }
-    _ => {} // 空のスライス（要素数 0）の場合
+    _ => {} // 空のスライス (要素数 0) の場合
 }
 ```
 
@@ -866,7 +866,7 @@ fn main() {
 ```rust
 let score = 85;
 
-// score が 80 から 100 の間（100を含む）にあるか判定
+// score が 80 から 100 の間 (100を含む) にあるか判定
 if (80..=100).contains(&score) {
     println!("優秀な成績です！");
 }
@@ -1732,14 +1732,14 @@ C言語のようなメモリアドレスの型変換。<br>
 fn main() {
     let my_num: i32 = 42;
     
-    // 参照を「生ポインタ」に変換（これは安全）
+    // 参照を「生ポインタ」に変換 (これは安全) 
     let ptr: *const i32 = &my_num as *const i32;
 
-    // ポインタを別の型のポインタにキャスト（これも安全）
+    // ポインタを別の型のポインタにキャスト (これも安全) 
     let char_ptr: *const u8 = ptr as *const u8;
 
     unsafe {
-        // ポインタを辿って値を読み出す（ここが unsafe）
+        // ポインタを辿って値を読み出す (ここが unsafe) 
         println!("最初のバイト: {}", *char_ptr);
     }
 }
@@ -2447,7 +2447,7 @@ assert_eq!(res, Err("値が空です"));
 ```rust
 let empty_num: Option<i32> = None;
 
-// None のときだけ String が生成される（無駄なメモリ確保を防ぐ）
+// None のときだけ String が生成される (無駄なメモリ確保を防ぐ) 
 let res = empty_num.ok_or_else(|| format!("エラーが発生しました: {}", 404)); 
 
 assert_eq!(res, Err("エラーが発生しました: 404".to_string()));
@@ -2779,7 +2779,7 @@ trait Greet {
     // 必須で実装してもらうメソッド
     fn name(&self) -> &str;
 
-    // デフォルト実装（name() を利用して自動的に動く）
+    // デフォルト実装 (name() を利用して自動的に動く) 
     fn greet(&self) -> String {
         format!("こんにちは、{}さん！", self.name())
     }
@@ -2792,7 +2792,7 @@ Iterator のように取り出す要素の型が1つに決まる場合。
 
 ```rust
 trait Container {
-    type Item; // 使う側が具体的な型（i32 や String など）を指定する
+    type Item; // 使う側が具体的な型 (i32 や String など) を指定する
 
     fn add(&mut self, item: Self::Item);
     fn get(&self) -> Option<&Self::Item>;
@@ -3143,7 +3143,7 @@ enum MyError {
     InvalidInput(String),
 }
 
-// Displayを実装（ユーザー向けメッセージ）
+// Displayを実装 (ユーザー向けメッセージ) 
 impl fmt::Display for MyError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -3154,7 +3154,7 @@ impl fmt::Display for MyError {
 }
 
 impl Error for MyError {
-    // 中身は空っぽでOK（標準の挙動が自動で適用される）
+    // 中身は空っぽでOK (標準の挙動が自動で適用される) 
 }
 ```
 
@@ -3363,7 +3363,7 @@ println!("{u}"); // User: Alice
 
 ###  引数パース
 
-`std::env::args()` は生の文字列しか返さないため、`--help` の生成、サブコマンド、型変換、バリデーションを自前で書くことになります。
+`std::env::args()` は生の文字列しか返さないため、`--help` の生成、サブコマンド、型変換、バリデーションを自前で書くことになる。
 
 - **clap**: 事実上の標準。`derive` 機能を使うと、構造体を定義するだけでパーサー・ヘルプ・補完スクリプトまで得られる。
 - **lexopt / pico-args**: 依存を極力増やしたい小規模ツール向けの軽量な選択肢。
@@ -3382,7 +3382,7 @@ struct Cli {
     #[arg(short, long, default_value_t = 1)]
     count: u8,
 
-    /// 詳細ログを出す（環境変数 VERBOSE でも指定可）
+    /// 詳細ログを出す (環境変数 VERBOSE でも指定可) 
     #[arg(short, long, env = "VERBOSE")]
     verbose: bool,
 }
@@ -3395,23 +3395,26 @@ fn main() {
 }
 ```
 
-`env = "..."` を指定すると、`std::env::var` で行っていた環境変数のフォールバックも宣言的に書けます（`Cargo.toml` では `clap = { version = "4", features = ["derive", "env"] }`）。
+`env = "..."` を指定すると、`std::env::var` で行っていた環境変数のフォールバックも宣言的に書けます (`Cargo.toml` では `clap = { version = "4", features = ["derive", "env"] }`) 。
 
 ### エラーハンドリング
 
-`main` が `Result` を返せるようになっても、エラー型の定義や文脈の付与には手間がかかります。まずは `std` だけで自作エラーを書く方法を押さえ、そのあとに手間を減らすクレートを見ていきます。
+`main` が `Result` を返せるようになっても、エラー型の定義や文脈の付与には手間がかかる。<br>
+まずは `std` だけで自作エラーを書く方法を押さえ、そのあとに手間を減らすクレートを見ていく。
 
 #### `std::error::Error` トレイトの基本
 
-自作のエラー型を「エラーとして扱える」ようにするには、次の3点を満たします。
+自作のエラー型を「エラーとして扱える」ようにするには、次の3点を満たす必要がある。
 
-- `Debug` を実装する（通常は `#[derive(Debug)]`）
-- `Display` を実装する（ユーザーに見せるメッセージ）
-- `std::error::Error` を実装する（中身が空でもよい）
+- `Debug` を実装する (通常は `#[derive(Debug)]`) 
+- `Display` を実装する (ユーザーに見せるメッセージ) 
+- `std::error::Error` を実装する (中身が空でもよい) 
 
-`Error` トレイトの `source()` は、原因となった下位のエラーを返すメソッドです。これを実装しておくと、エラーの連鎖（チェーン）をたどれます。なお、旧来の `description()` は非推奨なので実装しません。
+`Error` トレイトの `source()` は、原因となった下位のエラーを返すメソッドである。<br>
+これを実装しておくと、エラーの連鎖 (チェーン) をたどれる。<br>
+なお、旧来の `description()` は非推奨なので実装しない。
 
-最小の例は次のとおりです。
+最小の例は次のとおり。
 
 ```rust
 use std::error::Error;
@@ -3429,9 +3432,9 @@ impl fmt::Display for EmptyInputError {
 impl Error for EmptyInputError {} // source() は既定で None
 ```
 
-#### 実用的なパターン: enum + `From` + `source()`
+#### 実用的なパターン: `enum` + `From` + `source()`
 
-実際のCLIでは、「IOエラー」「パースエラー」「独自の検証エラー」など複数の失敗要因があるため、1つの enum にまとめるのが定番です。
+実際のCLIでは、「IOエラー」「パースエラー」「独自の検証エラー」など複数の失敗要因があるため、1つの enum にまとめるのが定番。
 
 ```rust
 use std::error::Error;
@@ -3491,14 +3494,15 @@ fn load_port(path: &str) -> Result<u16, ConfigError> {
 }
 ```
 
-ポイントは次のとおりです。
+ポイントは次のとおり。
 
-- **`?` の仕組み**: `?` はエラー時に `From::from(e)` を呼んで型を変換します。つまり `impl From<X> for MyError` を書くと、`?` だけで `X` を `MyError` に変換できます。
-- **`From` を実装するか `map_err` を使うか**: 追加情報（ファイルパスなど）を載せたいときは `map_err` で包みます。同じ `io::Error` でも「どのファイルか」を区別できるようになります。
-- **`Display` と `source()` の役割分担**: `Display` には「この層で何が失敗したか」だけを書きます。原因のメッセージは `source()` 側に任せます。両方に同じ内容を入れると、チェーンを表示したときに二重になります。
-- **メッセージの書式**: 慣例として、英語なら小文字始まり・末尾にピリオドなしにします。上位層が `: ` でつなぐ前提だからです。
+- **`?` の仕組み**: `?` はエラー時に `From::from(e)` を呼んで型を変換する。<br>
+つまり `impl From<X> for MyError` を書くと、`?` だけで `X` を `MyError` に変換できる。
+- **`From` を実装するか `map_err` を使うか**: 追加情報 (ファイルパスなど) を載せたいときは `map_err` で包む。<br>同じ `io::Error` でも「どのファイルか」を区別できるようになる。
+- **`Display` と `source()` の役割分担**: `Display` には「この層で何が失敗したか」だけを書く。原因のメッセージは `source()` 側に任せる。<br>両方に同じ内容を入れると、チェーンを表示したときに二重になる。
+- **メッセージの書式**: 慣例として、英語なら小文字始まり・末尾にピリオドなしにする。<br>上位層が `: ` でつなぐ前提だから。
 
-エラーチェーンを自分で表示するには、`source()` をたどります。終了コードを制御したいので、`ExitCode` を返す形にしています。
+エラーチェーンを自分で表示するには、`source()` をたどる。終了コードを制御したいので、`ExitCode` を返す形にしていく。
 
 ```rust
 use std::error::Error;
@@ -3526,7 +3530,8 @@ fn main() -> ExitCode {
 
 #### `Box<dyn Error>`: 型を定義せずに済ませる
 
-小さなツールなら、エラー型を定義せず `Box<dyn Error>` で受ける方法もあります。`Error` を実装した型なら何でも `?` で変換され、`&str` や `String` も `.into()` でエラーにできます。
+小さなツールなら、エラー型を定義せず `Box<dyn Error>` で受ける方法もある。<br>
+`Error` を実装した型なら何でも `?` で変換され、`&str` や `String` も `.into()` でエラーにできる。
 
 ```rust
 use std::error::Error;
@@ -3540,11 +3545,11 @@ fn run() -> Result<(), Box<dyn Error>> {
 }
 ```
 
-注意点は次のとおりです。
+注意点は次のとおり。
 
-- **`main` が `Err` を返した場合の表示は `Debug` 形式**です。自作エラーを `Box<dyn Error>` で返すと、`Display` ではなく `Debug` の出力（`MissingKey("port")` のような形）が出ます。見せ方を整えたいなら、上の `main` のように自前で表示します。
-- **マルチスレッドで渡すなら `Box<dyn Error + Send + Sync>`** にします。
-- 呼び出し側で種類を判定したいときは、`downcast_ref` で元の型に戻せます。ただし多用するなら、素直に enum にしたほうが網羅性チェックが効きます。
+- **`main` が `Err` を返した場合の表示は `Debug` 形式**です。<br>自作エラーを `Box<dyn Error>` で返すと、`Display` ではなく `Debug` の出力 (`MissingKey("port")` のような形) が出る。<br>見せ方を整えたいなら、上の `main` のように自前で表示する。
+- **マルチスレッドで渡すなら `Box<dyn Error + Send + Sync>`** にする。
+- 呼び出し側で種類を判定したいときは、`downcast_ref` で元の型に戻せる。<br>ただし多用するなら、素直に enum にしたほうが網羅性チェックが効く。
 
 ```rust
 if let Some(ConfigError::MissingKey(key)) = e.downcast_ref::<ConfigError>() {
@@ -3554,7 +3559,7 @@ if let Some(ConfigError::MissingKey(key)) = e.downcast_ref::<ConfigError>() {
 
 #### `thiserror` で定型コードを減らす
 
-2-2 の `Display` / `Error` / `From` の実装は、`thiserror` を使うとほぼ属性だけで書けます。
+`Display` / `Error` / `From` の実装は、`thiserror` を使うとほぼ属性だけで書ける。
 
 ```rust
 use std::io;
@@ -3577,21 +3582,22 @@ enum ConfigError {
 }
 ```
 
-- `#[error("...")]` が `Display` を生成します。`{0}` やフィールド名で値を埋め込めます。
-- `#[from]` は `From` の実装と `source()` の両方を生成します。
-- `#[source]` は `source()` だけを生成します（`source` という名前のフィールドは自動で認識されます）。
+- `#[error("...")]` が `Display` を生成します。`{0}` やフィールド名で値を埋め込める。
+- `#[from]` は `From` の実装と `source()` の両方を生成する。
+- `#[source]` は `source()` だけを生成する (`source` という名前のフィールドは自動で認識される)。
 
-生成されるのは通常の `std::error::Error` の実装なので、2-2 の `main` のチェーン表示や `downcast_ref` はそのまま使えます。
+生成されるのは通常の `std::error::Error` の実装なので、2-2 の `main` のチェーン表示や `downcast_ref` はそのまま使える。
 
 #### `anyhow` との使い分け
 
 | 状況 | 向いているもの |
 |---|---|
-| ライブラリ。呼び出し側がエラーの種類で分岐する | 自作 enum（`thiserror` または手書き） |
+| ライブラリ。呼び出し側がエラーの種類で分岐する | 自作 enum (`thiserror` または手書き)  |
 | アプリのトップレベル。ユーザーに表示して終了するだけ | `anyhow::Result` + `.context(...)` |
 | 外部依存を増やしたくない小さなツール | `Box<dyn Error>` |
 
-実際には、**下位のモジュールは `thiserror` で型を定義し、`main` 付近では `anyhow` で束ねる**組み合わせがよく使われます。`thiserror` のエラーは `Error` を実装しているため、そのまま `?` で `anyhow::Error` に変換されます。
+実際には、**下位のモジュールは `thiserror` で型を定義し、`main` 付近では `anyhow` で束ねる**組み合わせがよく使われる。<br>
+`thiserror` のエラーは `Error` を実装しているため、そのまま `?` で `anyhow::Error` に変換される。
 
 ```rust
 use anyhow::{Context, Result};
@@ -3604,13 +3610,15 @@ fn main() -> Result<()> {
 }
 ```
 
-`main` から `Err` が返ると、プロセスは終了コード 1 で終了し、エラーチェーンが stderr に出力されます。`process::exit` を直接呼ばなくて済むため、デストラクタも正しく実行されます。終了コードを細かく制御したい場合は `std::process::ExitCode` を返す形が便利です。
+`main` から `Err` が返ると、プロセスは終了コード 1 で終了し、エラーチェーンが stderr に出力される。<br>
+`process::exit` を直接呼ばなくて済むため、デストラクタも正しく実行される。<br>
+終了コードを細かく制御したい場合は `std::process::ExitCode` を返す形が便利。
 
 ### シリアライズ・設定ファイル
 
 - **serde**: シリアライズ／デシリアライズのフレームワーク。ほぼすべてのフォーマット系クレートの土台。
-- **serde_json / toml / serde_yaml**: JSON・TOML・YAML の読み書き。CLIの出力を `--json` で機械可読にする用途でも多用される。
-- **directories**（または `dirs`）: OSごとの設定・キャッシュディレクトリ（`~/.config` や `%APPDATA%` など）を取得する。
+- **serde_json / toml / serde_yaml**: JSON・TOML・YAML の読み書き。<br>CLIの出力を `--json` で機械可読にする用途でも多用される。
+- **directories** (または `dirs`) : OSごとの設定・キャッシュディレクトリ (`~/.config` や `%APPDATA%` など) を取得する。
 
 ### ターミナル出力・対話
 
@@ -3619,7 +3627,8 @@ fn main() -> Result<()> {
 - **dialoguer / inquire**: 確認プロンプト、選択式メニュー、パスワード入力などの対話UI。
 - **comfy-table**: 表形式の整形出力。
 
-色付き出力は、パイプやリダイレクト時には無効にするのがマナーです。標準ライブラリの `std::io::IsTerminal`（Rust 1.70 以降）で、出力先が端末かどうかを判定できます。
+色付き出力は、パイプやリダイレクト時には無効にするのがマナー。<br>
+標準ライブラリの `std::io::IsTerminal` (Rust 1.70 以降) で、出力先が端末かどうかを判定できる。
 
 ```rust
 use std::io::{self, IsTerminal};
@@ -3629,20 +3638,20 @@ let use_color = io::stdout().is_terminal();
 
 ### 補足: ファイル読み込み手法の使い分け
 
-ファイルを読む方法は大きく3つあり、「何をどの単位で処理したいか」で選び分けます。
+ファイルを読む方法は大きく3つあり、「何をどの単位で処理したいか」で選び分ける。
 
 | 手法 | 内部動作・仕組み | メリット | デメリット・注意点 |
 |---|---|---|---|
-| `fs::read_to_string` / `fs::read` | ファイルを開いてメタデータからサイズを取得し、その分の容量を `String` / `Vec<u8>` に事前確保して、全データを読み切る。 | ・コードが最も簡潔（1行）<br>・サイズを事前に把握するため再アロケーションが起きにくい | ・ファイルサイズに比例してメモリを消費する<br>・全体を読み終えるまで処理を始められない<br>・`read_to_string` は UTF-8 でないと `InvalidData` エラーになる |
-| `File::open` + `Read` | 呼び出し側が用意したバッファ（配列など）に対し、`read` のたびに OS のシステムコールを発行する。`File` 自体にはバッファがない。 | ・一度に読むサイズを細かく制御できる<br>・バイナリ形式のヘッダ解析など、読む範囲が決まっている用途に向く | ・数B〜数KBの小さな読み込みをループで繰り返すと、システムコールのオーバーヘッドで極端に遅くなる<br>・`read` は要求より少ないバイト数しか返さないことがあるため、`read_exact` や `read_to_end` の使い分けが必要 |
-| `BufReader` | 内部に固定サイズのバッファ（標準8KiB）を持ち、まとめて読み込んでメモリ上から少しずつ切り出して返す。 | ・1行単位や小さな塊での繰り返し読み込みが圧倒的に速い<br>・巨大ファイルでもメモリ使用量が一定（バッファサイズ分）<br>・`lines()` や `read_line()` など `BufRead` の便利なメソッドが使える | ・全体を一括で読むだけなら、`fs::read_to_string` のほうが簡潔で、バッファ分のコピーも発生しない<br>・`lines()` は1行ごとに新しい `String` を確保する |
+| `fs::read_to_string` / `fs::read` | ファイルを開いてメタデータからサイズを取得し、その分の容量を `String` / `Vec<u8>` に事前確保して、全データを読み切る。 | ・コードが最も簡潔 (1行) <br>・サイズを事前に把握するため再アロケーションが起きにくい | ・ファイルサイズに比例してメモリを消費する<br>・全体を読み終えるまで処理を始められない<br>・`read_to_string` は UTF-8 でないと `InvalidData` エラーになる |
+| `File::open` + `Read` | 呼び出し側が用意したバッファ (配列など) に対し、`read` のたびに OS のシステムコールを発行する。`File` 自体にはバッファがない。 | ・一度に読むサイズを細かく制御できる<br>・バイナリ形式のヘッダ解析など、読む範囲が決まっている用途に向く | ・数B〜数KBの小さな読み込みをループで繰り返すと、システムコールのオーバーヘッドで極端に遅くなる<br>・`read` は要求より少ないバイト数しか返さないことがあるため、`read_exact` や `read_to_end` の使い分けが必要 |
+| `BufReader` | 内部に固定サイズのバッファ (標準8KiB) を持ち、まとめて読み込んでメモリ上から少しずつ切り出して返す。 | ・1行単位や小さな塊での繰り返し読み込みが圧倒的に速い<br>・巨大ファイルでもメモリ使用量が一定 (バッファサイズ分) <br>・`lines()` や `read_line()` など `BufRead` の便利なメソッドが使える | ・全体を一括で読むだけなら、`fs::read_to_string` のほうが簡潔で、バッファ分のコピーも発生しない<br>・`lines()` は1行ごとに新しい `String` を確保する |
 
 #### 選び方の目安
 
 - **設定ファイルなど小さなファイルを丸ごと読む** → `fs::read_to_string`
 - **ログのような大きなファイルを1行ずつ処理する** → `BufReader` + `lines()`
 - **バイナリを決まったサイズで読む** → `File` + `read_exact`
-- **途中で処理を打ち切りたい（先頭だけ見たい、`grep` 的な検索など）** → `BufReader`（全体を読み込まずに済む）
+- **途中で処理を打ち切りたい (先頭だけ見たい、`grep` 的な検索など) ** → `BufReader` (全体を読み込まずに済む) 
 
 ```rust
 use std::fs::File;
@@ -3654,7 +3663,7 @@ fn count_matching_lines(path: &str, keyword: &str) -> io::Result<usize> {
 
     let mut count = 0;
     for line in reader.lines() {
-        // 行ごとに io::Result<String> が返る（UTF-8 でない行はここでエラーになる）
+        // 行ごとに io::Result<String> が返る (UTF-8 でない行はここでエラーになる) 
         if line?.contains(keyword) {
             count += 1;
         }
@@ -3663,23 +3672,23 @@ fn count_matching_lines(path: &str, keyword: &str) -> io::Result<usize> {
 }
 ```
 
-行ごとの `String` 確保が気になる大量データの処理では、1つの `String` を使い回す `read_line` のほうが効率的です。ただし、使い回す場合は毎回 `clear()` が必要です（呼ばないと前の行に追記されます）。
+行ごとの `String` 確保が気になる大量データの処理では、1つの `String` を使い回す `read_line` のほうが効率的である。ただし、使い回す場合は毎回 `clear()` が必要 (呼ばないと前の行に追記される)。
 
 ```rust
 let mut reader = BufReader::new(File::open(path)?);
 let mut line = String::new();
 while reader.read_line(&mut line)? > 0 {
-    // line を処理する（末尾に改行が含まれる点に注意）
+    // line を処理する (末尾に改行が含まれる点に注意) 
     line.clear();
 }
 ```
 
 #### 知っておくと役立つ点
 
-- **標準入力はすでにバッファ付き**: `io::stdin()` は内部でバッファリングされており、`stdin().lock()` は `BufRead` を実装しています。そのため、標準入力に `BufReader` をかぶせる必要はありません（前述のミニマム実装例で `stdin.lock().read_line(...)` が使えるのはこのためです）。
-- **書き込み側も同じ発想**: `File` への書き込みも、小さな `write!` を繰り返すとシステムコールが増えます。大量に書く場合は `BufWriter` で包み、最後に `flush()` するか、スコープを抜けて `drop` させます。`stdout` は行バッファのため、1行ごとに出力が走る点も同様に意識しておくと安心です。
-- **`BufReader` は大きな読み込みをバイパスする**: バッファより大きなサイズを一度に要求した場合、内部バッファを経由せず直接読み込まれます。そのため、「`BufReader` を使うと必ず余分なコピーが入る」というわけではなく、小さな読み込みを多数行うケースで効果が出る仕組みです。
-- **エラー文脈の付与**: ファイル読み込みのエラーは `No such file or directory` だけでは、どのファイルか分かりません。先ほどの **anyhow** の `.context(format!("{path} を読み込めませんでした"))` を併用すると、原因の特定が格段に楽になります。
+- **標準入力はすでにバッファ付き**: `io::stdin()` は内部でバッファリングされており、`stdin().lock()` は `BufRead` を実装している。そのため、標準入力に `BufReader` をかぶせる必要はない(前述のミニマム実装例で `stdin.lock().read_line(...)` が使えるのはこのため) 。
+- **書き込み側も同じ発想**: `File` への書き込みも、小さな `write!` を繰り返すとシステムコールが増える。大量に書く場合は `BufWriter` で包み、最後に `flush()` するか、スコープを抜けて `drop` させます。`stdout` は行バッファのため、1行ごとに出力が走る点も同様に意識しておくと安心。
+- **`BufReader` は大きな読み込みをバイパスする**: バッファより大きなサイズを一度に要求した場合、内部バッファを経由せず直接読み込まれる。そのため、「`BufReader` を使うと必ず余分なコピーが入る」というわけではなく、小さな読み込みを多数行うケースで効果が出る仕組み。
+- **エラー文脈の付与**: ファイル読み込みのエラーは `No such file or directory` だけでは、どのファイルか分からない。先ほどの **anyhow** の `.context(format!("{path} を読み込めませんでした"))` を併用すると、原因の特定が格段に楽になる。
 
 
 ### ログ・トレーシング
@@ -3690,7 +3699,7 @@ while reader.read_line(&mut line)? > 0 {
 ### ファイル探索・テキスト処理
 
 - **walkdir**: ディレクトリの再帰走査。
-- **ignore**: `.gitignore` を尊重した走査（ripgrep と同じ実装）。
+- **ignore**: `.gitignore` を尊重した走査 (ripgrep と同じ実装) 。
 - **glob / globset**: ワイルドカードによるパスのマッチング。
 - **regex**: 正規表現。線形時間で動作する安全な実装。
 
@@ -3698,13 +3707,13 @@ while reader.read_line(&mut line)? > 0 {
 
 - **rayon**: `iter()` を `par_iter()` に変えるだけでデータ並列化できる。
 - **tokio**: 非同期ランタイム。ネットワークを多用するCLIで利用する。
-- **reqwest**: HTTP クライアント（`blocking` 機能なら非同期ランタイム不要）。
-- **ctrlc**: `Ctrl+C`（SIGINT）を捕捉して、後始末をしてから終了できる。
+- **reqwest**: HTTP クライアント (`blocking` 機能なら非同期ランタイム不要) 。
+- **ctrlc**: `Ctrl+C` (SIGINT) を捕捉して、後始末をしてから終了できる。
 
 ### テスト
 
 - **assert_cmd**: ビルドしたバイナリを実際に起動し、終了コードや出力を検証する。
-- **predicates**: `assert_cmd` と組み合わせる出力の判定条件（部分一致・正規表現など）。
+- **predicates**: `assert_cmd` と組み合わせる出力の判定条件 (部分一致・正規表現など) 。
 - **assert_fs / tempfile**: テスト用の一時ファイル・ディレクトリを安全に用意する。
 
 ```rust
@@ -3725,7 +3734,7 @@ fn prints_greeting() {
 
 - 1ファイルで済む小さなツールなら、まず `std` だけで書き、引数が複雑になった時点で **clap** を足す。
 - バイナリ配布を意識するなら、依存の多さはビルド時間とバイナリサイズに直結するため、`clap` の `default-features = false` や軽量クレートの選択も検討する。
-- Rust 2024 エディションでは `std::env::set_var` / `remove_var` が `unsafe` になっています（マルチスレッド環境でのデータ競合を避けるため）。環境変数の変更は、他スレッドを起動する前の `main` 冒頭で行うか、そもそも子プロセスに渡す形（`Command::env`）で済ませるのが安全です。
+- Rust 2024 エディションでは `std::env::set_var` / `remove_var` が `unsafe` になっています (マルチスレッド環境でのデータ競合を避けるため) 。環境変数の変更は、他スレッドを起動する前の `main` 冒頭で行うか、そもそも子プロセスに渡す形 (`Command::env`) で済ませるのが安全。
 
 
 ---
@@ -3939,7 +3948,7 @@ Rustターゲットとリンカをインストール。
 # RustにWindows用ターゲットを追加
 rustup target add x86_64-pc-windows-gnu
 
-# C/C++リンカ（MinGW）をWSL2にインストール
+# C/C++リンカ (MinGW) をWSL2にインストール
 sudo apt update
 sudo apt install -y mingw-w64
 ```
