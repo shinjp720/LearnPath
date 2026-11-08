@@ -2727,6 +2727,8 @@ fn main() {
 }
 ```
 
+ターボフィッシュ (`::<>`) の構文については <a href="#turbofish">ジェネリクス</a> を参照。
+
 #### アクセス
 
 - インデックスでアクセス
@@ -3131,6 +3133,212 @@ let code = ch as u32; // 65
 
 ---
 
+## ジェネリクス <a id="generics" data-name="ジェネリクス"></a>
+
+ジェネリクスは、型などを「パラメータ」として受け取ることで、同じコードを複数の型に使い回せるようにする仕組み。<br>
+パラメータは山括弧 `<>` の中に書く。`<>` に入るのは主に次の3種類。
+
+| 種類 | 宣言 | 使う側 |
+| --- | --- | --- |
+| 型 | `<T>` | `Vec<i32>` |
+| ライフタイム | `<'a>` | `&'a str` |
+| 定数 | `<const N: usize>` | `[T; N]` / `Buffer<i32, 3>` |
+
+これに加えて、トレイト境界 (`T: Clone`) や関連型の指定 (`Iterator<Item = i32>`) も `<>` の周辺に現れる。
+
+<pre><code class="tips">&lt;&gt; には「宣言」と「使用」の2つの場面がある。
+宣言：struct Point&lt;T&gt; / fn identity&lt;T&gt; / impl&lt;T&gt; のように、パラメータを導入する。
+使用：Point&lt;i32&gt; / Vec&lt;String&gt; のように、パラメータに具体的なものを当てはめる。</code></pre>
+
+### 型パラメータ
+
+最も基本的なパターン。`T` は型を表すプレースホルダー。
+
+```rust
+struct Point<T> {
+    x: T,
+    y: T,
+}
+
+let p1: Point<i32> = Point { x: 10, y: 20 };
+let p2: Point<f64> = Point { x: 1.0, y: 2.0 };
+```
+
+`T` という名前に特別な意味はなく、`U` や `V` でもよい (慣習として大文字1文字がよく使われる)。
+
+メソッドを定義する `impl` ブロックでも、パラメータを使うには `impl` の直後で宣言する必要がある。
+
+```rust
+impl<T> Point<T> {   // impl<T> が宣言、Point<T> が使用
+    fn x(&self) -> &T {
+        &self.x
+    }
+}
+```
+
+関数の場合は、関数名の直後に宣言する。
+
+```rust
+fn identity<T>(value: T) -> T {
+    value
+}
+```
+
+カンマ区切りで複数のパラメータを指定できる。
+
+```rust
+struct Pair<T, U> {
+    first: T,
+    second: U,
+}
+```
+
+### ターボフィッシュ <a id="turbofish"></a>
+
+関数やメソッドを呼び出すときに、型パラメータを明示する構文。<br>
+型の位置では `Vec<i32>` と書けるが、式の中では `<` が比較演算子と区別できないため、`::<>` と `::` が必要になる。
+
+```rust
+let a = identity::<i32>(10);
+let b = identity(10);                       // 推論できる場合は省略できる (T = i32)
+
+let n = "42".parse::<i32>();                // 変換先の型を明示する
+let v = (0..3).collect::<Vec<i32>>();       // collect の結果の型を明示する
+```
+
+`collect` や `parse` のように、戻り値の型だけが決まらない関数でよく使う。<br>
+具体的な使い方は <a href="#collections">collections</a> の Vec の生成も参照。
+
+### ライフタイムパラメータ
+
+ライフタイムは `'a` のように、**シングルクォート付きの名前**で表す。参照が有効である期間の関係をコンパイラに伝えるためのもので、実行時に何かが渡されるわけではない。
+
+```rust
+struct Text<'a> {
+    value: &'a str, // 文字列を所有せず、参照を保持する
+}
+
+fn longest<'a>(x: &'a str, y: &'a str) -> &'a str {
+    if x.len() > y.len() { x } else { y }
+}
+```
+
+`longest` の `'a` は4か所に登場する。
+
+| 箇所 | 意味 |
+| --- | --- |
+| `<'a>` | ライフタイムパラメータ `'a` を**宣言** |
+| `x: &'a str` | 引数 `x` の参照に `'a` を**使用** |
+| `y: &'a str` | 引数 `y` の参照に `'a` を**使用** |
+| `-> &'a str` | 戻り値の参照にも `'a` を**使用** |
+
+「戻り値の参照は、`x` と `y` の両方が有効な間だけ有効」という関係を表している。
+
+#### 型と一緒に使う
+
+```rust
+struct Container<'a, T> {
+    value: &'a T,
+}
+
+let number = 100;
+let container: Container<'_, i32> = Container { value: &number };
+```
+
+`'_` は、ライフタイムをコンパイラの推論に任せる記法。<a href="#cow">`Cow<'_, str>`</a> のような戻り値の型でもよく見る。
+
+<pre><code class="tips">引数が参照1つだけの関数など、関係が明らかな場合はライフタイムを省略できる (ライフタイム省略規則)。
+fn first_word(s: &amp;str) -&gt; &amp;str  // fn first_word&lt;'a&gt;(s: &amp;'a str) -&gt; &amp;'a str と同じ意味</code></pre>
+
+`'static` については <a href="#constant">定数</a> の static も参照。
+
+### 定数ジェネリクス
+
+型やライフタイムのほかに、**コンパイル時に決まる定数値**もパラメータにできる。配列の長さが代表的な用途。<br>
+`const 名前: 型` の形で宣言し、`N` には整数型・`bool`・`char` が使える。
+
+```rust
+struct Buffer<T, const N: usize> {
+    data: [T; N],
+}
+
+let a: Buffer<i32, 3> = Buffer { data: [10, 20, 30] };
+let b: Buffer<i32, 5> = Buffer { data: [10, 20, 30, 40, 50] };
+```
+
+`Buffer<i32, 3>` と `Buffer<i32, 5>` は、長さが異なる別の型として扱われる。
+
+### 宣言の順序
+
+パラメータを宣言するときは、**ライフタイムを最初**に書く。型と定数はその後に、どちらが先でもよい (慣習としては型 → 定数の順で書くことが多い)。
+
+```rust
+struct Example<'a, T, const N: usize> {
+    value: &'a [T; N],
+}
+
+// NG: 型パラメータをライフタイムより前に置くことはできない
+// struct Example<T, 'a> { value: &'a T }
+```
+
+### トレイト境界
+
+`<>` の中では、型パラメータの後ろに `:` でトレイト境界を指定できる。
+
+```rust
+use std::fmt::Display;
+
+fn print_value<T: Display>(value: T) {
+    println!("{value}");
+}
+```
+
+シグネチャの各部分は次のように対応する。
+
+```rust
+fn print_value<T: Display>(value: T)
+//             ^  ^
+//             |  └─ トレイト境界
+//             └──── 型パラメータ
+```
+
+`T` は型パラメータで、`Display` は `T` に課す制約であり、両者は別物。<br>
+境界を複数指定するときは `T: Display + Debug` のように `+` でつなぐ。`where` 句での書き方も含め、詳しくは <a href="#trait">トレイト</a> のトレイト境界を参照。
+
+<pre><code class="tips">&amp;dyn Display や Box&lt;dyn Display&gt; のような dyn Trait はジェネリクスではなく、トレイトオブジェクトという別の仕組み。
+T: Display は型ごとにコードが生成される (静的ディスパッチ) のに対し、dyn は実行時に呼び出し先を決める (動的ディスパッチ)。</code></pre>
+
+`Box<dyn Trait>` の使用例は <a href="#box">Box</a> を参照。
+
+### 関連型の指定
+
+トレイトが持つ関連型 (`type Item;` など) は、`<>` の中に `名前 = 型` の形で指定する。
+
+```rust
+fn process(iter: impl Iterator<Item = i32>) {
+    for value in iter {
+        println!("{value}");
+    }
+}
+```
+
+`Iterator<Item = i32>` は「要素の型が `i32` であるイテレータ」を表す。<br>
+関連型の定義側については <a href="#trait">トレイト</a> のトレイトの定義も参照。
+
+### `<>` を読み解く順番
+
+コードの `<>` を見たら、次の順で中身を判別すると読みやすい。
+
+1. `'a` のようなライフタイムか？
+2. `T` や `i32` のような型か？
+3. `const N: usize` のような定数か？
+4. `T: Clone` のようなトレイト境界が付いているか？
+5. `Item = i32` のような関連型の指定か？
+
+あわせて、**宣言** (`fn foo<T>` / `impl<T>`) なのか**使用** (`Vec<i32>`) なのかも見分けると、どこで何が導入されているかが追いやすくなる。
+
+---
+
 ## トレイト <a id="trait" data-name="トレイト"></a>
 
 Rust における Trait は他の言語で言うところのインターフェースのようなもので、特定の型が共通して持つべき振る舞いを定義する。
@@ -3284,6 +3492,9 @@ fn main() {
         println!("{}", x);
     }
     ```
+
+境界を複数指定する場合は `+` でつなぐ (`T: Display + Debug`)。<br>
+`<>` の中身全般 (型・ライフタイム・定数) については <a href="#generics">ジェネリクス</a> を参照。
 
 ### 様々なトレイト
 
@@ -4636,8 +4847,12 @@ debug_assert!(x > 0);
 | --- | --- |
 | トレイト (Trait) | 型が持つべき振る舞いの定義。他言語の interface に近い |
 | プレリュード (Prelude) | インポートせずに使える Rust の機能 |
-| ジェネリクス (Generics) | 型を抽象化すること |
+| ジェネリクス (Generics) | 型を抽象化すること。パラメータは `<>` の中に書く |
 | ライフタイム (Lifetime) | 参照が有効である期間 |
+| ターボフィッシュ (Turbofish) | `::<>` の形で、関数やメソッドの型パラメータを明示する構文 |
+| 定数ジェネリクス (Const generics) | `<const N: usize>` のように、コンパイル時に決まる定数値をパラメータにすること |
+| トレイト境界 (Trait bound) | ジェネリック型に課す制約。`T: Display` のように書く |
+| 関連型 (Associated type) | トレイトの中で定義する型。`Iterator<Item = i32>` のように `<>` の中で指定できる |
 | パッケージ (Package) | Cargo で管理されるプロジェクト単位 |
 | クレート (Crate) | Rust のコンパイル単位で、バイナリクレートとライブラリクレートの2種類がある |
 | バイナリクレート | 実行可能ファイルとなる |
