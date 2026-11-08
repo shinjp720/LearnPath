@@ -4214,7 +4214,7 @@ let mut v = vec![1, 2, 3];
 let taken = mem::take(&mut v); // taken = [1, 2, 3], v = []
 ```
 
-<pre><code class="tips">Option<T> には同様のメソッド take() / replace() がある。
+<pre><code class="tips">Option&lt;T&gt; には同様のメソッド take() / replace() がある。
 例: let x = opt.take(); // opt は None になり、元の値が x に入る</code></pre>
 
 ### std::cmp
