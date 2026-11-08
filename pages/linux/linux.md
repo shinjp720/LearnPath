@@ -524,7 +524,7 @@ tail -f /var/log/syslog # ログをリアルタイムで監視</code></pre>
 
 ---
 
-## プロセス管理 <a id="prosece" data-name="プロセス"></a>
+## プロセス管理 <a id="prosece" data-name="プロセス管理"></a>
 
 ### ps
 
