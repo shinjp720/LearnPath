@@ -2051,6 +2051,158 @@ console.log("2: 同期処理");
 // Rust の Future : .await (poll) されるまで何も進まない
 // イベントループ : 単一スレッドの executor (Tokio の current_thread ランタイム) のイメージ</code></pre>
 
+#### イベントループの1周
+
+イベントループは、大まかに次の手順を繰り返している (実際の仕様や実装はもう少し複雑だが、動きを理解するための単純化したモデル)。
+
+```javascript
+while (true) {
+    const task = macrotaskQueue.shift();   // 1. マクロタスクを1つ取り出す
+    run(task);                             // 2. 最後まで実行する (途中で割り込まれない)
+
+    while (microtaskQueue.length > 0) {    // 3. マイクロタスクを、空になるまですべて実行する
+        run(microtaskQueue.shift());       //    (実行中に追加されたものも含む)
+    }
+
+    if (shouldRender) render();            // 4. ブラウザは、必要なら画面を描画する
+}                                          // 5. 次のマクロタスクへ
+```
+
+- 最初に実行されるスクリプト全体も、1つのマクロタスクとして扱われる。
+- マクロタスクは**1回のループで1つだけ**実行される。一方、マイクロタスクは**キューが空になるまで**すべて実行される。
+- 画面の描画は、マクロタスクとマクロタスクの間に、ブラウザが必要と判断した時にだけ行われる。マイクロタスクの実行中には描画されない。
+
+#### 何がどのキューに積まれるか
+
+| 種類 | 代表的なもの |
+| --- | --- |
+| マクロタスク | `setTimeout` / `setInterval` のコールバック、クリックなどの UI イベント、`postMessage` / `MessageChannel` |
+| マイクロタスク | Promise の `then` / `catch` / `finally`、`await` より後の処理、`queueMicrotask()`、`MutationObserver` |
+| 描画の直前 (ブラウザ) | `requestAnimationFrame` のコールバック (タスクキューとは別枠で、描画の直前に実行される) |
+
+`queueMicrotask()` を使うと、Promise を使わずに、マイクロタスクとして処理を積める。
+
+```javascript
+queueMicrotask(() => {
+    console.log("マイクロタスクとして実行される");
+});
+```
+
+#### 実行順序をトレースする
+
+次のコードの出力順を、キューの動きから追ってみる。
+
+```javascript
+console.log("1: script start");
+
+setTimeout(() => console.log("7: setTimeout"), 0);
+
+async function main() {
+    console.log("2: main start");
+    await null;
+    console.log("4: main after await");
+}
+
+main();
+
+Promise.resolve()
+    .then(() => console.log("5: then 1"))
+    .then(() => console.log("6: then 2"));
+
+console.log("3: script end");
+```
+
+| 手順 | 起きること | マイクロタスクキュー | マクロタスクキュー |
+| --- | --- | --- | --- |
+| 1 | `1: script start` を出力する。 | (空) | (空) |
+| 2 | `setTimeout` により、コールバックがマクロタスクとして登録される。 | (空) | setTimeout |
+| 3 | `main()` を呼ぶ。`2: main start` を出力して、`await` で中断する。続きがマイクロタスクとして積まれる。 | main の続き | setTimeout |
+| 4 | `Promise.resolve().then(...)` により、`then 1` が積まれる (`then 2` は、`then 1` の完了後に積まれる)。 | main の続き、then 1 | setTimeout |
+| 5 | `3: script end` を出力する。これでスクリプト (最初のマクロタスク) が終了する。 | main の続き、then 1 | setTimeout |
+| 6 | マイクロタスクを順に実行する。`4: main after await`、`5: then 1` を出力する。`then 1` の完了で、`then 2` が積まれる。 | then 2 | setTimeout |
+| 7 | 追加された `then 2` も、同じマイクロタスクの処理の中で実行する。`6: then 2` を出力する。 | (空) | setTimeout |
+| 8 | マイクロタスクが空になったので、次のマクロタスクを実行する。`7: setTimeout` を出力する。 | (空) | (空) |
+
+ポイントは次の3つ。
+
+- async 関数は、**最初の `await` までは同期的に実行される**。`2: main start` が `3: script end` より先に出力されるのは、このため。
+- `await` より後の処理は、マイクロタスクとして再開される。
+- `setTimeout(…, 0)` は、積まれたマイクロタスクがすべて終わってから実行される。
+
+#### 実行中の処理は割り込まれない
+
+マクロタスク (とマイクロタスク) は、**一度実行を始めたら最後まで実行される** (run-to-completion)。別の処理が途中で割り込むことはないため、変数の書き換えの途中に他のコードが実行されることはない。
+
+一方で、同期的に長く動き続ける処理があると、イベントループが進まなくなり、その間は描画、クリックの処理、タイマーなどがすべて待たされる。
+
+```javascript
+setTimeout(() => console.log("タイマー"), 100);
+
+const start = Date.now();
+while (Date.now() - start < 3000) {
+    // 3秒間、メインスレッドを占有する
+}
+
+// タイマーは 100ms 後ではなく、3秒経過後に実行される
+```
+
+`setTimeout` の待ち時間は、「この時間が経過したら実行する」という保証ではなく、**「この時間が経過する前には実行しない」という最低限の時間**でしかない。実際には、キューに積まれた後、イベントループが取り出せるようになるまで待たされる。
+
+<pre><code class="tips">ブラウザでは、setTimeout / setInterval を入れ子で何度も呼ぶと、最小の待ち時間が約4ms に制限される。
+また、非アクティブなタブでは、タイマーの実行が間引かれることがある。</code></pre>
+
+重い処理をする場合は、次のような方法でイベントループを空ける。
+
+- 処理を小さく分割して、`setTimeout` や `await` の間に挟みながら実行する (他のタスクが割り込める隙間ができる)。
+- Web Worker (Node.js では Worker Threads) に任せて、別スレッドで実行する。
+
+#### マイクロタスクの詰まり (starvation)
+
+マイクロタスクは**空になるまで**実行されるため、マイクロタスクが新しいマイクロタスクを積み続けると、マクロタスクや描画に処理が移らず、画面が固まる。
+
+```javascript
+function loop() {
+    Promise.resolve().then(loop);   // 次のマイクロタスクを積み続ける
+}
+
+loop();   // setTimeout や描画が、永遠に実行されない
+```
+
+<pre><code class="caution">マイクロタスクは、マクロタスクより優先して実行される。
+再帰的に Promise や queueMicrotask を呼び続ける処理は、無限ループと同じように画面を固めてしまう。
+待ち時間を挟みたい場合は、マクロタスク (setTimeout など) を使う。</code></pre>
+
+#### Node.js のイベントループ
+
+Node.js では、イベントループがいくつかの**フェーズ**に分かれていて、フェーズごとに専用のキューがある。
+
+| フェーズ | 主に処理するもの |
+| --- | --- |
+| timers | `setTimeout` / `setInterval` のコールバック |
+| pending callbacks | 一部のシステムレベルのコールバック |
+| poll | I/O (ファイル、ネットワーク) の完了コールバック。必要に応じて、ここで待機する。 |
+| check | `setImmediate` のコールバック |
+| close callbacks | `close` イベントなどのコールバック |
+
+- マイクロタスクは、ブラウザと同様に、各コールバックの実行後に空になるまで実行される。
+- `process.nextTick()` のコールバックは、Promise のマイクロタスクよりも先に実行される。
+- `setTimeout(fn, 0)` と `setImmediate(fn)` の実行順は、メインモジュールから呼んだ場合は保証されない (I/O コールバックの中から呼んだ場合は、`setImmediate` が先)。
+
+```javascript
+process.nextTick(() => console.log("nextTick"));
+Promise.resolve().then(() => console.log("promise"));
+
+// nextTick → promise の順に出力される
+```
+
+<pre><code class="example">// Rustで言うと
+// 実行環境が完了を検知して、続きの処理をキューに積む
+//   ≒ Waker が、準備できたタスクを executor に再スケジュールする
+// イベントループがキューから取り出して実行する
+//   ≒ executor が、タスクを poll する
+// JS ではこの仕組みが言語と実行環境に組み込まれていて、
+// executor を自分で用意したり選んだりする必要はない</code></pre>
+
 ---
 
 ### Promise

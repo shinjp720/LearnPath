@@ -1009,3 +1009,273 @@ try:
 except Exception:
     logger.error(traceback.format_exc())
 ```
+
+## import <a id="import" data-name="import"></a>
+
+`import` は単なる「ファイルを読み込む構文」ではない。<br>
+**モジュールを探して読み込み、その中のオブジェクトを名前空間から使えるようにする仕組み**である。
+
+```text
+import math
+   ↓
+math モジュールを探す (sys.path)
+   ↓
+読み込む (初回のみ実行して sys.modules に保存)
+   ↓
+現在の名前空間に math という名前を登録
+```
+
+### 基本形
+
+```python
+import math                    # モジュールそのものを登録 → math.sqrt(16)
+import math as m               # 別名を付ける          → m.sqrt(16)
+from math import sqrt          # 中の名前を直接登録    → sqrt(16)
+from math import sqrt as s     # 別名を付けて登録      → s(16)
+from math import *             # 公開されている名前をすべて登録
+```
+
+### import と from import の違い
+
+登録される **名前** が違う。
+
+```python
+import math
+math.sqrt(16)      # OK
+sqrt(16)           # NameError
+
+from math import sqrt
+sqrt(16)           # OK
+math.sqrt(16)      # NameError (math という名前は作られていない)
+```
+
+```text
+import math           現在の名前空間 └── math (モジュールオブジェクト)
+from math import sqrt 現在の名前空間 └── sqrt (モジュール内の関数)
+```
+
+`import math` は概念的には `math = <mathモジュール>` に近い。(厳密には単純な代入ではない)
+
+### モジュールとは
+
+`.py` ファイル 1 つがそのままモジュールになる。
+
+```text
+project/
+├── main.py
+└── hello.py
+```
+
+```python
+# hello.py
+message = "Hello"
+
+def say_hello():
+    print(message)
+```
+
+```python
+# main.py
+import hello
+
+hello.say_hello()
+print(hello.message)
+```
+
+### import するとモジュールは実行される
+
+`import hello` すると `hello.py` の **トップレベルのコードが上から順に実行** される。
+
+```python
+# hello.py
+print("hello.py が実行された")
+
+x = 100
+```
+
+```python
+# main.py
+import hello
+print("main.py")
+```
+
+```text
+hello.py が実行された
+main.py
+```
+
+### 2回目以降は再実行されない (sys.modules)
+
+一度読み込んだモジュールは **`sys.modules`** (辞書) にキャッシュされる。<br>
+2回目以降の `import` は、ここにあれば既存のモジュールオブジェクトをそのまま使う。
+
+```python
+import sys
+import math
+
+print("math" in sys.modules)   # True
+print(sys.modules["math"])
+```
+
+### モジュールの検索場所 (sys.path)
+
+Pythonは PC 全体を検索するわけではなく、**`sys.path`** に並んだ場所を順に探す。
+
+```python
+import sys
+print(sys.path)
+```
+
+`sys.path` に含まれる主なもの。
+
+- 実行したスクリプトのあるディレクトリ
+- 標準ライブラリ
+- `site-packages` (`pip install` したパッケージの置き場所)
+- 環境変数 `PYTHONPATH` で指定した場所
+
+```text
+pip install requests → site-packages → sys.path → import requests
+```
+
+### パッケージと `__init__.py`
+
+モジュールをディレクトリでまとめたものが **パッケージ**。
+
+```text
+project/
+├── main.py
+└── myapp/
+    ├── __init__.py
+    ├── user.py
+    └── database.py
+```
+
+```python
+import myapp.user                      # myapp.user.some_function() で使う
+from myapp import user                 # user.some_function()
+from myapp.user import some_function  # some_function()
+```
+
+登録される名前は、`import a.b` なら `a`、`from a import b` なら `b`、`from a.b import c` なら `c`。
+
+`__init__.py` は **パッケージの初期化処理**。`import myapp` したときに実行される。<br>
+ここで再エクスポートしておくと、外から見える構造を整理できる。
+
+```python
+# myapp/__init__.py
+from .user import get_user
+```
+
+```python
+from myapp import get_user   # myapp.user を意識せず使える
+```
+
+### 絶対import と相対import
+
+```python
+from myapp.user import get_user   # 絶対import: ルートから探す
+from .user import get_user        # 相対import: 今いるパッケージから探す
+```
+
+| 記法 | 意味 |
+| --- | --- |
+| `.` | 現在のパッケージ |
+| `..` | 親パッケージ |
+| `...` | さらに親 |
+
+```text
+project/
+├── common/
+│   └── util.py
+└── app/
+    └── service.py
+```
+
+```python
+# app/service.py
+from ..common import util   # project.common.util
+```
+
+### `__name__` と `__main__`
+
+`__name__` の値は、ファイルの使われ方で変わる。
+
+| 使われ方 | `__name__` |
+| --- | --- |
+| `python hello.py` (直接実行) | `"__main__"` |
+| `import hello` | `"hello"` |
+
+```python
+# hello.py
+def hello():
+    print("hello")
+
+if __name__ == "__main__":
+    hello()
+```
+
+`python hello.py` では `hello` が表示されるが、`import hello` では表示されない。<br>
+`if __name__ == "__main__":` は **そのファイルが直接実行されたときだけ実行する** という意味になる。
+
+### `import *` と `__all__`
+
+`from module import *` は名前を大量に展開するため、**名前の衝突** を起こしやすく、通常は避ける。
+
+```python
+from module_a import *
+from module_b import *   # 同名の foo があれば後勝ちで上書きされる
+```
+
+`__all__` を定義すると、`import *` で公開する名前を制御できる。
+
+```python
+# module.py
+__all__ = ["foo", "bar"]
+
+foo = 1
+bar = 2
+baz = 3   # from module import * では取り込まれない
+```
+
+### まとめ
+
+```text
+import
+ ↓
+モジュールを探す  (sys.path)
+ ↓
+見つける
+ ↓
+初回なら実行
+ ↓
+モジュールオブジェクトを作る
+ ↓
+sys.modules にキャッシュ
+ ↓
+指定された名前を現在の名前空間へ登録
+```
+
+| 疑問 | 答え |
+| --- | --- |
+| 何を探す？ | モジュール / パッケージ |
+| どこを探す？ | `sys.path` |
+| 読み込んだものは？ | モジュールオブジェクト |
+| 保存場所は？ | `sys.modules` |
+| どうやって使う？ | 名前空間に名前を登録 |
+| 何が実行される？ | モジュールのトップレベルコード |
+
+### 次に学ぶこと
+
+```text
+import / from import → module → package → __init__.py
+   → __name__ / __main__ → sys.path → sys.modules
+   → absolute / relative import → importlib
+   → module spec / loader / finder
+```
+
+`sys.path` → `sys.modules` → `importlib` まで進むと、次のような疑問まで一本につながる。
+
+- なぜ `import xxx` だけで知らないファイルを見つけられるのか
+- Django で `from .models import User` がなぜ動くのか
+- `pip install` したパッケージがなぜ `import` できるのか
+- 循環importがなぜ起きるのか

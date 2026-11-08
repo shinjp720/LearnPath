@@ -5,6 +5,10 @@ layout: default
 
 # Django <a id="top" data-name="TOP"></a>
 
+## プロジェクトの立ち上げ
+
+- [ Django プロジェクトの立ち上げ手順 ]({{ site.baseurl }}/pages/python/external/django_start.html)
+
 ## 導入 <a id="introduction" data-name="導入"></a>
 
 ### 仮想環境の作成とインストール

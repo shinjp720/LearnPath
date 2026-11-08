@@ -5,11 +5,27 @@ layout: default
 
 # Rust <a id="top" data-name="TOP"></a>
 
-### コメント
+## コメント <a id="comment" data-name="コメント"></a>
 
 ```rust
 // 行末までコメント
-/* 複数行コメント可能 */
+/* 複数行コメント可能 (入れ子にもできる) */
+```
+
+### ドキュメントコメント
+
+| 記法 | 対象 |
+| --- | --- |
+| `///` | 直後の要素 (関数・構造体など) のドキュメント |
+| `//!` | 書いたモジュールやクレート全体のドキュメント (ファイルの先頭に書く) |
+
+Markdown で書け、`cargo doc --open` で HTML のドキュメントとして確認できる。
+
+```rust
+/// 2つの数を足す。
+fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
 ```
 
 ---
@@ -20,7 +36,7 @@ layout: default
 
 #### ビルドツールの準備
 
-C 言語のコンパイラやビルドツール群をあらかじめインストールする。これがないと、多くの Rust 用ライブラリがビルドエラーとなる。
+Rust のビルドにはリンカとして C コンパイラ (`cc`) が必要で、C のコードを含むクレートのビルドにも使われる。あらかじめインストールしておかないとビルドエラーになることがある (以下は Ubuntu / Debian 系の例)。
 
 ```bash
 sudo apt update
@@ -32,6 +48,8 @@ sudo apt install -y build-essential curl gcc
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
+
+対話なしで既定の設定のままインストールするには、末尾を `sh -s -- -y` にする。
 
 #### 環境変数の反映
 
@@ -61,9 +79,12 @@ rustup component add clippy
 rustup component add rust-analyzer
 ```
 
+<pre><code class="tips">既定のプロファイルには rustfmt と clippy が含まれているため、通常は追加不要 (rustup show で確認できる)。
+rust-analyzer は VS Code 拡張機能などにも同梱されている。標準ライブラリのソースへジャンプしたい場合は、rust-src コンポーネントも追加する。</code></pre>
+
 ---
 
-## rustup <a id="runsup" data-name="rustup"></a>
+## rustup <a id="rustup" data-name="rustup"></a>
 
 Rust という言語・開発環境そのものを管理するツール。
 
@@ -74,6 +95,10 @@ Rust という言語・開発環境そのものを管理するツール。
 | `rustup component add rustfmt`<br>`rustup component add clippy`<br>`rustup component add rust-analyzer` | 必須級のツール (コード整形、静的解析、言語サーバー) を導入する |
 | `rustup target add wasm32-unknown-unknown`<br>`rustup target list --installed` | クロスコンパイル (他の OS/環境向けビルド) 用のターゲットの追加と、導入済みターゲットの確認 |
 | `rustup self update` | rustup 自体のアップデート |
+| `rustup toolchain install nightly`<br>`rustup toolchain list` | stable 以外のツールチェーン (nightly / beta / 特定バージョン) の導入と、導入済みツールチェーンの確認 |
+| `rustup default stable` | 既定で使うツールチェーンを切り替える |
+| `rustup override set nightly` | カレントディレクトリ (プロジェクト) でだけ別のツールチェーンを使う |
+| `rustup doc`<br>`rustup doc --std` | ローカルにインストール済みのドキュメント (標準ライブラリ、The Book など) をブラウザで開く。オフラインでも読める |
 
 ---
 
@@ -85,23 +110,29 @@ Rust という言語・開発環境そのものを管理するツール。
 | --- | --- |
 | `cargo new プロジェクト名` | プロジェクト名で新たにプロジェクトディレクトリを作る |
 | `cargo init` | カレントディレクトリをプロジェクトディレクトリとする |
-| `cargo run` | プロジェクトのビルドと実行を1ステップで行う |
+| `cargo run` | プロジェクトのビルドと実行を1ステップで行う<br>プログラムへの引数は `cargo run -- 引数` のように `--` の後ろに書く |
 | `cargo build` | プロジェクトをビルドする |
 | `cargo build --release` | 最適化を有効にしたリリースビルドを行う |
 | `cargo check` | バイナリを生成せずにビルドして、エラーチェックができる |
 | `cargo test` | テストを実行する |
 | `cargo add クレート名` | 依存クレートを Cargo.toml に追加する |
+| `cargo fmt` | rustfmt でコードを整形する |
+| `cargo clippy` | clippy で静的解析 (リント) を行う |
+| `cargo doc --open` | ドキュメントを生成してブラウザで開く (依存クレートの分も含まれる) |
+| `cargo update` | Cargo.lock の依存クレートを、Cargo.toml が許す範囲で最新にする |
+| `cargo tree` | 依存関係をツリーで表示する |
+| `cargo clean` | `target` ディレクトリ (ビルド成果物) を削除する |
 
 ### 自作ツールをインストールする
 
-<code class="code-like">cargo install</code> は、バイナリ crate をリリースビルドして、PATH の通った場所にインストールする。これにより、その時点の実行ファイルをターミナルから使用できるようになる。
+<span class="code-like">cargo install</span> は、バイナリ crate をリリースビルドして、PATH の通った場所にインストールする。これにより、その時点の実行ファイルをターミナルから使用できるようになる。
 
-- Cargo.toml にバイナリの設定がある必要がある
-    - プロジェクトがライブラリではなく実行ファイルとして構成されている
-    - または `[[bin]]` セクションが定義されている
+- バイナリターゲット (実行ファイル) がある必要がある
+    - `src/main.rs` がある (または `src/bin/` 配下にファイルがある)
+    - または Cargo.toml に `[[bin]]` セクションが定義されている
 - デフォルトで `~/.cargo/bin` に実行ファイルが配置される
 
-Rust アプリケーション (バイナリ crate) を cargo install でインストールする方法は大別して2つある。
+Rust アプリケーション (バイナリ crate) を `cargo install` でインストールする方法は大別して3つある (ローカルディレクトリ、GitHub、crates.io)。
 
 #### ローカルディレクトリからインストール
 
@@ -136,6 +167,8 @@ Cargo.toml に記載してあるパッケージ名を指定する。
 cargo uninstall <パッケージ名>
 ```
 
+`--root` を指定してインストールした場合は、アンインストール時にも同じ `--root` を指定する (`cargo uninstall --root ~ <パッケージ名>`)。
+
 #### GitHub からインストール
 
 ```bash
@@ -146,9 +179,24 @@ cargo install --git https://github.com/username/repository_name.git
 
 | 指定したい対象 | オプション | コマンド例 |
 | --- | --- | --- |
-| 特定のコミット | --rev | `cargo install --git <URL> --rev 1a2b3c4d` |
-| 特定のブランチ | --branch | `cargo install --git <URL> --branch develop` |
-| 特定のタグ | --tag | `cargo install --git <URL> --tag v1.0.0` |
+| 特定のコミット | `--rev` | `cargo install --git <URL> --rev 1a2b3c4d` |
+| 特定のブランチ | `--branch` | `cargo install --git <URL> --branch develop` |
+| 特定のタグ | `--tag` | `cargo install --git <URL> --tag v1.0.0` |
+
+#### crates.io からインストール
+
+crates.io に公開されているバイナリ crate は、クレート名を指定するだけでインストールできる。
+
+```bash
+cargo install ripgrep
+```
+
+| 指定したい対象 | オプション | コマンド例 |
+| --- | --- | --- |
+| 特定のバージョン | `--version` | `cargo install ripgrep --version 14.1.0` |
+| Cargo.lock の通りに依存を解決する | `--locked` | `cargo install ripgrep --locked` |
+
+`cargo install --list` で、インストール済みのツールを確認できる。
 
 ---
 
@@ -166,9 +214,9 @@ Cargo package
      └─ modules...
 ```
 
-- package：Cargoプロジェクト全体
-- crate：コンパイル単位
-- module：crateの中を整理する名前空間
+- package: Cargo プロジェクト全体
+- crate: コンパイル単位
+- module: crate の中を整理する名前空間
 
 ```text
 my_app/
@@ -188,11 +236,14 @@ package: my_app
 
 となる。
 
+1つの package には、library crate を最大1つ、binary crate をいくつでも含められる。
+
 ### crate root
 
-crate には必ず根 (root) があり、library crate であれば lib.rs が、binary crate であれば main.rs が root となる。
+crate には必ず根 (root) があり、library crate であれば lib.rs が、binary crate であれば main.rs が root となる。<br>
+`src/bin/` 配下の各 `.rs` ファイルも、それぞれ独立した binary crate の root になる。
 
-### mod モジュール名 により 子module を宣言する
+### mod モジュール名 により 子 module を宣言する
 
 例えば lib.rs における `mod search;` は、この module の中に search という module がある、という宣言になる。
 
@@ -206,7 +257,7 @@ crate
 └─ search
 ```
 
-### 同名の .rs とディレクトリを作って 子module を定義する
+### 同名の .rs とディレクトリを作って 子 module を定義する
 
 子 module を定義するには、このようにファイルとディレクトリを作って、
 
@@ -242,6 +293,39 @@ crate
 ```
 
 となる。
+
+### mod.rs を使う旧来の書き方
+
+```text
+src/
+├─ lib.rs
+└─ search/
+    ├─ mod.rs   ← search module の本体 (search.rs の代わり)
+    └─ file.rs
+```
+
+どちらの書き方でも同じ module 構造になる。現在は `search.rs` と `search/` を並べる形が主流で、ファイル名だけでどの module か分かりやすい。
+
+### 可視性 pub と use
+
+module の中の要素は、既定では非公開で、定義された module とその子 module の中でしか使えない。外から使わせたいものには `pub` を付ける。
+
+```rust
+// lib.rs
+mod search;           // 非公開の module (クレートの外からは見えない)
+pub mod util;         // 公開する module
+
+pub use search::find; // search::find (search 内で pub fn として宣言されている前提) を crate 直下に再公開する
+```
+
+`pub(crate)` を付けると、同じクレートの中だけに公開できる。<br>
+使う側では `use` でパスを短縮できる。
+
+```rust
+use my_app::util::helper; // main.rs などから、自作の lib.rs の要素を使う
+use crate::search::find;  // 自分のクレートの root から数えたパス
+use super::config;        // 1つ上の module から数えたパス
+```
 
 ### バイナリクレートとライブラリクレート
 
@@ -308,17 +392,31 @@ if let _ = value {
 }
 ```
 
+`if let _ = value` は常にマッチするため、コンパイラに警告される (説明用の例)。通常は `match` の最後の `_ =>` として使う。
+
 #### リテラル
 
 値そのものを比較する。
 
 ```rust
-match x {
+// 整数
+match n {
     0 => {}
     1 => {}
     100 => {}
+    _ => {}
+}
+
+// bool
+match flag {
     true => {}
+    false => {}
+}
+
+// 文字
+match c {
     'a' => {}
+    _ => {}
 }
 ```
 
@@ -448,7 +546,7 @@ match value {
         println!("{x}");
     }
     None => {
-        println!("None.")
+        println!("None.");
     }
 }
 ```
@@ -536,6 +634,8 @@ match option {
     None => {}
 }
 ```
+
+<pre><code class="tips">ref / ref mut は、参照に対してマッチする書き方 (match &option) で代用できるため、現在はほとんど使われない。</code></pre>
 
 #### &
 
@@ -639,6 +739,8 @@ if は式なので、let の右辺に持ってきて、値を返して束縛す�
 ```rust
 let number = if condition { 5 } else { 6 };
 ```
+
+各ブランチの型は同じにそろえる必要がある。
 
 ### if let
 
@@ -840,7 +942,7 @@ continue は、以降の処理を飛ばして、ループの次の反復に進�
 fn main() {
     'outer: loop {
         println!("Entered the outer loop");
-        'inner: loop {
+        loop {
             println!("Entered the inner loop");
             // これは内側のループのみを中断
             // break;
@@ -851,6 +953,21 @@ fn main() {
     }
     println!("Exited the outer loop");
 }
+```
+
+#### ラベル付きブロック
+
+Rust 1.65 以降は、ループ以外のブロックにもラベルを付けて、`break` で値を返しながら途中で抜けられる。
+
+```rust
+let found = 'search: {
+    for x in [1, 2, 3] {
+        if x == 2 {
+            break 'search Some(x); // ブロックを抜けて、その値がブロックの値になる
+        }
+    }
+    None
+};
 ```
 
 ---
@@ -1002,9 +1119,11 @@ Rectangle::square(3);
 
 ### 高階関数
 
-関数やクロージャを引数として受け取る関数。
+関数やクロージャを引数として受け取る関数。<br>
+以下はイテレータ (後述) の主なメソッド。<br>
+`map` や `filter` のようにクロージャを受け取るものが高階関数にあたる (`enumerate` や `collect` など、クロージャを取らないものも併せて載せている)。
 
-| 関数 | 役割 |
+| メソッド | 役割 |
 | --- | --- |
 | `map` | 各要素を変換 |
 | `filter` | 条件に合う要素だけ残す |
@@ -1018,10 +1137,10 @@ Rectangle::square(3);
 | `all` | すべての要素が条件を満たすか |
 | `position` | 条件に合う要素の位置を探す |
 | `enumerate` | `(index, value)` にする |
-| `zip` | 2つのIteratorを組み合わせる |
-| `take` | 先頭からN個だけ |
-| `skip` | 先頭N個を飛ばす |
-| `collect` | Iteratorをコレクションにする |
+| `zip` | 2つの Iterator を組み合わせる |
+| `take` | 先頭から N 個だけ |
+| `skip` | 先頭 N 個を飛ばす |
+| `collect` | Iterator をコレクションにする |
 
 #### map
 
@@ -1055,7 +1174,7 @@ let result: Vec<_> = nums
 
 要素の変換 (map) と不要な要素の除外 (filter) を同時に行う。<br>
 クロージャが Some(value) を返した要素を残して None を返した要素を無視する。<br>
-`FnMut(Self::Item) -> Option<B>` というトレイトを実装したものであれば関数も渡せる。
+クロージャのほか、`FnMut(Self::Item) -> Option<B>` として呼び出せるものであれば、通常の関数も渡せる。
 
 ```rust
 fn main() {
@@ -1188,12 +1307,12 @@ let result: Vec<_> = nums
     // [0, 0, 1, 0, 1, 2]
 ```
 
-```rust
-// 普通のmapだとこうなる
+```text
+// 普通の map だとこうなる (イテレータのイテレータになる)
 [[0], [0, 1], [0, 1, 2]]
 ```
 
-### アダプタ
+### アダプタと消費メソッド
 
 イテレータアダプタは、新しいイテレータを返すメソッド。<br>
 遅延評価 (lazy) のため、`collect()` などで消費するまで処理は行われず、要素が1つずつチェーンを通って評価される。
@@ -1204,6 +1323,24 @@ v.iter()
     .map(|x| x * 2)
     .collect::<Vec<_>>(); // ここで消費されて初めて処理が走る
 ```
+
+| 種類 | 主なメソッド |
+| --- | --- |
+| アダプタ (新しいイテレータを返す。遅延評価) | `map`, `filter`, `filter_map`, `flat_map`, `flatten`, `enumerate`, `zip`, `chain`, `take`, `skip`, `take_while`, `skip_while`, `step_by`, `rev`, `cloned`, `copied`, `peekable`, `inspect` |
+| 消費メソッド (イテレータを使い切って値を返す) | `collect`, `sum`, `product`, `count`, `fold`, `for_each`, `min`, `max`, `last`, `find`, `position`, `any`, `all`, `partition`, `unzip` |
+
+```rust
+// 条件を満たす間だけ / 満たさない間は読み飛ばす
+let v: Vec<_> = (1..=10).skip_while(|n| *n < 3).take_while(|n| *n <= 6).collect(); // [3, 4, 5, 6]
+
+// 条件で2つのコレクションに振り分ける
+let (even, odd): (Vec<i32>, Vec<i32>) = (1..=6).partition(|n| n % 2 == 0);
+// even = [2, 4, 6], odd = [1, 3, 5]
+```
+
+<pre><code class="tips">min() / max() は空のイテレータだと None を返すため Option になる。
+f64 は Ord を実装しないので min() / max() が使えない。
+max_by(|a, b| a.total_cmp(b)) などを使う。</code></pre>
 
 #### filter
 
@@ -1254,7 +1391,7 @@ let v: Vec<_> = iter.collect();
 ### 基本構文
 
 ```rust
-|引数| 式;
+|引数| 式
 ```
 
 以下はすべて同じ意味で、下に行くほど表記が省略されている。
@@ -1265,6 +1402,8 @@ let add_one_v2 = |x: u32| -> u32 { x + 1 };
 let add_one_v3 = |x| { x + 1 };
 let add_one_v4 = |x| x + 1;
 ```
+
+`v3` / `v4` のように型注釈を省略した場合は、最初に使われた箇所から引数と戻り値の型が推論される (一度も使わないと推論できずエラーになる)。
 
 ### キャプチャ
 
@@ -1286,6 +1425,7 @@ println!("{}", f(5)); // 15
     ```rust
     let x = 10;
     let f = |y| x + y; // &x を借用
+    f(5);              // 呼び出すことで y の型も決まる
     println!("{}", x); // OK
     ```
     - `Fn + FnMut + FnOnce` を実装。
@@ -1315,6 +1455,33 @@ println!("{}", f(5)); // 15
 <pre><code class="tips">move はキャプチャの方法 (所有権をクロージャに移す) を指定するもので、実装するトレイトは本体の処理で決まる。
 例えば move || println!("{}", x) は、x を読むだけなので Fn も実装する。</code></pre>
 
+### クロージャを引数・戻り値にする
+
+```rust
+// 引数: ジェネリクスとトレイト境界で受け取る
+fn apply<F: Fn(i32) -> i32>(f: F, x: i32) -> i32 {
+    f(x)
+}
+
+// 戻り値: 1種類のクロージャなら impl Fn
+fn make_adder(n: i32) -> impl Fn(i32) -> i32 {
+    move |x| x + n // n を所有してクロージャに持たせる
+}
+
+// 戻り値: 条件によって異なるクロージャを返すなら Box<dyn Fn>
+fn make_op(add: bool) -> Box<dyn Fn(i32) -> i32> {
+    if add { Box::new(|x| x + 1) } else { Box::new(|x| x - 1) }
+}
+```
+
+| 受け取りたいもの | 使うトレイト |
+| --- | --- |
+| 何度でも呼べて、状態を変更しない | `Fn` |
+| 何度でも呼べて、状態を変更する | `FnMut` |
+| 1回だけ呼べればよい (所有権を消費してもよい) | `FnOnce` |
+
+引数で受け取る側は、できるだけ要求の緩い `FnOnce` → `FnMut` → `Fn` の順に、必要最小限のものを選ぶと、呼び出し側が渡せるクロージャの範囲が広がる。
+
 ---
 
 ## イテレータ <a id="Iterator" data-name="イテレータ"></a>
@@ -1334,18 +1501,43 @@ trait Iterator {
 
 所有権に応じて3種類のイテレータがある。
 
-1. iter()
+1. `iter()`
     - 借用
-    - 型：`&T`
+    - 型: `&T`
     - 不変参照
-2. iter_mut()
+2. `iter_mut()`
     - 可変借用
-    - 型：`&mut T`
+    - 型: `&mut T`
     - 値が変更可能
-3. into_iter()
+3. `into_iter()`
     - ムーブ
-    - 型：`T`
+    - 型: `T`
     - 元のコレクションは使えなくなる
+
+### 自作のイテレータ
+
+`next()` だけを実装すれば、`map` や `filter` などのアダプタはデフォルト実装がそのまま使える。
+
+```rust
+struct Counter {
+    count: u32,
+}
+
+impl Iterator for Counter {
+    type Item = u32;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.count < 5 {
+            self.count += 1;
+            Some(self.count)
+        } else {
+            None // None を返すとイテレーションが終わる
+        }
+    }
+}
+
+let v: Vec<u32> = Counter { count: 0 }.map(|x| x * 10).collect(); // [10, 20, 30, 40, 50]
+```
 
 ---
 
@@ -1472,12 +1664,11 @@ fn main() {
 
 #### `Rc<T>` を単独で使用するケース
 
-- 通常の借用 `(&T)` は、所有者が借りる側よりも長く生きることをコンパイラに証明する必要があるが、
-グラフ構造や木構造で、親ノードが消えても子ノードが別の場所から参照されて生き残る必要がある場合や、
-イベント駆動・コールバックのイベントなど、いつ実行されるか分からない関数にデータを渡す場合。
-- 一部のライブラリや関数が、引数として参照 `(&T)` ではなく所有権 `(T)` を要求する場合、
- `Rc<T>` であれば `clone()` で増えるのは参照カウントだけでコストが少ない。
-- `Rc<T>` は一度作ったら中身が変わらないという特性を持つため、低コストで配れる。
+- 通常の借用 (`&T`) は、所有者が借り手よりも長く生きていることをコンパイラに証明できる必要がある。そうできない場合に使う。
+    - グラフ構造や木構造で、親ノードが消えても子ノードが別の場所から参照されて生き残る必要がある場合
+    - イベント駆動のコールバックなど、いつ実行されるか分からない関数にデータを渡す場合
+- 参照 (`&T`) ではなく所有権 (`T`) を要求するライブラリや関数に渡したい場合。`clone()` で増えるのは参照カウントだけなので、コストが小さい。
+- `Rc<T>` の中身は共有参照としてしか触れず変更できないため、読み取り専用のデータを多くの場所に配る用途に向く。
 
 ### `Weak<T>` <a id="weak"></a>
 
@@ -1531,7 +1722,7 @@ fn main() {
 ### `Arc<T>` <a id="arc"></a>
 
 `Arc<T>` はマルチスレッド用の `Rc<T>` で、参照カウントの増減がアトミックに行われるため、スレッド間で安全に共有できる。<br>
-CPUのキャッシュ同期などを行うため、 `Rc<T>` と比べて実行コストがある。<br>
+参照カウントの増減にアトミック操作 (CPU 間のキャッシュ同期など) を使うため、`Rc<T>` と比べて実行コストがある。<br>
 可変で扱う場合は、`Mutex<T>` と併せて使う。
 
 #### 使い方
@@ -1566,7 +1757,8 @@ fn main() {
 `RefCell<T>` は、借用規則のチェックをコンパイル時から実行時に移す仕組み (内部可変性)。<br>
 コードが借用規則に則っているとプログラマが確証を得ているが、コンパイラがそれを理解し保証できない場合に有用。<br>
 `RefCell<T>` はシングルスレッド用で、スレッド間で共有する場合は `Mutex` を使う。<br>
-実行時に借用規則に違反すると、パニックが発生する。
+実行時に借用規則に違反すると、パニックが発生する。<br>
+パニックさせたくない場合は、`try_borrow()` / `try_borrow_mut()` で `Result` として受け取れる。
 
 #### `RefCell` を使うべきケース
 
@@ -1671,7 +1863,7 @@ fn main() {
     for _ in 0..10 {
         let counter = Arc::clone(&counter);
         let handle = thread::spawn(move || {
-            // ロックを取得。他のスレッドがロック保持中にパニックした場合は Err が返るため unwrap() で取り出す
+            // ロックを取得。他のスレッドがロック保持中にパニックした場合 (ポイズニング) は Err が返るため unwrap() で取り出す
             let mut num = counter.lock().unwrap();
             *num += 1;
         }); // ここで num (MutexGuard) がスコープを抜け、自動でロック解除
@@ -1767,7 +1959,7 @@ fn main() {
 ```
 
 <pre><code class="tips">Cow&lt;str&gt; は &amp;str と同じように使える (Deref を実装している)。
-文字列としての使い方は、「文字列」の Cow (コピーオンライト) も参照。</code></pre>
+文字列としての使い方は、「文字列」の Cow (Clone-on-Write) も参照。</code></pre>
 
 ---
 
@@ -1794,8 +1986,14 @@ Rust には、利用可能な機能が3つの層に分かれている。
 ### type
 
 型エイリアス (type) を用いると型の名前があまりに長かったり、あまりに一般的だったりで改名したい場合に役立つ。<br>
-命名する名前は UpperCamelCase である必要がある。唯一の例外は基本型 (usize, f32 など)。<br>
+命名は UpperCamelCase にするのが慣例 (従わないとコンパイラに警告される)。例外は基本型の名前 (usize, f32 など)。<br>
 あくまでエイリアスであり新たな型を定義しているわけではないことに注意。
+
+```rust
+type Meters = u32;                                // 意味が分かる別名を付ける
+type Callback = Box<dyn Fn(i32) -> i32>;          // 長い型に短い名前を付ける
+type Result<T> = std::result::Result<T, MyError>; // エラー型を固定した Result (ライブラリでよく使う)
+```
 
 ### 型キャスト
 
@@ -1817,7 +2015,7 @@ println!("Casting: {} -> {} -> {}", decimal, integer, character);
 ```
 
 <pre><code class="caution">大きい型から小さい型へのキャストでは、上位ビットが切り捨てられる。
-浮動小数点数から整数へのキャストでは、小数部が切り捨てられ、範囲外の値は最小値・最大値に丸められる。</code></pre>
+浮動小数点数から整数へのキャストでは、小数部が切り捨てられ、範囲外の値は最小値・最大値に丸められる (NaN は 0 になる)。</code></pre>
 
 #### トレイトを使った安全な型変換
 
@@ -1850,7 +2048,7 @@ if let Ok(value) = small_number {
 }
 ```
 
-##### From の実装
+##### `From` の実装
 
 `From` を実装すると対になる `Into` はコンパイラが自動で実装してくれる。
 
@@ -1877,7 +2075,7 @@ fn main() {
 }
 ```
 
-##### TryFrom の実装
+##### `TryFrom` の実装
 
 `TryFrom` を実装すると、対になる `TryInto` も自動で使えるようになる。
 
@@ -1937,9 +2135,9 @@ fn main() {
 
 <pre><code class="tips">この例は、安全な f32::from_bits(raw_bits) で書き換えられる。transmute は最後の手段として考える。</code></pre>
 
-#### 生ポインタのキャスト
+##### 生ポインタのキャスト
 
-C言語のようなメモリアドレスの型変換。<br>
+C 言語のようなメモリアドレスの型変換。<br>
 中身を参照(デリファレンス)する際に `unsafe` が必要。
 
 ```rust
@@ -1987,6 +2185,22 @@ fn main() {
 | 8進数 | `0o77` |
 | 2進数 | `0b1111_0000` |
 | バイト (u8 のみ) | `b'A'` |
+| 型サフィックス | `42u8`, `1_000_i64`, `2.5_f32` |
+
+型を指定しない場合、整数は `i32`、浮動小数点数は `f64` になる。
+
+#### オーバーフロー
+
+整数が型の範囲を超えると、デバッグビルドではパニックし、リリースビルドでは (既定では) 折り返される。意図を明示するには専用のメソッドを使う。
+
+| メソッド | 動作 | `250u8` に 10 を足した結果 |
+| --- | --- | --- |
+| `wrapping_add` | 折り返す | `4` |
+| `checked_add` | オーバーフローしたら `None` を返す | `None` |
+| `saturating_add` | 最大値・最小値で止める | `255` |
+| `overflowing_add` | 折り返した値とオーバーフローしたかを返す | `(4, true)` |
+
+`sub` / `mul` など他の演算にも同じ接頭辞のメソッドがある。
 
 ### 文字型
 
@@ -2024,6 +2238,18 @@ let a: [i32; 5] = [1, 2, 3, 4, 5];
 
 ```rust
 let a = [3; 5]; // 5つの要素をすべて3で初期化
+```
+
+#### 長さとアクセス
+
+配列は固定長で、長さも型の一部 (`[i32; 3]` と `[i32; 5]` は別の型)。要素数を変えたい場合は `Vec` を使う。
+
+```rust
+let a = [10, 20, 30];
+
+println!("{}", a.len()); // 3
+println!("{}", a[1]);    // 20
+// a[3];                 // 範囲外: インデックスが定数ならコンパイルエラー、変数なら実行時にパニック
 ```
 
 ### タプル
@@ -2074,19 +2300,36 @@ fn main() -> () {}
 
 ## 定数 <a id="constant" data-name="定数"></a>
 
-Rustには2種類の定数があり、いずれもグローバルスコープを含む任意のスコープで宣言が可能。<br>
+Rust には2種類の定数があり、いずれもグローバルスコープを含む任意のスコープで宣言が可能。<br>
 またいずれも型を明示する必要がある。
 
 ### const
 
 通常の定数はこちらを使う。<br>
-`const` はコンパイル時に評価され、使用箇所に値がインライン展開されるため、変更できない。<br>
-実質的にリテラルと `const` は同等。
+`const` はコンパイル時に評価され、使用箇所に値がインライン展開される (メモリ上の固定アドレスを持たない)。実質的にリテラルと同等。<br>
+常に不変で `mut` は付けられない。名前は `SCREAMING_SNAKE_CASE` にするのが慣例。
+
+```rust
+const MAX_POINTS: u32 = 100_000;
+const SECONDS_PER_DAY: u32 = 60 * 60 * 24; // コンパイル時に計算できる式が書ける
+```
 
 ### static
 
-`static` はプログラムの実行中は必ず存在する一意の値で、参照(&)を取ることができ、 `'static` なライフタイムを持つ。<br>
+`static` はプログラムの実行中は必ず存在する一意の値で、参照 (`&`) を取ることができ、`'static` なライフタイムを持つ。<br>
 `Mutex` や `Atomic*` などの内部可変性を使うか、`static mut` を `unsafe` で扱うことで変更できる (`static mut` は避けるのが望ましい)。
+
+```rust
+use std::sync::atomic::{AtomicU32, Ordering};
+
+static GREETING: &str = "hello";
+static COUNTER: AtomicU32 = AtomicU32::new(0);
+
+COUNTER.fetch_add(1, Ordering::Relaxed); // static のまま値を変更できる
+```
+
+<pre><code class="caution">Rust 2024 エディションでは、static mut への参照を作ること自体が既定でエラーになる。
+実行時に初期化したい値は、OnceLock や LazyLock を使う (std::sync を参照)。</code></pre>
 
 ---
 
@@ -2100,13 +2343,15 @@ Rust における文字列 (および文字) の表現は3種類ある。
 | `&str` | 文字列データへの参照で、データの開始ポインタと長さを持つ |
 | `char` | 1つの文字そのもの。Unicode で常に4バイト |
 
+### 基本操作
+
 #### 生成
 
 ```rust
 let mut s = String::new(); // 空の文字列
 
 // 以下の例は等価
-let data = "initial contents"; // リテラルは&str(不変参照)
+let data = "initial contents"; // リテラルは &str (不変参照)
 let s = data.to_string(); // &strからStringを生成(ヒープに確保)
 
 let s = String::from("initial contents"); // fromで生成
@@ -2114,7 +2359,7 @@ let s = String::from("initial contents"); // fromで生成
 
 #### 文字列スライス
 
-文字列スライスとは、Stringの一部への参照で、開始地点へのポインタと長さ(len)の情報を持つ。
+文字列スライスとは、String の一部への参照で、開始地点へのポインタと長さ(len)の情報を持つ。
 
 ```rust
 let s = String::from("hello world");
@@ -2137,6 +2382,8 @@ let s2 = String::from("world!");
 let s3 = s1 + &s2; // s1はムーブされもう使用できない
 ```
 
+`+` の左辺は `String` (所有権がムーブされる)、右辺は `&str`。`&String` は自動で `&str` に変換されるため、`&s2` と書ける。
+
 #### format!マクロでの文字列の連結
 
 ```rust
@@ -2153,7 +2400,7 @@ let s = format!("{s1}-{s2}-{s3}");
 
 文字列の部分に対して操作を行う場合は、文字に対して操作したいのかバイトに対して操作したいのかを明示する。
 
-#### charに変換
+#### char に変換
 
 ```rust
 for c in "Зд".chars() {
@@ -2168,14 +2415,39 @@ let chars: Vec<char> = s.chars().collect();
 println!("{}", chars[3]);
 ```
 
-collect()すると、ひとつの要素がchar型(4バイト)となる。
+collect()すると、ひとつの要素が char 型(4バイト)となる。
 
-#### byteに変換
+#### byte に変換
 
 ```rust
+// "Зд" は2文字だが、UTF-8 では4バイト (208, 151, 208, 180)
 for b in "Зд".bytes() {
     println!("{b}");
 }
+```
+
+### よく使うメソッド
+
+| メソッド | 説明 |
+| --- | --- |
+| `len()` | バイト数 (文字数ではない。文字数は `chars().count()`) |
+| `is_empty()` | 空かどうか |
+| `contains("x")` / `starts_with("x")` / `ends_with("x")` | 部分文字列を含むか / 前方一致 / 後方一致 |
+| `find("x")` | 最初に見つかったバイト位置を `Option<usize>` で返す |
+| `replace("a", "b")` | 置換した新しい `String` を返す |
+| `trim()` / `trim_start()` / `trim_end()` | 前後の空白を取り除いた `&str` を返す |
+| `split(',')` / `split_whitespace()` / `lines()` | 区切って、要素を順に返すイテレータにする |
+| `to_uppercase()` / `to_lowercase()` | 大文字 / 小文字にした新しい `String` を返す |
+| `char_indices()` | `(バイト位置, char)` を順に返すイテレータ |
+| `parse::<T>()` | 数値などに変換する (`Result` を返す) |
+| `repeat(n)` | n 回繰り返した新しい `String` を返す |
+
+```rust
+let s = "  Hello, 世界  ";
+let t = s.trim(); // "Hello, 世界"
+
+println!("{}", t.len());           // 13 (バイト数: 世界 は1文字3バイト)
+println!("{}", t.chars().count()); // 9 (文字数)
 ```
 
 ### 文字列の表現
@@ -2195,7 +2467,7 @@ for b in "Зд".bytes() {
 - 可変バイト列<br>
     `String` の中身と同じ構造だが、UTF-8 の保証はない。
     ```rust
-    let mut v = vec![104, 101, 108, 108, 111];
+    let mut v: Vec<u8> = vec![104, 101, 108, 108, 111]; // "hello"
     ```
 
 - バイト文字列リテラル<br>
@@ -2213,12 +2485,12 @@ for b in "Зд".bytes() {
     ```
 
 - ダブルクォートを含めたい場合<br>
-    `r#"..."#` で囲む。
+    `r#"..."#` で囲む。`"#` を含む場合は `#` の数を増やす (`r##"..."##`)。
     ```rust
     let s = r#"{"key": "value"}"#;
     ```
 
-#### OS依存文字列
+#### OS 依存文字列
 
 OS のネイティブな文字列表現 (`OsStr` / `OsString`) で、UTF-8 とは限らない。ファイルパス (`Path`) や環境変数などで使われる。
 
@@ -2226,17 +2498,17 @@ OS のネイティブな文字列表現 (`OsStr` / `OsString`) で、UTF-8 と�
 use std::ffi::OsStr;
 ```
 
-#### C互換文字列
+#### C 互換文字列
 
-C言語とやり取りするためのNULL終端文字列。
+C 言語とやり取りするための NUL 終端文字列 (`CString` / `CStr`)。
 
 ```rust
 use std::ffi::CString;
 ```
 
-#### Cow(コピーオンライト)
+#### Cow (Clone-on-Write)
 
-無駄なコピーを避けるためのenumで、ライブラリ設計で重要になる。
+無駄なコピーを避けるための enum で、ライブラリ設計で重要になる。詳しくは <a href="#cow">スマートポインタの Cow</a> を参照。
 
 ```rust
 enum Cow<'a, B: ?Sized> {
@@ -2254,16 +2526,25 @@ let mut cow: Cow<str> = Cow::Borrowed("hello");
 cow.to_mut().push_str(" world");
 ```
 
-#### Box&lt;str&gt;
+#### `Box<str>`
 
-Stringは再アロケートを少なくするために、余分なキャパシティーを持っているので、`Box<str>`に変換することで、所有権を持ちながら余分なキャパシティーを削減する。大量データ向け。<br>
-ただし不変なデータとなるので、文字列を変更する場合はStringに戻す必要がある。
+String は再アロケートを少なくするために、余分なキャパシティーを持っているので、`Box<str>`に変換することで、所有権を持ちながら余分なキャパシティーを削減する。大量データ向け。<br>
+ただし不変なデータとなるので、文字列を変更する場合は String に戻す必要がある。
 
 ```rust
 let mut s = String::from("hello");
 s.push_str(" world");
 // もうsを変更しない
 let b = s.into_boxed_str();
+```
+
+複数の場所で共有する不変の文字列は、`Rc<str>` / `Arc<str>` にすると、`clone()` が参照カウントの増加だけで済む。
+
+```rust
+use std::rc::Rc;
+
+let shared: Rc<str> = Rc::from("hello");
+let another = Rc::clone(&shared); // 文字列自体はコピーされない
 ```
 
 ---
@@ -2276,13 +2557,14 @@ let b = s.into_boxed_str();
 
 | マクロ | 説明 |
 | --- | --- |
-| format! | フォーマットしたテキストを String にして返す |
-| write! | すでにある場所にフォーマットしたテキストを書き込む |
-| print! | format! と同様だが、標準出力 (io::stdout) にそのテキストを出力する |
-| println! | print! と同様だが、改行が付け加えられる |
-| eprint! | format! と同様だが、標準エラー出力 (io::stderr) にそのテキストを出力する |
-| eprintln! | eprint! と同様だが、改行が付け加えられる |
-| dbg! | 所有権を奪ってデバッグ情報を出力し、所有権を返す |
+| `format!` | フォーマットしたテキストを String にして返す |
+| `write!` | すでにある場所にフォーマットしたテキストを書き込む |
+| `writeln!` | `write!` と同様だが、改行が付け加えられる |
+| `print!` | `format!` と同様だが、標準出力 (`io::stdout`) にそのテキストを出力する |
+| `println!` | `print!` と同様だが、改行が付け加えられる |
+| `eprint!` | `format!` と同様だが、標準エラー出力 (`io::stderr`) にそのテキストを出力する |
+| `eprintln!` | `eprint!` と同様だが、改行が付け加えられる |
+| `dbg!` | 所有権を奪ってデバッグ情報を出力し、所有権を返す |
 
 #### format!
 
@@ -2322,13 +2604,13 @@ fn main() -> io::Result<()> {
 }
 ```
 
-ループなどで毎回 String を生成するとアロケートに時間がかかる場合があるが、ひとつの String を使いまわせば、処理速度が向上する可能性がある。<br>
+ループなどで毎回 String を生成するとアロケートに時間がかかる場合があるが、ひとつの String を使い回せば、処理速度が向上する可能性がある。<br>
 また書き込み先がファイルでも String でもネットワークでも、同じマクロで扱える。
 
 #### dbg!
 
 標準エラー出力 (stderr) に、ファイル名、行番号、式そのものを出力する。<br>
-Debugトレイトを実装している必要がある。<br>
+Debug トレイトを実装している必要がある。<br>
 所有権を奪ってそのまま返すので処理の流れを壊さない。ヒープの値は参照 (&) を渡すのが一般的。
 
 ```rust
@@ -2347,6 +2629,8 @@ let number: f64 = 1.0;
 println!("number is {number}");
 ```
 
+書けるのは変数名だけ。`{p.x}` のようなフィールドアクセスや式は書けないので、`println!("{}", p.x)` のように引数で渡す。
+
 #### {} による置き換え
 
 `{}` には、`Display` を実装した値が展開される。
@@ -2357,7 +2641,7 @@ println!("{} days", 31);
 
 #### 位置引数
 
-{} で整数を指定することで、どの位置引数で置換されるか決まる。
+`{}` の中に整数を指定することで、どの位置引数で置換されるかが決まる。
 
 ```rust
 println!("{0}, this is {1}. {1}, this is {0}", "Alice", "Bob");
@@ -2376,7 +2660,7 @@ println!("{subject} {verb} {object}",
 
 #### : によるフォーマット
 
-:(コロン) の後にフォーマット文字を指定して、異なるフォーマットにする。
+`:` (コロン) の後にフォーマット指定を書くと、異なるフォーマットにできる。
 
 ```rust
 println!("Base 10:               {}",   69420); // 69420
@@ -2407,6 +2691,53 @@ println!("{number:0<5}", number=1); // 10000
 println!("{number:0>width$}", number=1, width=5);
 ```
 
+<div class="subtitle2">中央寄せ・埋める文字の指定</div>
+
+```rust
+println!("[{:^7}]", "ab");  // [  ab   ] 中央寄せ
+println!("[{:*^9}]", "ab"); // [***ab****] * で埋めて中央寄せ
+println!("[{:<5}]", "ab");  // [ab   ] 左寄せ
+```
+
+<div class="subtitle2">0 埋めの簡易形</div>
+
+```rust
+println!("{:05}", 42);  // 00042 (数値は 0 埋めを簡単に書ける)
+println!("{:05}", -42); // -0042 (符号を含めて5桁)
+```
+
+<div class="subtitle2">小数点以下の桁数</div>
+
+```rust
+println!("{:.2}", 3.14159);  // 3.14
+println!("{:8.3}", 3.14159); // "   3.142" (全体で8桁、小数点以下3桁)
+```
+
+<div class="subtitle2">進数のプレフィックス・符号・指数表記</div>
+
+```rust
+println!("{:#x}", 255);    // 0xff
+println!("{:#010b}", 5);   // 0b00000101 (プレフィックスを含めて10桁)
+println!("{:+}", 5);       // +5
+println!("{:e}", 1234.5);  // 1.2345e3
+```
+
+<div class="subtitle2">デバッグ出力</div>
+
+`Debug` を実装した型は `{:?}` で、`{:#?}` なら整形して出力できる (<a href="#macro">マクロ</a> の `fmt::Debug` を参照)。
+
+```rust
+println!("{:?}", "a\nb");     // "a\nb" (文字列は引用符付きで、エスケープされる)
+println!("{:?}", vec![1, 2]); // [1, 2]
+println!("{:?}", Some(3));    // Some(3)
+```
+
+<div class="subtitle2">波括弧そのものを出力する</div>
+
+```rust
+println!("{{}}"); // {}
+```
+
 ---
 
 ## 構造体 <a id="struct" data-name="構造体"></a>
@@ -2425,6 +2756,8 @@ struct User {
     sign_in_count: u64,
 }
 ```
+
+`#[derive(Debug)]` を付けると `{:?}` で内容を出力できる (<a href="#macro">マクロ</a> を参照)。
 
 ### 生成
 
@@ -2462,7 +2795,7 @@ fn build_user(email: String, username: String) -> User {
 
 ### 構造体更新記法
 
-このように <code class="code-like">..user1</code> で、残りのフィールドを別のインスタンスから引き継げる。
+このように <span class="code-like">..user1</span> で、残りのフィールドを別のインスタンスから引き継げる。
 
 ```rust
 let user2 = User {
@@ -2503,6 +2836,8 @@ fn main() {
 
 ### メソッド
 
+メソッドの呼び出し方や関連関数については、<a href="#function">関数 / メソッド</a> も参照。
+
 ```rust
 #[derive(Debug)]
 struct Rectangle {
@@ -2539,9 +2874,9 @@ let four = IpAddrKind::V4;
 let six = IpAddrKind::V6;
 ```
 
-### enumにデータを持たせる
+### enum にデータを持たせる
 
-enum はタグ (列挙子) に加えて直接データを持てる。
+enum はバリアント (列挙子) に加えて直接データを持てる。
 
 ```rust
 enum IpAddr {
@@ -2563,6 +2898,22 @@ enum Message {
     Write(String),
     ChangeColor(i32, i32, i32),
 }
+```
+
+### 値を持たない enum と整数
+
+データを持たないバリアントだけの enum は、`as` で整数に変換できる。`==` で比較したい場合は `PartialEq` が必要。
+
+```rust
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum Color {
+    Red = 1, // 値を明示できる (省略すると、直前の値 + 1。最初は 0)
+    Green = 2,
+    Blue = 4,
+}
+
+let n = Color::Green as i32;         // 2
+let same = Color::Red == Color::Red; // true
 ```
 
 ### メソッド
@@ -2617,6 +2968,8 @@ enum Result<T, E> {
 | デフォルト値 | `opt.unwrap_or(default)` | `res.unwrap_or(default)` | 失敗時に代わりの値を使う |
 | 強制取り出し | `opt.unwrap()` | `res.unwrap()` | `None` / `Err` の場合はパニックする。テストやプロトタイプ以外は非推奨 |
 | メッセージ付きの強制取り出し | `opt.expect("msg")` | `res.expect("msg")` | パニック時のメッセージを指定できる |
+| デフォルト値 (遅延評価) | `opt.unwrap_or_else(\|\| compute())` | `res.unwrap_or_else(\|e\| handle(e))` | 値の生成にコストがかかるときに、必要な場合だけクロージャで作る (`Result` では `Err` の中身 `e` を受け取れる) |
+| 型の `Default` 値 | `opt.unwrap_or_default()` | `res.unwrap_or_default()` | `0` や空文字列など、その型の既定値を使う |
 
 ### 値を包んだまま操作する
 
@@ -2624,6 +2977,10 @@ enum Result<T, E> {
 | --- | --- | --- |
 | `map()` | `opt.map(\|x\| x * 2)` (`None` なら `None` のまま) | 中身が `Some` や `Ok` の時だけ関数を適用し、結果を箱に戻す |
 | `and_then()` | `res.and_then(check_condition)` | 処理の結果がさらに `Option` や `Result` を返す場合に使う (ネストを防ぐ) |
+| `map_err()` | `res.map_err(MyError::from)` | `Result` の `Err` の中身だけを変換する (`Ok` はそのまま) |
+| `is_some_and()` / `is_ok_and()` | `opt.is_some_and(\|x\| x > 0)` | 中身が条件を満たすかを `bool` で返す (Rust 1.70 以降) |
+| `as_ref()` / `as_mut()` | `opt.as_ref()` | `Option<T>` を `Option<&T>` (`Option<&mut T>`) にして、所有権を奪わずに中身を見る |
+| `take()` | `opt.take()` | 中身を取り出して、元は `None` にする |
 
 ### ?演算子による伝播
 
@@ -2631,6 +2988,8 @@ enum Result<T, E> {
 | --- | --- |
 | `Option` を返す関数内 | `None` だったら `return None;` |
 | `Result` を返す関数内 | `Err` だったら `return Err(e);` (必要なら `From` で型変換される) |
+
+`Option` を返す関数の中で `Result` に `?` は使えない (逆も同様)。`ok_or()` や `ok()` で型をそろえる (後述の「相互に変換」を参照)。
 
 <pre><code class="tips">for entry in fs::read_dir(".")? {
     let entry = entry?; // ここで Result をはがす (Err なら return Err(e))
@@ -2641,7 +3000,7 @@ enum Result<T, E> {
 
 #### Result から Option へ
 
-<code class="code-like">ok()</code>: エラーの内容は破棄される。
+<span class="code-like">ok()</span>: エラーの内容は破棄される。
 
 ```rust
 let success: Result<i32, &str> = Ok(42);
@@ -2655,7 +3014,7 @@ assert_eq!(failure.ok(), None); // 破棄される
 
 None だった場合にはエラー (err) を指定する必要がある。
 
-<code class="code-like">ok_or()</code>: エラー値を直接渡す。`&str` (リテラル) などの安価な値でよい。
+<span class="code-like">ok_or()</span>: エラー値を直接渡す。`&str` (リテラル) などの安価な値でよい。
 
 ```rust
 let empty_num: Option<i32> = None;
@@ -2665,7 +3024,7 @@ let res: Result<i32, &str> = empty_num.ok_or("値が空です");
 assert_eq!(res, Err("値が空です"));
 ```
 
-<code class="code-like">ok_or_else()</code>: エラー値の生成にコストがかかる場合 (`String` の生成など) に、`None` のときだけクロージャで生成する。
+<span class="code-like">ok_or_else()</span>: エラー値の生成にコストがかかる場合 (`String` の生成など) に、`None` のときだけクロージャで生成する。
 
 ```rust
 let empty_num: Option<i32> = None;
@@ -2684,14 +3043,16 @@ Rust の標準コレクション。
 
 | Rust | 用途 | C++ |
 | --- | --- | --- |
-| Vec&lt;T&gt; | 可変長配列 | std::vector&lt;T&gt; |
-| VecDeque&lt;T&gt; | 両端キュー | std::deque&lt;T&gt; |
-| LinkedList&lt;T&gt; | 双方向リスト | std::list&lt;T&gt; |
-| HashMap&lt;K, V&gt; | ハッシュマップ | std::unordered_map&lt;K, V&gt; |
-| BTreeMap&lt;K, V&gt; | 木構造マップ | std::map&lt;K, V&gt; |
-| HashSet&lt;T&gt; | ハッシュ集合 | std::unordered_set&lt;T&gt; |
-| BTreeSet&lt;T&gt; | 木構造集合 | std::set&lt;T&gt; |
-| BinaryHeap&lt;T&gt; | 優先度付きキュー | std::priority_queue&lt;T&gt; |
+| `Vec<T>` | 可変長配列 | `std::vector<T>` |
+| `VecDeque<T>` | 両端キュー | `std::deque<T>` |
+| `LinkedList<T>` | 双方向リスト | `std::list<T>` |
+| `HashMap<K, V>` | ハッシュマップ | `std::unordered_map<K, V>` |
+| `BTreeMap<K, V>` | 木構造マップ | `std::map<K, V>` |
+| `HashSet<T>` | ハッシュ集合 | `std::unordered_set<T>` |
+| `BTreeSet<T>` | 木構造集合 | `std::set<T>` |
+| `BinaryHeap<T>` | 優先度付きキュー | `std::priority_queue<T>` |
+
+迷ったらまず `Vec` と `HashMap` を使う。`LinkedList` はほとんどの場合 `Vec` や `VecDeque` で足りるため、出番は少ない。
 
 ---
 
@@ -2702,49 +3063,49 @@ Rust の標準コレクション。
 #### 生成
 
 - 空のベクタを生成
-```rust
-let mut v: Vec<i32> = Vec::new();
-```
+    ```rust
+    let mut v: Vec<i32> = Vec::new();
+    ```
 - 初期値を与える
-```rust
-let v = vec![1, 2, 3]; // 要素の値から型が推論される
-```
+    ```rust
+    let v = vec![1, 2, 3]; // 要素の値から型が推論される
+    ```
 - 型推論
-```rust
-let v: Vec<_> = (1..3).collect();
-```
+    ```rust
+    let v: Vec<_> = (1..3).collect();
+    ```
 - ターボフィッシュ + 型推論
-```rust
-fn process_data(data: Vec<i32>) {
-    // データを受け取って何かする関数
-}
-fn main() {
-    // 変数に入れれば推論できるが、行数が増える
-    // let v: Vec<_> = (1..5).collect();
-    // process_data(v);
-    // メソッドチェーンでターボフィッシュを使えば1行で書ける
-    process_data((1..5).collect::<Vec<_>>());
-}
-```
+    ```rust
+    fn process_data(data: Vec<i32>) {
+        // データを受け取って何かする関数
+    }
+    fn main() {
+        // 変数に入れれば推論できるが、行数が増える
+        // let v: Vec<_> = (1..5).collect();
+        // process_data(v);
+        // メソッドチェーンでターボフィッシュを使えば1行で書ける
+        process_data((1..5).collect::<Vec<_>>());
+    }
+    ```
 
 ターボフィッシュ (`::<>`) の構文については <a href="#turbofish">ジェネリクス</a> を参照。
 
 #### アクセス
 
 - インデックスでアクセス
-```rust
-let v = vec![1, 2, 3, 4, 5];
-let third: &i32 = &v[2]; // 範囲外アクセスはパニックとなる
-println!("The third element is {third}");
-```
-- getメソッドでアクセス
-```rust
-let third: Option<&i32> = v.get(2); // Optionで返される
-match third {
-    Some(third) => println!("The third element is {third}"),
-    None => println!("There is no third element."),
-}
-```
+    ```rust
+    let v = vec![1, 2, 3, 4, 5];
+    let third: &i32 = &v[2]; // 範囲外アクセスはパニックとなる
+    println!("The third element is {third}");
+    ```
+- get メソッドでアクセス
+    ```rust
+    let third: Option<&i32> = v.get(2); // Optionで返される
+    match third {
+        Some(third) => println!("The third element is {third}"),
+        None => println!("There is no third element."),
+    }
+    ```
 
 #### 値の追加
 
@@ -2755,6 +3116,51 @@ v.push(5);
 v.push(6);
 v.push(7);
 ```
+
+#### 値の削除・更新
+
+```rust
+let mut v = vec![1, 2, 3, 4, 5];
+
+let last = v.pop();        // Some(5) (末尾を取り出す。空なら None)
+let second = v.remove(1);  // 2 (指定位置の要素を削除して返す。後ろの要素は前に詰まる)
+v.insert(1, 10);           // [1, 10, 3, 4]
+v[0] = 100;                // [100, 10, 3, 4] (インデックスで代入。範囲外はパニック)
+v.retain(|&x| x > 3);      // [100, 10, 4] (条件を満たす要素だけ残す)
+v.clear();                 // []
+```
+
+#### 走査
+
+```rust
+let mut v = vec![1, 2, 3];
+
+for x in &v {
+    println!("{x}");      // 借用して読む
+}
+
+for x in &mut v {
+    *x *= 2;              // 可変借用して書き換える
+}
+
+for (i, x) in v.iter().enumerate() {
+    println!("{i}: {x}"); // インデックス付き
+}
+```
+
+#### よく使うメソッド
+
+| メソッド | 説明 |
+| --- | --- |
+| `len()` / `is_empty()` | 要素数 / 空かどうか |
+| `contains(&x)` | 要素を含むか |
+| `first()` / `last()` | 先頭 / 末尾の要素 (`Option<&T>`) |
+| `extend(iter)` | イテレータの要素をすべて追加する |
+| `sort()` / `sort_by_key(f)` | 並べ替える (`f64` の並べ替えは「std::cmp」を参照) |
+| `dedup()` | 連続する重複を取り除く (先に `sort()` しておく) |
+| `windows(n)` / `chunks(n)` | 長さ n のスライスを、1つずつずらしながら / n 個ずつ区切って返す |
+| `drain(range)` | 範囲の要素を取り除きながら取り出す |
+| `Vec::with_capacity(n)` | n 要素分の容量を先に確保して作る (再アロケーションを減らせる) |
 
 ---
 
@@ -2784,7 +3190,7 @@ let scores = HashMap::from([("Blue", 10), ("Yellow", 50)]);
 // イテレータから作る (キーと値のペアを collect する)
 let teams = vec!["Blue", "Yellow"];
 let points = vec![10, 50];
-let scores: HashMap<_, _> = teams.into_iter().zip(points.into_iter()).collect();
+let scores: HashMap<_, _> = teams.into_iter().zip(points).collect();
 ```
 
 #### アクセス
@@ -2932,41 +3338,82 @@ map.insert(key, 10);
 
 ---
 
+### その他のコレクション
+
+| 型 | 特徴 |
+| --- | --- |
+| `HashSet<T>` | 重複のない集合。`contains` が高速。`union` / `intersection` / `difference` で集合演算ができる |
+| `BTreeMap<K, V>` | キーの順に並んだマップ。走査するとキー順になる。範囲検索 (`range`) もできる |
+| `VecDeque<T>` | 両端への追加・削除が高速 (`push_back` / `pop_front` など)。キューとして使う |
+| `BinaryHeap<T>` | 最大の要素を効率よく取り出せる。最小値を取り出したい場合は `Reverse` で包む |
+
+```rust
+use std::collections::{BTreeMap, HashSet, VecDeque};
+
+let mut set = HashSet::new();
+println!("{}", set.insert(1)); // true (新しく追加された)
+println!("{}", set.insert(1)); // false (既にあるので追加されない)
+
+let mut tree = BTreeMap::new();
+tree.insert("b", 2);
+tree.insert("a", 1);
+for (k, v) in &tree {
+    println!("{k}: {v}"); // a: 1 → b: 2 の順 (キー順)
+}
+
+let mut queue = VecDeque::new();
+queue.push_back(1);
+queue.push_back(2);
+println!("{:?}", queue.pop_front()); // Some(1) (先に入れたものから出る)
+```
+
+---
+
 ## 所有権 <a id="ownership" data-name="所有権"></a>
 
-- ヒープに確保された変数は他の変数への代入、関数の呼び出しによって所有権がムーブされる。
+Rust の所有権には3つのルールがある。
+
+1. すべての値には、所有者となる変数がある
+2. 所有者は同時に1つだけ
+3. 所有者がスコープを抜けると、値は破棄される
+
+`Copy` を実装していない型 (`String` や `Vec` など) は、他の変数への代入や関数の呼び出しによって所有権がムーブされる。
+
 ```rust
 let s1 = String::from("hello");
 let s2 = s1; // helloの所有権がムーブ
-// println!("{s1}") // error!
+// println!("{s1}"); // error: ムーブ済みのため使えない
 ```
+
+ムーブではなく複製したい場合は、`clone()` で明示的に複製する (<a href="#trait">トレイト</a> の Clone を参照)。
 
 ### 引数の渡し方
 
-Rustは大別して3パターンの引数の渡し方がある。
+Rust は大別して3パターンの引数の渡し方がある。
 
-- 値渡し(move)
-```rust
-fn func(s: String) {
-    // sの所有権はここ
-}
-```
-所有権が関数側に移動して、呼び出し元ではこの変数はもう使えない。<br>
-Copy型(i32, boolなど)だけは実質コピー。
-- 参照渡し(不変参照)
-```rust
-fn func(s: &String) {
-    // ReadOnly
-}
-```
-所有権は移動せずに、変数の値は書き換えできないが、同時に複数渡せる。
+- 値渡し (move)
+    ```rust
+    fn func(s: String) {
+        // s の所有権はここ
+    }
+    ```
+    所有権が関数側に移動して、呼び出し元ではこの変数はもう使えない。<br>
+    `Copy` 型 (`i32`, `bool` など) は所有権が移動せず、コピーが渡される。
+- 参照渡し (不変参照)
+    ```rust
+    fn func(s: &str) {
+        // ReadOnly
+    }
+    ```
+    所有権は移動せずに、変数の値は書き換えできないが、同時に複数渡せる。<br>
+    文字列を読むだけの引数は、`&String` ではなく `&str` で受け取るのが慣例。`&String` を渡しても自動で `&str` に変換される。
 - 可変参照渡し
-```rust
-fn f(s: &mut String) {
-    s.push_str("!");
-}
-```
-所有権は移動せずに、変数の値を書き換えできるが、同時に渡せるのはひとつだけで、不変参照も同時にはできない。
+    ```rust
+    fn f(s: &mut String) {
+        s.push_str("!");
+    }
+    ```
+    所有権は移動せずに、変数の値を書き換えできるが、同時に渡せるのはひとつだけで、不変参照も同時にはできない。
 
 ### スライス
 
@@ -2980,27 +3427,35 @@ let hello = &s[0..5];  // スライス
 let world = &s[6..11]; // スライス
 ```
 
-- 2連ピリオド(..)の前に添え字を書かなければこれらは等価。
+- 2連ピリオド (`..`) の前に添え字を書かなければ、これらは等価。
+    ```rust
+    let slice = &s[0..2];
+    let slice = &s[..2];
+    ```
+
+- 同様に末尾を書かなければ、これらは等価。
+    ```rust
+    let len = s.len();
+    let slice = &s[3..len];
+    let slice = &s[3..];
+    ```
+
+- 両方の添え字を省略すれば全体を表す。よって、これらは等価。
+    ```rust
+    let len = s.len();
+    let slice = &s[0..len];
+    let slice = &s[..];
+    ```
+
+配列や `Vec` もスライスにできる。型は `&[T]` になる。
+
 ```rust
-let slice = &s[0..2];
-let slice = &s[..2];
+let v = vec![1, 2, 3, 4, 5];
+let part: &[i32] = &v[1..3]; // [2, 3]
 ```
 
-- 同様に末尾を書かなければこれらは等価。
-```rust
-let len = s.len();
-let slice = &s[3..len];
-let slice = &s[3..];
-```
-
-- 両方の添え字を省略すれば全体を表す。よってこれらは等価。
-```rust
-let len = s.len();
-let slice = &s[0..len];
-let slice = &s[..];
-```
-
-<pre><code class="tips">文字列のスライスの型は &amp;str になる。</code></pre>
+<pre><code class="tips">文字列のスライスの型は &amp;str になる。
+関数の引数は、&amp;Vec&lt;T&gt; ではなく &amp;[T] で受け取るのが慣例 (Vec も配列も渡せる)。</code></pre>
 
 ### 所有権を軸にしたメソッドの命名規則
 
@@ -3013,8 +3468,8 @@ let s = "Hello";
 let lower = s.to_lowercase();
 ```
 
-- 引数：&self(借用)
-- 戻り値：新しい所有権
+- 引数: `&self` (借用)
+- 戻り値: 新しい所有権
 
 #### `into_*`
 
@@ -3025,7 +3480,7 @@ let s = String::from("Hello");
 let bytes = s.into_bytes();
 ```
 
-- 引数：self(ムーブ)
+- 引数: `self` (ムーブ)
 - 元の型は使えなくなる
 
 #### `as_*`
@@ -3037,29 +3492,34 @@ let s = String::from("Hello");
 let slice = s.as_str();
 ```
 
-- 引数：&self(借用)
-- 戻り値：&selfなど(参照)
+- 引数: `&self` (借用)
+- 戻り値: `&self` の一部などの参照
 
 #### `get_*`
 
 安全に取り出す(失敗あり)。
 
 ```rust
-let v = vec![1,2,3];
-let x = v.get(0);
+let v = vec![1, 2, 3];
+let x = v.get(1); // Some(&2)
 ```
 
-- 戻り値：`Option<T>`や`Option<&T>`
+- 戻り値: `Option<T>` や `Option<&T>`
 
 #### `from`
 
 別の型から生成する (`From` トレイトの `from()`)。
 
-#### `push`/`insert`
+#### `push` / `insert`
 
 内部を変更。
 
-- 引数：&mut self(可変借用)
+- 引数: `&mut self` (可変借用)
+
+#### `is_*` / `try_*`
+
+`is_*` は `bool` を返す (`is_empty()`, `is_some()` など)。<br>
+`try_*` は失敗しうる操作で、`Result` を返す (`try_from()`, `try_borrow()` など)。
 
 ---
 
@@ -3077,7 +3537,7 @@ let i: i32 = 15;
 
 ### let mut
 
-let mutで可変な変数となる。
+`let mut` で可変な変数となる。
 
 ```rust
 let mut i: i32 = 15;
@@ -3087,7 +3547,8 @@ i = 30; // ok
 ### const
 
 不変である点は `let` と同じだが、`const` はコンパイル時に値が決まっている必要があり、型注釈も必須。<br>
-`let` はコンパイル時に値が決まっている必要がなく、1度代入したら変更できない。
+`let` はコンパイル時に値が決まっている必要がなく、1度代入したら変更できない。<br>
+詳しくは <a href="#constant">定数</a> を参照。
 
 ### シャドーイング
 
@@ -3096,31 +3557,31 @@ i = 30; // ok
 #### メリット
 
 - `mut` を付けて可変にせずに、値を加工して束縛し直せる。
-```rust
-let x = 5;
-let x = x + 1; // シャドーイング
-```
+    ```rust
+    let x = 5;
+    let x = x + 1; // シャドーイング
+    ```
 - 変換の流れを同じ名前で表現できる。
-```rust
-let input = read_line();
-let input = input.trim();
-let input = input.parse::<i32>()?;
-```
+    ```rust
+    let input = read_line();
+    let input = input.trim();
+    let input = input.parse::<i32>()?;
+    ```
 - 文脈的に変数名を変える必要がない場合などに型を変えられる。
-```rust
-let x = "123";
-let x = x.parse::<i32>().unwrap();
-```
+    ```rust
+    let x = "123";
+    let x = x.parse::<i32>().unwrap();
+    ```
 - スコープを抜けると自動で以前の意味に戻る。
-```rust
-let x = 10;
-// 一時的な計算
-{
-    let x = x + 5;
-    println!("{}", x); // 15
-}
-println!("{}", x); // 10
-```
+    ```rust
+    let x = 10;
+    // 一時的な計算
+    {
+        let x = x + 5;
+        println!("{}", x); // 15
+    }
+    println!("{}", x); // 10
+    ```
 
 ### 型変換 (キャスト)
 
@@ -3147,8 +3608,8 @@ let code = ch as u32; // 65
 これに加えて、トレイト境界 (`T: Clone`) や関連型の指定 (`Iterator<Item = i32>`) も `<>` の周辺に現れる。
 
 <pre><code class="tips">&lt;&gt; には「宣言」と「使用」の2つの場面がある。
-宣言：struct Point&lt;T&gt; / fn identity&lt;T&gt; / impl&lt;T&gt; のように、パラメータを導入する。
-使用：Point&lt;i32&gt; / Vec&lt;String&gt; のように、パラメータに具体的なものを当てはめる。</code></pre>
+宣言: struct Point&lt;T&gt; / fn identity&lt;T&gt; / impl&lt;T&gt; のように、パラメータを導入する。
+使用: Point&lt;i32&gt; / Vec&lt;String&gt; のように、パラメータに具体的なものを当てはめる。</code></pre>
 
 ### 型パラメータ
 
@@ -3196,7 +3657,7 @@ struct Pair<T, U> {
 ### ターボフィッシュ <a id="turbofish"></a>
 
 関数やメソッドを呼び出すときに、型パラメータを明示する構文。<br>
-型の位置では `Vec<i32>` と書けるが、式の中では `<` が比較演算子と区別できないため、`::<>` と `::` が必要になる。
+型の位置では `Vec<i32>` と書けるが、式の中では `<` が比較演算子と区別できないため、`::<>` のように `::` を付けて書く必要がある。
 
 ```rust
 let a = identity::<i32>(10);
@@ -3349,68 +3810,68 @@ Rust における Trait は他の言語で言うところのインターフェ�
 
 - シグネチャのみ
 
-実装側は必ずこのメソッドを実装する必要がある。
+    実装側は必ずこのメソッドを実装する必要がある。
 
-```rust
-trait Greet {
-    fn greet(&self) -> String;
-}
-```
+    ```rust
+    trait Greet {
+        fn greet(&self) -> String;
+    }
+    ```
 
 - デフォルト実装付きのパターン
 
-```rust
-trait Greet {
-    // 必須で実装してもらうメソッド
-    fn name(&self) -> &str;
+    ```rust
+    trait Greet {
+        // 必須で実装してもらうメソッド
+        fn name(&self) -> &str;
 
-    // デフォルト実装 (name() を利用して自動的に動く)
-    fn greet(&self) -> String {
-        format!("こんにちは、{}さん！", self.name())
+        // デフォルト実装 (name() を利用して自動的に動く)
+        fn greet(&self) -> String {
+            format!("こんにちは、{}さん！", self.name())
+        }
     }
-}
-```
+    ```
 
 - 関連型 (type) を使うパターン
 
-Iterator のように取り出す要素の型が1つに決まる場合。
+    Iterator のように取り出す要素の型が1つに決まる場合。
 
-```rust
-trait Container {
-    type Item; // 使う側が具体的な型 (i32 や String など) を指定する
+    ```rust
+    trait Container {
+        type Item; // 使う側が具体的な型 (i32 や String など) を指定する
 
-    fn add(&mut self, item: Self::Item);
-    fn get(&self) -> Option<&Self::Item>;
-}
-```
+        fn add(&mut self, item: Self::Item);
+        fn get(&self) -> Option<&Self::Item>;
+    }
+    ```
 
 - ジェネリクス `<T>` を使うパターン
 
-異なる型に対して同じトレイトを何パターンも実装できるようにしたい場合。
+    異なる型に対して同じトレイトを何パターンも実装できるようにしたい場合。
 
-```rust
-// T という任意の型を受け取る能力
-trait Converter<T> {
-    fn convert(&self) -> T;
-}
-```
+    ```rust
+    // T という任意の型を受け取る能力
+    trait Converter<T> {
+        fn convert(&self) -> T;
+    }
+    ```
 
-1つの構造体に対して `Converter<String>` と `Converter<i32>` の両方を同時実装できる。
+    1つの構造体に対して `Converter<String>` と `Converter<i32>` の両方を同時実装できる。
 
 - スーパートレイト (依存関係) パターン
 
-このトレイトを実装するには、別のトレイトも実装していないとダメという場合。
+    このトレイトを実装するには、別のトレイトも実装していないとダメという場合。
 
-```rust
-use std::fmt::Display;
+    ```rust
+    use std::fmt::Display;
 
-// Loggable を実装するには、先に Display を実装していないとエラーになる
-trait Loggable: Display {
-    fn log(&self) {
-        println!("[LOG]: {}", self); // Display があるから {} で出せると保証されている
+    // Loggable を実装するには、先に Display を実装していないとエラーになる
+    trait Loggable: Display {
+        fn log(&self) {
+            println!("[LOG]: {}", self); // Display があるから {} で出せると保証されている
+        }
     }
-}
-```
+    ```
 
 ### トレイトの実装
 
@@ -3518,7 +3979,7 @@ println!("{:?}", user);
 
 ```rust
 impl std::fmt::Display for User {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "User: {}", self.name)
     }
 }
@@ -3645,10 +4106,10 @@ collection.extend(iterator);
 
 #### Deref
 
-AsRef が .as_ref() による手動変換なら、Deref は *x または自動変換。
+`AsRef` が `.as_ref()` による手動変換なら、`Deref` は `*x` または自動変換。
 
-通常、参照の前に *(アスタリスク) を付けると、その参照の実体にアクセスできるが (参照外し)、<br>
-自作の構造体に Deref を実装すると、 *my_struct と書いたときに、構造体そのものではなく、<br>
+通常、参照の前に `*` (アスタリスク) を付けると、その参照の実体にアクセスできる (参照外し) が、<br>
+自作の構造体に `Deref` を実装すると、`*my_struct` と書いたときに、構造体そのものではなく、<br>
 内部にある別のデータにアクセスできるようになる。
 
 ```rust
@@ -3668,7 +4129,7 @@ impl Deref for BoxedString {
 }
 ```
 
-明示的に * を書かなくても、Deref型強制により自動的に変換してくれる。
+明示的に `*` を書かなくても、Deref 型強制 (deref coercion) により自動的に変換してくれる。
 
 ```rust
 fn print_msg(msg: &str) { // 引数は &str を要求している
@@ -3702,6 +4163,9 @@ impl Drop for MyType {
 }
 ```
 
+`drop()` メソッドを直接呼ぶことはできない。早く破棄したい場合は `drop(x)` 関数 (prelude に含まれる) に渡す。<br>
+変数は、宣言した順と逆の順で破棄される。
+
 #### Future
 
 非同期関数が返すものを表す。
@@ -3730,6 +4194,34 @@ let x = MyType::from(string);
 let x: MyType = string.into();
 ```
 
+#### ToString / FromStr
+
+`Display` を実装した型は、自動で `to_string()` が使える (`ToString` が自動で実装される)。<br>
+逆に、`FromStr` を実装すると、`parse()` で文字列からその型を作れる。
+
+```rust
+use std::str::FromStr;
+
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+impl FromStr for Point {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let (x, y) = s.split_once(',').ok_or("カンマがありません")?;
+        Ok(Point {
+            x: x.trim().parse().map_err(|_| "x が数値ではありません")?,
+            y: y.trim().parse().map_err(|_| "y が数値ではありません")?,
+        })
+    }
+}
+
+let p: Point = "3, 4".parse().unwrap(); // x = 3, y = 4
+```
+
 #### Error
 
 `Error` トレイトは、「この型はエラーを表すオブジェクトである」ということをコンパイラや他のライブラリに伝えるための標準インターフェース。
@@ -3749,7 +4241,7 @@ enum MyError {
 
 // Displayを実装 (ユーザー向けメッセージ)
 impl fmt::Display for MyError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             MyError::NetworkFailed => write!(f, "ネットワーク接続に失敗しました"),
             MyError::InvalidInput(msg) => write!(f, "不正な入力です: {}", msg),
@@ -3764,7 +4256,7 @@ impl Error for MyError {
 
 #### AsRef / AsMut
 
-`AsRef<U>` を実装している型であれば、&U (Uの参照) として扱うことができるという意味。
+`AsRef<U>` を実装している型であれば、&U (U の参照) として扱うことができるという意味。
 
 ```rust
 fn foo<T: AsRef<str>>(value: T) {
@@ -3782,7 +4274,7 @@ foo(String::from("hello"));
 
 #### Borrow
 
-コレクションやジェネリックAPIなどで、「この型は別の型を借用する形で扱えます」という関係を表す。
+コレクションやジェネリック API などで、「この型は別の型を借用する形で扱えます」という関係を表す。
 
 ```rust
 Borrow<T>
@@ -3817,9 +4309,9 @@ dyn Trait
 
 #### Send / Sync
 
-Send は値を別スレッドに送れることを表す。
+`Send` は値を別スレッドに送れることを表す。
 
-Sync はある型への参照を複数スレッドから共有できることを表す。
+`Sync` はある型への参照を複数スレッドから共有できることを表す。
 
 例えば `Rc<T>` は `Send` でも `Sync` でもないため、スレッド間で共有する場合は `Arc<T>` を使う。
 
@@ -3833,7 +4325,7 @@ Sync はある型への参照を複数スレッドから共有できることを
 
 #### PartialEq / Eq
 
-PartialEq は == と != を使えるようにする。
+`PartialEq` は `==` と `!=` を使えるようにする。
 
 ```rust
 #[derive(PartialEq)]
@@ -3865,7 +4357,7 @@ struct User {
 
 演算子をオーバーロードするためのトレイト。
 
-```rust
+```text
 a + b // Add
 a - b // Sub
 a * b // Mul
@@ -3877,6 +4369,86 @@ a & b // BitAnd
 ```
 
 `BitOr`、`BitXor`、`Shl`、`Shr` なども同様に用意されている。
+
+---
+
+## 非同期 (async/await) <a id="async" data-name="非同期"></a>
+
+`async fn` は、呼び出しただけでは実行されず、`Future` を返す。`.await` すると、その `Future` が完了するまで待つ。待っている間、スレッドは他のタスクの実行に使われる。<br>
+標準ライブラリには非同期ランタイムが含まれないため、`tokio` などの外部クレートを使う (`cargo add tokio --features full`)。<br>
+`Future` と `Pin` の仕組みは、<a href="#pin">Pin</a> と <a href="#trait">トレイト</a> の Future を参照。
+
+```rust
+use std::time::Duration;
+
+#[tokio::main]
+async fn main() {
+    let value = fetch().await;
+    println!("{value}");
+}
+
+async fn fetch() -> u32 {
+    tokio::time::sleep(Duration::from_millis(100)).await; // 待つ間、他のタスクに実行を譲る
+    42
+}
+```
+
+### 主な道具
+
+| 道具 | 説明 |
+| --- | --- |
+| `.await` | その `Future` の完了を待つ。同じタスクの中では、次の行には進まない |
+| `tokio::spawn(fut)` | `Future` を新しいタスクとしてランタイムに登録する。並行に実行され (マルチスレッドランタイムなら並列にも)、`JoinHandle` を返す |
+| `tokio::join!(a, b)` | 同じタスクの中で複数の `Future` を並行に進め、すべての完了を待つ |
+| `tokio::select!` | 最初に完了した `Future` の結果を採用し、残りは破棄する |
+| `tokio::time::timeout(d, fut)` | 時間制限を付ける。超過すると `Err` になる |
+
+### 逐次実行と並行実行
+
+`.await` を並べると、1つ終わってから次が始まる (逐次実行)。並行に進めたい場合は `join!` か `spawn` を使う。
+
+```rust
+// 逐次: 合計で約 200ms (各 100ms の場合)
+let a = task_a().await;
+let b = task_b().await;
+
+// 並行: 約 100ms
+let (a, b) = tokio::join!(task_a(), task_b());
+```
+
+`spawn` したタスクは、`'static` かつ `Send` である必要がある。所有権を `move` で渡し、結果は `JoinHandle` を `.await` して受け取る。
+
+```rust
+let handle = tokio::spawn(async move {
+    42 // 別タスクで実行される
+});
+let value = handle.await.unwrap(); // タスクがパニックした場合は Err (JoinError)
+```
+
+<pre><code class="caution">spawn するタスクの中で、.await をまたいで Rc や std::sync::MutexGuard を保持すると、Send ではないためコンパイルエラーになる。</code></pre>
+
+### ブロッキングに注意
+
+`async` の中で `std::thread::sleep` や重い計算、同期的なファイル I/O を行うと、そのスレッドごと止まり、同じスレッドで動く他のタスクも進めなくなる。
+
+```rust
+async fn bad() {
+    std::thread::sleep(Duration::from_secs(1)); // ❌ スレッドをブロックする
+}
+
+async fn good() {
+    tokio::time::sleep(Duration::from_secs(1)).await; // ✅ タスクを中断して実行を譲る
+}
+
+// 避けられない重い処理は、専用のスレッドに逃がす
+let result = tokio::task::spawn_blocking(|| heavy_computation()).await.unwrap();
+```
+
+<pre><code class="tips">#[tokio::main] は既定でマルチスレッドランタイムを使う。
+シングルスレッドで動かしたい場合は #[tokio::main(flavor = "current_thread")] を指定する。
+非同期用の Mutex / mpsc は tokio::sync にあり、std のものとは別。</code></pre>
+
+---
 
 ## std <a id="std" data-name="std"></a>
 
@@ -4190,6 +4762,43 @@ fn main() {
 }
 ```
 
+### std::sync
+
+`Arc` / `Mutex` / `mpsc` 以外にも、次の型がある。
+
+| 型 | 説明 |
+| --- | --- |
+| `atomic::AtomicUsize` など | ロックなしでスレッド間から読み書きできる整数・bool |
+| `OnceLock<T>` | 一度だけ初期化できる値 (Rust 1.70 以降) |
+| `LazyLock<T>` | 最初にアクセスされたときに初期化される値 (Rust 1.80 以降) |
+| `Condvar` / `Barrier` | 条件が整うまでの待機 / 複数スレッドの待ち合わせ |
+
+```rust
+use std::collections::HashMap;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::{LazyLock, OnceLock};
+
+static COUNTER: AtomicUsize = AtomicUsize::new(0);
+
+// 初回アクセス時に一度だけ初期化される (グローバルなテーブルなどに)
+static TABLE: LazyLock<HashMap<&str, i32>> = LazyLock::new(|| HashMap::from([("a", 1), ("b", 2)]));
+
+static CONFIG: OnceLock<String> = OnceLock::new();
+
+fn main() {
+    COUNTER.fetch_add(1, Ordering::Relaxed);
+    println!("{}", COUNTER.load(Ordering::Relaxed)); // 1
+
+    println!("{:?}", TABLE.get("a")); // Some(1)
+
+    CONFIG.set("production".to_string()).unwrap(); // 2回目の set は Err になる
+    println!("{}", CONFIG.get().unwrap());
+}
+```
+
+<pre><code class="tips">アトミック操作の Ordering (メモリ順序) は、単純なカウンタなら Relaxed で足りる。
+迷ったら、最も厳しい SeqCst を選べば安全。</code></pre>
+
 ### std::mem
 
 `&mut` 参照の先の値は、そのままムーブして取り出せない。代わりに、別の値と入れ替えることで取り出す。
@@ -4286,7 +4895,7 @@ let counter: Vec<i32> = iter::from_fn(|| {
 | HTTP クライアント | `reqwest` |
 | コマンドライン引数のパース | `clap` |
 
-詳しくは <a href="#ecosystem">CLIでよく使うエコシステム</a> を参照。
+詳しくは <a href="#ecosystem">CLI でよく使うエコシステム</a> を参照。
 
 ---
 
@@ -4310,11 +4919,50 @@ let counter: Vec<i32> = iter::from_fn(|| {
 `#[item_attribute]`<br>
 と書く。
 
+### よく使うアトリビュート
+
+| アトリビュート | 説明 |
+| --- | --- |
+| `#[derive(Debug, Clone, PartialEq)]` | トレイトの実装を自動生成する |
+| `#[allow(...)]` / `#[warn(...)]` / `#[deny(...)]` | リント (警告) のレベルを変える |
+| `#[expect(...)]` | 警告が出ることを想定する。出なくなったら教えてくれる (Rust 1.81 以降) |
+| `#[cfg(test)]` / `#[cfg(target_os = "windows")]` | 条件付きコンパイル |
+| `#[test]` | テスト関数であることを示す |
+| `#[inline]` | インライン展開のヒント |
+| `#[must_use]` | 戻り値を使わないと警告する |
+
 ---
 
 ## マクロ <a id="macro" data-name="マクロ"></a>
 
 文字列のフォーマット系マクロは <a href="#string-formatting">こちら</a> を参照。
+
+### よく使うマクロ
+
+| マクロ | 説明 |
+| --- | --- |
+| `vec![]` | `Vec` を作る |
+| `assert!` / `assert_eq!` / `assert_ne!` | 条件を検査する (<a href="#test">テスト</a> を参照) |
+| `panic!` | パニックを起こす |
+| `todo!()` / `unimplemented!()` | 未実装の目印。到達するとパニックするが、どんな型としてもコンパイルが通る |
+| `unreachable!()` | 到達しないはずの分岐に書く |
+| `matches!(x, pat)` | 値がパターンに一致するかを `bool` で返す |
+| `include_str!("file")` | コンパイル時にファイルを文字列として埋め込む |
+| `env!("NAME")` | コンパイル時に環境変数を読む |
+
+自作のマクロは `macro_rules!` で定義できる。
+
+```rust
+macro_rules! square {
+    ($x:expr) => {
+        $x * $x
+    };
+}
+
+println!("{}", square!(3)); // 9
+```
+
+`#[derive(...)]` のような手続きマクロは、これとは別の仕組みで実装される。
 
 ### fmt::Debug
 
@@ -4359,7 +5007,7 @@ struct User {
 
 // Display トレイトを手動で実装する
 impl fmt::Display for User {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         // ユーザーに id は見せず、名前だけを表示したい
         write!(f, "User: {}", self.name)
     }
@@ -4376,7 +5024,7 @@ println!("{u}"); // User: Alice
 
 ---
 
-## CLIでよく使うエコシステム <a id="ecosystem" data-name="CLIでよく使うエコシステム"></a>
+## CLI でよく使うエコシステム <a id="ecosystem" data-name="CLI でよく使うエコシステム"></a>
 
 ### 引数パース
 
@@ -4451,7 +5099,7 @@ impl Error for EmptyInputError {} // source() は既定で None
 
 #### 実用的なパターン: `enum` + `From` + `source()`
 
-実際のCLIでは、「IOエラー」「パースエラー」「独自の検証エラー」など複数の失敗要因があるため、1つの enum にまとめるのが定番。
+実際の CLI では、「IO エラー」「パースエラー」「独自の検証エラー」など複数の失敗要因があるため、1つの enum にまとめるのが定番。
 
 ```rust
 use std::error::Error;
@@ -4576,7 +5224,7 @@ if let Some(ConfigError::MissingKey(key)) = e.downcast_ref::<ConfigError>() {
 
 #### `thiserror` で定型コードを減らす
 
-`Display` / `Error` / `From` の実装は、`thiserror` を使うとほぼ属性だけで書ける。
+`Display` / `Error` / `From` の実装は、`thiserror` (`cargo add thiserror`) を使うとほぼ属性だけで書ける。
 
 ```rust
 use std::io;
@@ -4608,8 +5256,8 @@ enum ConfigError {
 #### `anyhow` との使い分け
 
 | 状況 | 向いているもの |
-|---|---|
-| ライブラリ。呼び出し側がエラーの種類で分岐する | 自作 enum (`thiserror` または手書き)  |
+| --- | --- |
+| ライブラリ。呼び出し側がエラーの種類で分岐する | 自作 enum (`thiserror` または手書き) |
 | アプリのトップレベル。ユーザーに表示して終了するだけ | `anyhow::Result` + `.context(...)` |
 | 外部依存を増やしたくない小さなツール | `Box<dyn Error>` |
 
@@ -4627,6 +5275,19 @@ fn main() -> Result<()> {
 }
 ```
 
+`bail!` / `anyhow!` を使うと、エラー型を定義せずにその場でエラーを作れる。
+
+```rust
+use anyhow::{bail, Result};
+
+fn check(n: i32) -> Result<()> {
+    if n < 0 {
+        bail!("負の値は指定できません: {n}"); // return Err(anyhow!(...)) の短縮形
+    }
+    Ok(())
+}
+```
+
 `main` から `Err` が返ると、プロセスは終了コード 1 で終了し、エラーチェーンが stderr に出力される。<br>
 `process::exit` を直接呼ばなくて済むため、デストラクタも正しく実行される。<br>
 終了コードを細かく制御したい場合は `std::process::ExitCode` を返す形が便利。
@@ -4634,17 +5295,18 @@ fn main() -> Result<()> {
 ### シリアライズ・設定ファイル
 
 - **serde**: シリアライズ／デシリアライズのフレームワーク。ほぼすべてのフォーマット系クレートの土台。
-- **serde_json / toml / serde_yaml**: JSON・TOML・YAML の読み書き。<br>CLIの出力を `--json` で機械可読にする用途でも多用される。
-- **directories** (または `dirs`): OSごとの設定・キャッシュディレクトリ (`~/.config` や `%APPDATA%` など) を取得する。
+- **serde_json / toml**: JSON・TOML の読み書き。<br>CLI の出力を `--json` で機械可読にする用途でも多用される。
+- **YAML**: かつて標準的だった `serde_yaml` は 2024 年に開発が終了しており (`serde_yml` も非推奨)、新規で使う場合は、現在メンテナンスされているクレート (`serde-saphyr` など) を crates.io で確認する (2026 年 11 月時点)。
+- **directories** (または `dirs`): OS ごとの設定・キャッシュディレクトリ (`~/.config` や `%APPDATA%` など) を取得する。
 
 ### ターミナル出力・対話
 
 - **owo-colors / colored**: 文字色・装飾。
 - **indicatif**: プログレスバーやスピナー。
-- **dialoguer / inquire**: 確認プロンプト、選択式メニュー、パスワード入力などの対話UI。
+- **dialoguer / inquire**: 確認プロンプト、選択式メニュー、パスワード入力などの対話 UI。
 - **comfy-table**: 表形式の整形出力。
 
-色付き出力は、パイプやリダイレクト時には無効にするのがマナー。<br>
+色付き出力は、パイプやリダイレクト時には無効にするのがマナー。環境変数 `NO_COLOR` が設定されている場合も無効にするのが慣例。<br>
 標準ライブラリの `std::io::IsTerminal` (Rust 1.70 以降) で、出力先が端末かどうかを判定できる。
 
 ```rust
@@ -4658,9 +5320,9 @@ let use_color = io::stdout().is_terminal();
 ファイルを読む方法は大きく3つあり、「何をどの単位で処理したいか」で選び分ける。
 
 | 手法 | 内部動作・仕組み | メリット | デメリット・注意点 |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `fs::read_to_string` / `fs::read` | ファイルを開いてメタデータからサイズを取得し、その分の容量を `String` / `Vec<u8>` に事前確保して、全データを読み切る。 | ・コードが最も簡潔 (1行) <br>・サイズを事前に把握するため再アロケーションが起きにくい | ・ファイルサイズに比例してメモリを消費する<br>・全体を読み終えるまで処理を始められない<br>・`read_to_string` は UTF-8 でないと `InvalidData` エラーになる |
-| `File::open` + `Read` | 呼び出し側が用意したバッファ (配列など) に対し、`read` のたびに OS のシステムコールを発行する。`File` 自体にはバッファがない。 | ・一度に読むサイズを細かく制御できる<br>・バイナリ形式のヘッダ解析など、読む範囲が決まっている用途に向く | ・数B〜数KBの小さな読み込みをループで繰り返すと、システムコールのオーバーヘッドで極端に遅くなる<br>・`read` は要求より少ないバイト数しか返さないことがあるため、`read_exact` や `read_to_end` の使い分けが必要 |
+| `File::open` + `Read` | 呼び出し側が用意したバッファ (配列など) に対し、`read` のたびに OS のシステムコールを発行する。`File` 自体にはバッファがない。 | ・一度に読むサイズを細かく制御できる<br>・バイナリ形式のヘッダ解析など、読む範囲が決まっている用途に向く | ・数 B〜数 KB の小さな読み込みをループで繰り返すと、システムコールのオーバーヘッドで極端に遅くなる<br>・`read` は要求より少ないバイト数しか返さないことがあるため、`read_exact` や `read_to_end` の使い分けが必要 |
 | `BufReader` | 内部に固定サイズのバッファ (標準8KiB) を持ち、まとめて読み込んでメモリ上から少しずつ切り出して返す。 | ・1行単位や小さな塊での繰り返し読み込みが圧倒的に速い<br>・巨大ファイルでもメモリ使用量が一定 (バッファサイズ分) <br>・`lines()` や `read_line()` など `BufRead` の便利なメソッドが使える | ・全体を一括で読むだけなら、`fs::read_to_string` のほうが簡潔で、バッファ分のコピーも発生しない<br>・`lines()` は1行ごとに新しい `String` を確保する |
 
 #### 選び方の目安
@@ -4722,7 +5384,7 @@ while reader.read_line(&mut line)? > 0 {
 ### 並列・非同期・シグナル
 
 - **rayon**: `iter()` を `par_iter()` に変えるだけでデータ並列化できる。
-- **tokio**: 非同期ランタイム。ネットワークを多用するCLIで利用する。
+- **tokio**: 非同期ランタイム。ネットワークを多用する CLI で利用する。
 - **reqwest**: HTTP クライアント (`blocking` 機能なら非同期ランタイム不要)。
 - **ctrlc**: `Ctrl+C` (SIGINT) を捕捉して、後始末をしてから終了できる。
 
@@ -4733,18 +5395,19 @@ while reader.read_line(&mut line)? > 0 {
 - **assert_fs / tempfile**: テスト用の一時ファイル・ディレクトリを安全に用意する。
 
 ```rust
-use assert_cmd::Command;
+use assert_cmd::cargo::cargo_bin_cmd;
 
 #[test]
 fn prints_greeting() {
-    Command::cargo_bin("mytool")
-        .unwrap()
+    cargo_bin_cmd!("mytool")
         .arg("しん")
         .assert()
         .success()
         .stdout(predicates::str::contains("こんにちは、しんさん"));
 }
 ```
+
+`cargo add --dev assert_cmd predicates` で追加する。assert_cmd 2.1 以降では、従来の `Command::cargo_bin("...")` は非推奨で、`cargo_bin_cmd!` マクロに置き換えられている。
 
 ### 補足: 依存を選ぶときの目安
 
@@ -4800,7 +5463,7 @@ assert_ne!(add(2, 2), 5);
 
 #### should_panic
 
-panic することが期待されるケース。
+panic することが期待されるケース。`expected` を付けると、panic メッセージの一部も検証できる。
 
 ```rust
 #[test]
@@ -4808,6 +5471,22 @@ panic することが期待されるケース。
 fn test_panic() {
     panic!("error");
 }
+
+#[test]
+#[should_panic(expected = "divide by zero")]
+fn test_divide() {
+    divide(1, 0);
+}
+```
+
+#### ignore
+
+時間のかかるテストなどを、通常の実行から外す。
+
+```rust
+#[test]
+#[ignore]
+fn slow_test() {}
 ```
 
 #### Result を返すパターン
@@ -4839,6 +5518,37 @@ assert_eq!(a, b, "計算結果がおかしい");
 debug_assert!(x > 0);
 ```
 
+### テストの実行
+
+| コマンド | 説明 |
+| --- | --- |
+| `cargo test` | すべてのテストを実行する |
+| `cargo test 名前` | 名前に部分一致するテストだけ実行する |
+| `cargo test -- --nocapture` | 成功したテストの `println!` 出力も表示する |
+| `cargo test -- --test-threads=1` | テストを1つずつ順に実行する |
+| `cargo test -- --ignored` | `#[ignore]` 付きのテストだけ実行する |
+
+`--` より前は cargo への、後ろはテストプログラムへのオプション。
+
+### テストの置き場所
+
+| 種類 | 場所 | 特徴 |
+| --- | --- | --- |
+| ユニットテスト | 各ファイルの `#[cfg(test)] mod tests` | 同じ module の非公開の関数もテストできる |
+| 結合テスト | `tests/` ディレクトリ (1ファイルが1つの独立したクレート) | 公開 API だけをテストする |
+| ドキュメントテスト | `///` のコメント内のコードブロック | `cargo test` で実行され、使用例が古くなるのを防げる |
+
+~~~rust
+/// 2つの数を足す。
+///
+/// ```
+/// assert_eq!(my_crate::add(2, 3), 5);
+/// ```
+pub fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+~~~
+
 ---
 
 ## 用語 <a id="term" data-name="用語"></a>
@@ -4858,7 +5568,15 @@ debug_assert!(x > 0);
 | バイナリクレート | 実行可能ファイルとなる |
 | ライブラリクレート | 再利用されるコード |
 | モジュール (Module) | コードの整理・名前空間管理 |
-| アトリビュート | `#[...]`という記述でコンパイラに情報を与える |
+| アトリビュート | `#[...]` という記述でコンパイラに情報を与える |
+| 所有権 (Ownership) | 値の持ち主となる変数は常に1つだけで、持ち主がスコープを抜けると値が破棄されるというルール |
+| ムーブ (Move) | 所有権を別の変数や関数に移すこと。ムーブ後の元の変数は使えない |
+| 借用 (Borrow) | 所有権を移さず、参照 (`&T` / `&mut T`) を通して値を使うこと |
+| バリアント (Variant) | enum の各選択肢 (列挙子) |
+| 内部可変性 (Interior mutability) | 不変な参照からでも中身を変更できる仕組み。`Cell`、`RefCell`、`Mutex` など |
+| 糖衣構文 (Syntactic sugar) | 読みやすさのために用意された短い書き方。`if let` や `?` など |
+| エディション (Edition) | 後方互換性を壊す変更を取り込むための、言語の区切り (2015 / 2018 / 2021 / 2024) |
+| ワークスペース (Workspace) | 複数のパッケージを1つのプロジェクトとして管理する仕組み |
 
 ---
 
@@ -4866,16 +5584,21 @@ debug_assert!(x > 0);
 
 ### 標準のリポジトリ
 
-#### cargo addコマンド
+#### cargo add コマンド
 
 2022年(Rust 1.62) から標準搭載された cargo の機能で、最新バージョンの検索、Cargo.toml への追記、依存関係の解決まで行ってくれる。<br>
 基本的に add コマンドを使い、細かい調整が必要な時は Cargo.toml を編集するのが一般的。
+
+```bash
+cargo add serde --features derive  # フィーチャを有効にして追加
+cargo add assert_cmd --dev         # [dev-dependencies] に追加
+```
 
 #### Cargo.toml に直接書く
 
 微調整向きで、GitHub のこのブランチの、このディレクトリにあるクレートなど、複雑な指定をする場合は直接編集した方が早い。
 
-### Gitリポジトリ
+### Git リポジトリ
 
 GitHub や GitLab リポジトリ上のソースを直接参照できる。特定のブランチやコミットハッシュを指定することもできる。
 
@@ -4886,9 +5609,27 @@ regex = { git = "https://github.com/rust-lang/regex" }
 # 特定のブランチやタグを指定する場合
 rand = { git = "https://github.com/rust-lang-nursery/rand", branch = "master" }</code></pre>
 
+### バージョン指定とフィーチャ
+
+| 書き方 | 意味 |
+| --- | --- |
+| `"1.2.3"` (= `"^1.2.3"`) | 1.2.3 以上、2.0.0 未満 (互換性のある更新を許可。既定)。`0.x` の場合は `"0.2.3"` なら 0.3.0 未満 |
+| `"~1.2.3"` | 1.2.3 以上、1.3.0 未満 |
+| `"=1.2.3"` | 1.2.3 に固定する |
+
+```toml
+[dependencies]
+serde = { version = "1", features = ["derive"] } # フィーチャ (任意の機能) を有効にする
+
+[dev-dependencies]   # テストなど、開発中だけ使う依存
+assert_cmd = "2"
+```
+
+実際に使われたバージョンは Cargo.lock に記録される。アプリケーションでは、再現性のあるビルドのために Cargo.lock もコミットする。
+
 ### ローカルのパス
 
-同じPC内の別のディレクトリにあるクレートを参照する。巨大なプロジェクトを複数のパッケージに分割して開発する場合などにも用いられる。
+同じ PC 内の別のディレクトリにあるクレートを参照する。巨大なプロジェクトを複数のパッケージに分割して開発する場合などにも用いられる。
 
 <pre><code class="example">[dependencies]
 my_library = { path = "../my_library" }</code></pre>
@@ -4899,14 +5640,30 @@ crates.io にパブリッシュして、自分のコードをクレートとし�
 
 1. `cargo login` でトークンを設定する。
 2. Cargo.toml に `description` や `license` などの必須項目を記入する。
-3. `cargo publish` コマンドを実行する。
+3. `cargo publish --dry-run` で事前確認してから、`cargo publish` を実行する。公開したバージョンは削除できず、`cargo yank` で新規の利用を止められるだけ。
 
 ### ワークスペース
 
 複数の関連するクレートをひとつのプロジェクト(ディレクトリ)内で管理する方法。
 
 - ルートの Cargo.toml の `[workspace]` セクションで `members` を指定し、メンバーのクレート同士は path でつなぐ。
-- コンパイル結果 (targetディレクトリ) を共有できるため、ビルド時間の短縮につながる。
+- コンパイル結果 (target ディレクトリ) を共有できるため、ビルド時間の短縮につながる。
+- 共通の依存のバージョンは、ルートの `[workspace.dependencies]` でまとめて管理できる。
+
+```toml
+# ルートの Cargo.toml
+[workspace]
+members = ["app", "core"]
+resolver = "2"
+
+[workspace.dependencies]
+serde = "1"
+
+# app/Cargo.toml (メンバー側)
+[dependencies]
+serde = { workspace = true }
+core = { path = "../core" }
+```
 
 ---
 
@@ -4920,7 +5677,7 @@ crates.io にパブリッシュして、自分のコードをクレートとし�
 my_project/
 ├── Cargo.toml
 ├── src/
-│   ├── main.rs      (デフォルトのバイナリ: cargo run)
+│   ├── main.rs      (パッケージ名のバイナリ: cargo run --bin my_project)
 │   └── bin/
 │       ├── tool_a.rs (別のバイナリ: cargo run --bin tool_a)
 │       └── tool_b.rs (別のバイナリ: cargo run --bin tool_b)
@@ -4930,6 +5687,14 @@ my_project/
 
 ```bash
 cargo run --bin tool_a
+```
+
+バイナリが複数あると、`cargo run` だけではどれを実行するか決まらずエラーになる。`default-run` を指定すると、引数なしの `cargo run` の対象を決められる。
+
+```toml
+[package]
+name = "my_project"
+default-run = "tool_a"
 ```
 
 ### 警告を消す
@@ -4948,8 +5713,17 @@ cargo run --bin tool_a
 | --- | --- | --- |
 | unused_variables | 定義した変数が一度も使われていない | `#![allow(unused_variables)]` |
 | dead_code | 関数や構造体がどこからも呼び出されていない | `#![allow(dead_code)]` |
-| unused_imports | useしたけれど使っていない | `#![allow(unused_imports)]` |
+| unused_imports | use したけれど使っていない | `#![allow(unused_imports)]` |
 | 全部まとめて | 上記すべて | `#![allow(unused)]` |
+
+`#![allow(...)]` はファイル (クレート) 全体に効く。特定の関数や構造体だけなら、その直前に `#[allow(...)]` を書く。
+
+```rust
+#[allow(dead_code)] // この関数だけ警告を消す
+fn helper() {}
+```
+
+`#[expect(dead_code)]` にすると、警告が出なくなったとき (不要になったとき) に知らせてくれる (Rust 1.81 以降)。警告を消す前に、`cargo clippy` の指摘で直せないかも確認するとよい。
 
 ---
 
@@ -4996,4 +5770,5 @@ linker = "x86_64-w64-mingw32-gcc"
 <pre><code class="tips">プロジェクトごとではなく、WSL2 上のすべての Rust プロジェクトで有効化したい場合は
 <span class="code-like">~/.cargo/config.toml</span> で上記の内容を記述する。</code></pre>
 
-ビルドして実行すると、Windows 側で実行される。
+ビルドして実行すると、Windows 側で実行される。<br>
+成果物は `target/x86_64-pc-windows-gnu/release/アプリ名.exe` に出力される (ターゲットを指定すると、`target/release/` ではなく、ターゲット名のディレクトリの下になる)。

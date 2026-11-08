@@ -1866,7 +1866,22 @@ grep hello <<< "hello world"
 
 ```bash
 cat log.txt | grep ERROR | sort | uniq
+ps aux | less # 1画面ずつスクロールして表示
 ```
+
+リダイレクトとの違いは、データの渡し先がコマンドかファイルかという点。
+
+| 記号 | 名前 | 渡し先 | 主な目的 |
+| --- | --- | --- | --- |
+| `>` | リダイレクト | 右側のファイル | コマンドの出力をファイルに保存する |
+| `\|` | パイプ | 右側のコマンド (の標準入力) | コマンドをつないで、絞り込みや加工をする |
+
+<pre><code class="caution">> の右側にはファイル名、| の右側にはコマンドを書く。取り違えるとうまく動かない。
+cat file.txt > grep "test" # grep というファイルが作られ、"test" は cat の引数になってしまう
+ls | list.txt # list.txt: command not found になる</code></pre>
+
+<pre><code class="caution">パイプで渡されるのは標準出力だけで、エラー出力は端末にそのまま出る。エラーもまとめて渡したい場合は 2>&1 を付ける (bash では |& でも同じ)。
+command 2>&1 | grep ERROR</code></pre>
 
 長くなる場合は、`\` で改行すると読みやすい。
 
@@ -1881,12 +1896,45 @@ cat log.txt \
 
 #### tee
 
-標準出力に表示しつつ、ファイルにも保存する。
+標準入力を受け取り、標準出力 (画面) とファイルの両方に書き出す。T字の継手のように、データが2方向に分かれる。
+
+```text
+              ┌─> 画面に表示
+command ──> tee
+              └─> ファイルに書き込み
+```
+
+`>` だけだと画面には何も表示されない。進捗を見ながらログにも残したいときに使う。`tee` は標準入力を受け取るコマンドなので、パイプと組み合わせる。
 
 ```bash
-command | tee output.log
-command | tee -a output.log # 追記
+command | tee output.log # 画面に表示しつつ保存 (上書き)
+command | tee -a output.log # 追記 (-a は append)
 ```
+
+##### エラー出力も含めて保存する
+
+`tee` が受け取るのは標準出力だけ。エラー出力もログに残したい場合は、`2>&1` で標準出力に合流させてから渡す。
+
+```bash
+./deploy.sh 2>&1 | tee -a build.log
+```
+
+##### root 権限が必要なファイルに書き込む
+
+`sudo echo "text" > /etc/protected.conf` は、ファイルを開くのが `sudo` ではなく現在のシェル (一般ユーザー) なので、Permission denied で失敗する。`tee` を使うと、書き込む側だけを `sudo` で実行できる。
+
+```bash
+echo "127.0.0.1 mylocal" | sudo tee -a /etc/hosts
+echo "127.0.0.1 mylocal" | sudo tee -a /etc/hosts > /dev/null # 画面に出力したくない場合
+```
+
+##### 使い分け
+
+| やりたいこと | 使うもの |
+| --- | --- |
+| ファイルに保存するだけでよい | `>` / `>>` |
+| 別のコマンドで絞り込み・加工したい | `\|` |
+| 画面で確認しながらファイルにも残したい | `\| tee` (追記なら `\| tee -a`) |
 
 #### xargs
 
