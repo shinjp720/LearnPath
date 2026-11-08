@@ -1942,11 +1942,122 @@ console.log(counter()); // 3
 
 ## 非同期 <a id="async" data-name="非同期"></a>
 
+JavaScript は基本的に1つのスレッドで、コードを上から1行ずつ実行する (同期処理)。通信やタイマーのように完了まで時間がかかる処理をその場で待ってしまうと、待っている間は画面の描画やクリックへの反応も止まってしまう。
+
+そこで、時間のかかる処理は実行環境 (ブラウザや Node.js) に任せて、完了したら続きの処理を呼び出してもらう仕組みが使われる。これが**非同期処理**で、Promise や async/await は、この「続きの処理」を書きやすくするための仕組み。
+
+### 非同期の概念
+
+#### 同期と非同期
+
+| | 説明 |
+| --- | --- |
+| 同期 | 処理が完了するまで次に進まず、結果をその場で受け取る。 |
+| 非同期 | 処理の完了を待たずに次へ進み、結果は完了した後に受け取る。 |
+
+身近な例で言うと、次のようなイメージ。
+
+- **同期**: 注文したあと、カウンターの前で料理ができるまで立って待つ。その間は他に何もできない。
+- **非同期**: 注文して番号札を受け取り、席で別のことをしながら待つ。できあがったら呼ばれて、料理を受け取る。
+
+この「番号札」にあたるものが **Promise**。「今は結果がないが、後で結果と交換できる引換券」と考えると分かりやすい。`await` は「呼ばれるまで席で待つ」、`then` は「呼ばれたらこれをする」と決めておくことに当たる。
+
+```
+同期:
+  |--処理A--|====== 待ち (何もできない) ======|--処理B--|
+
+非同期:
+  |--処理A--|--依頼を出す--|--処理B--|--処理C--| ... |--完了後の処理--|
+                  └─ 待ち時間は実行環境 (ブラウザ / OS) が担当 ─┘
+```
+
+#### ブロッキングとノンブロッキング
+
+同期/非同期とは別の軸として、「待っている間、スレッドが他の仕事をできるか」という見方がある。
+
+| | 説明 |
+| --- | --- |
+| ブロッキング | 待っている間、スレッドが止まって他の処理ができない。 |
+| ノンブロッキング | 待っている間も、スレッドが他の処理を実行できる。 |
+
+- 同期/非同期は、**結果をいつ・どう受け取るか** (呼び出し側から見た書き方) の話。
+- ブロッキング/ノンブロッキングは、**待っている間にスレッドが空くか** (スレッドの状態) の話。
+
+`await` は、コードの見た目は同期処理のように上から下へ進むが、実際には**ノンブロッキング**。待っている間、スレッドはイベントループに戻って他の処理を実行している。逆に、重い計算のループは見た目の書き方に関係なく、完了までスレッドを占有する (ブロッキング)。
+
+#### 並行と並列
+
+| | 説明 |
+| --- | --- |
+| 並行 (concurrency) | 複数の処理を**切り替えながら**進める。1つのスレッドでも実現できる。 |
+| 並列 (parallelism) | 複数の処理を**物理的に同時に**実行する。複数のスレッド (CPU コア) が必要。 |
+
+JavaScript のメインスレッドは、**並行ではあるが並列ではない**。「待ち」の間に別の処理へ切り替えることで、複数の処理が同時に進んでいるように見えるが、JavaScript のコード自体が同時に2か所で実行されることはない。
+
+本当に並列で実行したい場合は、別スレッドで動く **Web Worker** (Node.js では Worker Threads) を使う。メインスレッドとはメッセージで通信し、変数は共有しない。
+
+#### 待っているのは誰か
+
+通信やタイマーの「待ち」は、JavaScript エンジンではなく**実行環境 (ブラウザや OS) が担当**する。JavaScript 側は依頼を出しておくだけで、完了すると、その通知 (コールバックや Promise の決着) がキューに積まれる。イベントループが、現在の処理が終わったタイミングでそれを取り出して実行する。
+
+このため、`fetch` で通信している間にも、画面の描画やクリックの処理は止まらない。
+
+#### 結果の受け取り方の変遷
+
+「後で届く結果をどう受け取るか」という問題への答えが、書き方の違いになっている。
+
+| 方式 | 受け取り方 |
+| --- | --- |
+| コールバック | 「終わったらこの関数を呼んで」と関数を渡しておく。 |
+| Promise | 「後で結果と交換できる引換券」を受け取り、`then` / `catch` で受け取り方を登録する。 |
+| async/await | Promise を `await` で待つ形にして、同期処理のように書く。 |
+
+どの方式でも、**非同期で動く仕組み (イベントループ) は同じ**で、違うのは結果の受け取り方の書きやすさだけ。
+
+### 非同期処理のしくみ (イベントループ)
+
+非同期処理は、次の4つの要素で成り立っている。
+
+| 要素 | 説明 |
+| --- | --- |
+| コールスタック | 実行中の関数を積み上げる場所。同期処理はここで順番に実行される。 |
+| タスクキュー (マクロタスク) | `setTimeout` のコールバックや、クリックなどのイベントハンドラが、準備できた時点で積まれる待ち行列。 |
+| マイクロタスクキュー | Promise の `then` / `catch` / `finally` のコールバックや、`await` より後の処理が積まれる待ち行列。 |
+| イベントループ | コールスタックが空になるのを監視して、キューから次の処理を取り出して実行する。**マイクロタスクは、次のマクロタスクより先にすべて実行される。** |
+
+```javascript
+console.log("1: 同期処理");
+
+setTimeout(() => {
+    console.log("4: setTimeout (マクロタスク)");
+}, 0);
+
+Promise.resolve().then(() => {
+    console.log("3: Promise.then (マイクロタスク)");
+});
+
+console.log("2: 同期処理");
+
+// 1 → 2 → 3 → 4 の順に出力される
+```
+
+`setTimeout` の待ち時間が `0` でも、コールバックは現在の同期処理がすべて終わるまで実行されない。
+
+<pre><code class="tips">非同期は「並列」ではない。JavaScript のコードが同時に2か所で実行されることはなく、通信やタイマーなどの「待ち時間」が重なっているだけ。
+そのため、重い計算 (CPU を使い続ける処理) を非同期にしても、その間は他の処理が止まる。</code></pre>
+
+<pre><code class="example">// Rustで言うと
+// JS の Promise  : 生成した時点で処理が動き始める (tokio::spawn に近い)
+// Rust の Future : .await (poll) されるまで何も進まない
+// イベントループ : 単一スレッドの executor (Tokio の current_thread ランタイム) のイメージ</code></pre>
+
+---
+
 ### Promise
 
-Promise は、将来得られる結果を表すオブジェクトで、JavaScript は元々非同期処理 (ネットワーク通信、ファイル読み込み、タイマーなど) が多いため、その結果を扱いやすくするために導入された。
+Promise は、将来得られる結果を表すオブジェクト。JavaScript は元々非同期処理 (ネットワーク通信、ファイル読み込み、タイマーなど) が多く、コールバックを入れ子にしていくと読みにくくなる (コールバック地獄) ため、その結果を扱いやすくするために導入された。
 
-Promise は3つの状態を持ち、Pending から Fulfilled または Rejected へ1度だけ移行できる。<br>
+Promise は3つの状態を持ち、Pending から Fulfilled または Rejected へ1度だけ移行できる。成功か失敗のどちらかになった状態を、**決着 (settled)** したという。<br>
 状態を移行した後に <span class="code-like">resolve()</span> や <span class="code-like">reject()</span> を呼んでも無視される。
 
 | 状態 | 説明 |
@@ -1969,10 +2080,14 @@ const promise = new Promise((resolve, reject) => {
     if (ok) {
         resolve("成功");
     } else {
-        reject("失敗");
+        reject(new Error("失敗"));
     }
 });
 ```
+
+- executor は `new Promise()` を呼んだ時点で**すぐに同期的に実行される**。`then` や `await` を書いた時に動き始めるわけではない。
+- `reject` には、`throw` と同様に Error オブジェクトを渡すのが一般的。
+- executor の中で例外が発生した場合は、自動的に `reject` が呼ばれたことになる。
 
 <pre><code class="example">// Rustで言うと
 enum PromiseState&lt;T, E&gt; {
@@ -1981,9 +2096,16 @@ enum PromiseState&lt;T, E&gt; {
     Rejected(E),
 }</code></pre>
 
+すでに結果が分かっている値を Promise にしたい場合は、次のショートカットを使う。
+
+| メソッド | 説明 |
+| --- | --- |
+| `Promise.resolve(value)` | Fulfilled な Promise を返す。 |
+| `Promise.reject(error)` | Rejected な Promise を返す。 |
+
 #### 結果を取り出す
 
-Promise から結果を取り出すときには、<span class="code-like">.then()</span> か <span class="code-like">await</span> で Fulfilled の値を取り出し、<span class="code-like">.catch()</span> で Rejected の値を取り出す。
+Promise から結果を取り出すときには、<span class="code-like">.then()</span> か <span class="code-like">await</span> で Fulfilled の値を取り出し、<span class="code-like">.catch()</span> で Rejected の値を取り出す。<span class="code-like">.finally()</span> は、成功・失敗を問わず最後に実行される (後片付けなどに使う)。
 
 <pre><code class="caution">try/catch で Rejected を捕捉できるのは、await と組み合わせた場合のみ。.then() を使う場合は .catch() で受け取る。</code></pre>
 
@@ -2011,18 +2133,51 @@ const promise = new Promise((resolve, reject) => {
     if (ok) {
         resolve("成功");
     } else {
-        reject("失敗");
+        reject(new Error("失敗"));
     }
 }).then((value) => {
     console.log(value);
 }).catch((error) => {
-    console.log(error);
+    console.error(error);
+}).finally(() => {
+    console.log("成功・失敗を問わず実行");
 })
 ```
 
-#### Promise.all
+##### then をつなぐ (チェーン)
 
-すべての非同期処理を並列に実行して、すべての完了を待ってから処理を行う。<br>
+`then()` は、コールバックの戻り値を結果とする**新しい Promise** を返す。そのため、`.then().then()` と続けて、処理を順番につなげられる。
+
+- コールバックが**値**を返すと、その値がそのまま次の `then` に渡る。
+- コールバックが **Promise** を返すと、その決着を待ってから、結果が次の `then` に渡る。
+- チェーンのどこかで失敗 (Rejected や例外) すると、以降の `then` は飛ばされて、最も近い `catch` に処理が移る。
+
+```javascript
+fetch("/api/user")
+    .then((response) => response.json())    // Promise を返す → 完了を待って次へ
+    .then((user) => user.name)              // 値を返す → そのまま次へ
+    .then((name) => console.log(name))
+    .catch((error) => console.error(error)) // どこで失敗してもここに来る
+    .finally(() => console.log("終了"));
+```
+
+<pre><code class="caution">Rejected の Promise を catch (または try/catch) で受け取らずに放置すると、未処理のエラーになる。
+ブラウザではコンソールにエラーが出力され (unhandledrejection イベントが発生する)、Node.js ではプロセスが異常終了することがある。</code></pre>
+
+#### 複数の Promise を扱う
+
+複数の Promise をまとめて待つメソッド。どれも、渡した Promise はすでに動き始めていて、その決着をどう扱うかが違うだけ。
+
+| メソッド | 結果 | 失敗となる条件 |
+| --- | --- | --- |
+| `Promise.all` | すべて成功した時に、値の配列 (渡した順) を返す。 | 1つでも失敗した時点で、すぐに Rejected になる。 |
+| `Promise.allSettled` | すべてが決着してから、各結果の配列を返す。 | 失敗しない (常に Fulfilled)。 |
+| `Promise.race` | 最初に決着したものの結果を採用する (成功・失敗を問わない)。 | 最初に決着したものが失敗なら Rejected。 |
+| `Promise.any` | 最初に成功したものの値を採用する。 | すべて失敗した時に、AggregateError で Rejected になる。 |
+
+##### Promise.all
+
+すべての Promise を同時に待ち、すべての完了を待ってから処理を行う。<br>
 1つでも失敗 (Rejected) した場合は、その時点で全体が Rejected になる。成功・失敗を問わずすべての結果が必要な場合は Promise.allSettled() を使う。
 
 ```javascript
@@ -2032,19 +2187,57 @@ const [a, b] = await Promise.all([
 ]);
 ```
 
-#### Promise.race
+##### Promise.allSettled
 
-すべての非同期処理を並列に実行して、最初に完了したもの (成功・失敗を問わない) の結果を採用する。
+結果は、成功なら `{ status: "fulfilled", value }`、失敗なら `{ status: "rejected", reason }` というオブジェクトの配列になる。
 
 ```javascript
-Promise.race([
-    promise1,
-    promise2
-]).then((value) => {
-    console.log(value);
-}).catch((error) => {
-    console.log(error);
-})
+const results = await Promise.allSettled([
+    fetch("/a"),
+    fetch("/b")
+]);
+
+for (const result of results) {
+    if (result.status === "fulfilled") {
+        console.log(result.value);
+    } else {
+        console.error(result.reason);
+    }
+}
+```
+
+##### Promise.race
+
+最初に完了したもの (成功・失敗を問わない) の結果を採用する。処理にタイムアウトを付けたい場合によく使われる。
+
+```javascript
+const timeout = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error("タイムアウト")), 5000);
+});
+
+try {
+    const response = await Promise.race([fetch("/slow"), timeout]);
+} catch (error) {
+    console.error(error);
+}
+```
+
+<pre><code class="caution">Promise.race で負けた側の処理は、中止されずに動き続ける。fetch を中止したい場合は AbortController を使う。</code></pre>
+
+##### Promise.any
+
+最初に**成功した**ものの値を採用する。複数のサーバーのうち、最初に応答したものを使いたい場合などに使う。
+
+```javascript
+try {
+    const response = await Promise.any([
+        fetch("/server1/data"),
+        fetch("/server2/data")
+    ]);
+} catch (error) {
+    // すべて失敗した場合のみここに来る (error は AggregateError)
+    console.error(error.errors);
+}
 ```
 
 ---
@@ -2058,11 +2251,22 @@ async が付いた関数の役割は次の2つ。
 - 関数内で await を使えるようにする (async が無いと await が使えない)。
 
 <pre><code class="tips">await は async が付いた関数の中でしか使えない (モジュールのトップレベルでは例外的に使える)。
-await の位置で Promise の結果が返ってくるまで一時停止する。
+await の位置で Promise の結果が返ってくるまで、その関数の実行を中断する。
 await は成功 (Fulfilled) を受け、Promise を剥がして値そのものにする。
 失敗 (Rejected) は、try/catch で受ける。</code></pre>
 
-また、async が付いた関数の戻り値は自動的に Promise でラップされる (Promise を返す関数となる)。<br>
+async 関数は、次のどの形でも書ける。
+
+```javascript
+async function fn() {}              // 関数宣言
+const fn2 = async function () {};   // 関数式
+const fn3 = async () => {};         // アロー関数
+const obj = { async method() {} };  // メソッド
+```
+
+#### 戻り値は Promise
+
+async が付いた関数の戻り値は自動的に Promise でラップされる (Promise を返す関数となる)。<br>
 async 関数は直接 Promise を返すこともでき、その際は二重にラップされず平坦化される。
 
 戻り値が Promise であることを明示的にするために async を付けてもいい。ただし、呼び出し側は非同期関数として扱う必要がある (戻り値は Promise)。
@@ -2096,6 +2300,152 @@ function test() {
     return Promise.reject(new Error("Oops"));
 }
 ```
+
+呼び出し側で `await` (または `.then()`) を付けずに呼ぶと、値ではなく Promise が手に入る。
+
+```javascript
+const value = hello();
+console.log(value);         // Promise { <pending> } などが出力される
+
+const value2 = await hello();
+console.log(value2);        // "Hello"
+```
+
+#### await の動き
+
+`await` は、スレッドを止めて待つのではなく、**その async 関数だけを中断して、制御を呼び出し元 (イベントループ) に返す**。待っている Promise が決着すると、`await` より後の処理がマイクロタスクとして再開される。
+
+```javascript
+async function main() {
+    console.log("A");
+    await Promise.resolve();   // ここで main は中断され、呼び出し元に制御が戻る
+    console.log("C");          // 後でマイクロタスクとして再開される
+}
+
+main();
+console.log("B");
+
+// A → B → C の順に出力される
+```
+
+<pre><code class="example">// Rustで言うと
+// JS の await   : その関数だけを中断して、スレッドは他の処理に使われる (Rust の .await と同じ)
+// スレッドを止めて待つ処理 (std::thread::sleep のようなもの) とは別物</code></pre>
+
+`await` の右側は Promise でなくてもよい。Promise 以外の値の場合は、そのまま値として扱われる (ただし、`await` の位置で一度中断されて、後から再開される)。
+
+#### エラー処理
+
+`await` した Promise が Rejected になると、その位置で例外が `throw` されるため、同期処理と同じ `try/catch/finally` で受け取れる。
+
+```javascript
+async function run() {
+    try {
+        const value = await riskyTask();   // Rejected なら、ここで例外になる
+        console.log(value);
+    } catch (error) {
+        console.error(error);
+    } finally {
+        console.log("成功・失敗を問わず実行");
+    }
+}
+```
+
+<pre><code class="caution">try の中で Promise を await せずに return すると、その Promise が Rejected になっても catch されない。
+catch で受けたい場合は return await と書く。
+
+async function a() {
+    try {
+        return riskyTask();         // 失敗しても catch されない
+    } catch (error) { /* 実行されない */ }
+}
+
+async function b() {
+    try {
+        return await riskyTask();   // ここで待つので、失敗すれば catch される
+    } catch (error) { /* 実行される */ }
+}</code></pre>
+
+#### 直列と並列
+
+`await` を順番に書くと、前の処理が終わってから次の処理が始まる (直列)。互いに依存しない処理は、`Promise.all` でまとめて待つと待ち時間が重なる (並列)。
+
+```javascript
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// 直列: 合計 約2秒
+async function serial() {
+    await sleep(1000);
+    await sleep(1000);
+}
+
+// 並列: 合計 約1秒
+async function parallel() {
+    await Promise.all([sleep(1000), sleep(1000)]);
+}
+```
+
+Promise は生成した時点で動き始める。`await` は「結果をどこで待つか」を決めているだけなので、先に両方を生成してから `await` しても並列になる。
+
+```javascript
+const p1 = sleep(1000);   // 生成した時点でタイマーが開始される
+const p2 = sleep(1000);
+
+await p1;
+await p2;                 // 合計 約1秒
+```
+
+ループで非同期処理を行う場合も同様。
+
+```javascript
+// for...of + await: 1件ずつ順番に処理する (直列)
+for (const id of ids) {
+    await processItem(id);
+}
+
+// map + Promise.all: すべて同時に開始する (並列)
+await Promise.all(ids.map((id) => processItem(id)));
+```
+
+<pre><code class="caution">forEach に async 関数を渡しても、forEach は Promise の完了を待たない。
+すべての完了を待ちたい場合は、for...of + await か、map + Promise.all を使う。
+
+ids.forEach(async (id) => {
+    await processItem(id);
+});
+console.log("ここは processItem の完了前に実行される");</code></pre>
+
+#### よくある間違い
+
+| 間違い | 結果 |
+| --- | --- |
+| `await` を付け忘れる | 値ではなく Promise が返り、`Promise { <pending> }` などが出力される。エラーも捕捉されない。 |
+| async が無い関数の中で `await` を使う | SyntaxError になる (モジュールのトップレベルを除く)。 |
+| 依存しない処理を `await` で1つずつ待つ | 動作はするが、待ち時間が足し算になって遅くなる。 |
+| `forEach` に async 関数を渡す | 完了を待たずに次の処理に進む。 |
+| try の中で `await` せずに return する | Rejected になっても catch されない。 |
+
+#### トップレベル await
+
+ES モジュール (`<script type="module">` や `.mjs`) では、async 関数の外 (モジュールの最上位) でも `await` を使える。
+
+```javascript
+// module として読み込まれたファイル
+const response = await fetch("/data.json");
+const data = await response.json();
+```
+
+#### TypeScript <span class="label">TS</span>
+
+async 関数の戻り値の型は、`Promise<値の型>` と書く。
+
+```typescript
+async function getName(): Promise<string> {
+    return "Taro";   // return する値は string だが、関数の戻り値の型は Promise<string>
+}
+```
+
+---
 
 ### コールバック、Promise、async/await の違い
 
@@ -2160,6 +2510,32 @@ const func = async () => {
 
 func();
 ```
+
+コールバック形式の `setTimeout` を、Promise を返す関数に包むことを **Promise 化** という。待つだけの関数 (`sleep`) にしておくと、ループとも組み合わせやすい。
+
+```javascript
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const countdown = async () => {
+    for (const num of [3, 2, 1]) {
+        await sleep(1000);
+        console.log(num);
+    }
+};
+
+countdown();
+```
+
+#### 比較
+
+| | コールバック | Promise | async/await |
+| --- | --- | --- | --- |
+| 書き方 | 完了時に呼ばれる関数を渡す | `then` をつなげる | 同期処理のように上から下へ書く |
+| 順番に処理 | ネストが深くなる (コールバック地獄) | チェーンでフラットに書ける | `for` などのループもそのまま使える |
+| エラー処理 | コールバックごとに個別に書く | `catch` でまとめて受ける | `try/catch` でまとめて受ける |
+| 並列処理 | 完了数を数えるなど自前で管理する | `Promise.all` など | `Promise.all` + `await` |
+
+async/await は、Promise を同期処理に近い見た目で書ける構文。内部では Promise と同じ仕組みで動くため、`then` / `catch` と混在させても問題ない。新しく書く場合は、基本的に async/await を使い、並列処理が必要な場面で `Promise.all` などを組み合わせる。
 
 ---
 
