@@ -9,13 +9,6 @@ layout: default
 
 ---
 
-## スクリプト <a id="script" data-name="スクリプト"></a>
-
-
-
-
----
-
 ## コマンド <a id="command" data-name="コマンド"></a>
 
 ### 基本
