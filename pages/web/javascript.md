@@ -1916,6 +1916,38 @@ fn(params); // 初期値1 引数2
 
 クロージャ (関数閉包) は、関数が定義された時の周囲の環境 (レキシカルスコープ) を一緒に持ち運ぶ仕組み。
 
+### 前提となる考え方
+
+#### レキシカルスコープ
+
+変数がどこから参照できるかは、関数を**どこに書いたか** (コードの構造) で決まる。関数の中から変数を探すとき、まず自分のスコープを探し、なければ外側のスコープへ、さらに外側へと順にたどる (スコープチェーン)。
+
+```javascript
+const globalValue = "global";
+
+function outer() {
+  const outerValue = "outer";
+
+  function inner() {
+    const innerValue = "inner";
+    // inner → outer → グローバル の順に変数を探す
+    console.log(innerValue, outerValue, globalValue);
+  }
+
+  inner();
+}
+
+outer(); // inner outer global
+```
+
+#### 関数は環境への参照を持つ
+
+関数は「処理内容」だけでなく、「定義された場所の変数への参照」も一緒に保持している。通常、関数の実行が終わるとその中の変数は破棄されるが、内側の関数が外に持ち出されて参照され続けている場合は、その関数が使う変数も残り続ける。これがクロージャの正体。
+
+<pre><code class="tips">アロー関数の this が「どこに書いたか」で決まる (静的) のも、同じレキシカルスコープの考え方に基づく。JavaScript では関数はすべてクロージャとして動作しており、特別な構文があるわけではない。</code></pre>
+
+### 基本の例
+
 ```javascript
 function createCounter() {
   let count = 0; // レキシカルスコープ内の変数
@@ -1937,6 +1969,166 @@ console.log(counter()); // 3
 - やり取りするインターフェースのみを返すことで、状態をカプセル化し、不正に書き換えられることを防げる。
 - `createCounter` を呼ぶたびに、独立した `count` を持つカウンタを生成できる。
 - 返された関数が参照され続ける間は、その関数が参照する変数 (`count`) がメモリ上に残り続ける。
+
+### 環境は呼び出しごとに独立する
+
+関数を呼び出すたびに新しい環境が作られるため、生成したクロージャ同士は状態を共有しない。
+
+```javascript
+const counterA = createCounter();
+const counterB = createCounter();
+
+console.log(counterA()); // 1
+console.log(counterA()); // 2
+console.log(counterB()); // 1 (counterA の count とは別)
+```
+
+一方、同じ環境から作られた複数の関数は、同じ変数を共有する。
+
+```javascript
+function createAccount(initialBalance) {
+  let balance = initialBalance; // 外からは直接触れない
+
+  return {
+    deposit(amount) {
+      balance += amount;
+      return balance;
+    },
+    getBalance() {
+      return balance;
+    }
+  };
+}
+
+const account = createAccount(1000);
+account.deposit(500);
+
+console.log(account.getBalance()); // 1500
+console.log(account.balance);      // undefined (直接アクセスできない)
+```
+
+<pre><code class="tips">クロージャが捕捉するのは変数の「値のコピー」ではなく「変数そのもの」。そのため、後から変数の値が変わると、クロージャ側からも変わった値が見える。</code></pre>
+
+### 主な使い道
+
+| 用途 | 説明 |
+| --- | --- |
+| 状態の保持とカプセル化 | グローバル変数を使わずに、関数に紐づく状態を持たせる。外部からは返したメソッド経由でしか操作できない。 |
+| 関数ファクトリ | 引数で設定を受け取り、その設定を覚えた関数を生成する。 |
+| コールバックでの状態保持 | イベントハンドラやタイマーなど、後から呼ばれる関数が、定義時の変数を参照できる。 |
+| メモ化 (キャッシュ) | 計算結果を関数の外から見えない場所に保存し、同じ引数での再計算を避ける。 |
+| 処理の制御 | 一度だけ実行する (once)、連続呼び出しを間引く (debounce) など、呼び出し状態を覚えて動作を変える。 |
+
+#### 関数ファクトリ
+
+```javascript
+function createMultiplier(factor) {
+  // factor を覚えた関数を返す
+  return (value) => value * factor;
+}
+
+const double = createMultiplier(2);
+const triple = createMultiplier(3);
+
+console.log(double(5)); // 10
+console.log(triple(5)); // 15
+```
+
+#### イベントハンドラでの状態保持
+
+```javascript
+function setupClickCounter(button) {
+  let clickCount = 0;
+
+  button.addEventListener("click", () => {
+    clickCount++; // ハンドラが呼ばれるたびに、同じ変数を更新する
+    button.textContent = `${clickCount}回クリックされました`;
+  });
+}
+
+setupClickCounter(document.getElementById("test-button"));
+```
+
+#### メモ化
+
+```javascript
+function memoize(fn) {
+  const cache = new Map(); // 外からは見えないキャッシュ
+
+  return function(arg) {
+    if (cache.has(arg)) {
+      return cache.get(arg); // 計算済みならキャッシュを返す
+    }
+    const result = fn(arg);
+    cache.set(arg, result);
+    return result;
+  };
+}
+
+const slowSquare = (n) => {
+  console.log("計算中...");
+  return n * n;
+};
+
+const fastSquare = memoize(slowSquare);
+
+console.log(fastSquare(4)); // 計算中... → 16
+console.log(fastSquare(4)); // 16 (計算せずキャッシュから返す)
+```
+
+#### debounce
+
+連続して呼ばれた場合に、最後の呼び出しから一定時間が経ってから1回だけ実行する。入力欄の検索などで使われる。
+
+```javascript
+function debounce(fn, delay) {
+  let timerId; // 呼び出しをまたいで保持される
+
+  return function(...args) {
+    clearTimeout(timerId);                     // 前回の予約を取り消す
+    timerId = setTimeout(() => fn(...args), delay); // 新しく予約する
+  };
+}
+
+const onInput = debounce((text) => console.log("検索:", text), 300);
+```
+
+### ループとクロージャ
+
+ループ内で作った関数が、ループ変数を後から参照する場合、`var` と `let` で結果が変わる。
+
+```javascript
+// var: ループ変数がループ全体で1つだけ共有される
+for (var i = 0; i < 3; i++) {
+  setTimeout(() => console.log(i), 0);
+}
+// 3, 3, 3 (関数が実行される時点で、i はすでに 3)
+
+// let: ループの1回ごとに新しい変数が作られる
+for (let i = 0; i < 3; i++) {
+  setTimeout(() => console.log(i), 0);
+}
+// 0, 1, 2 (各回の関数が、それぞれの i を覚えている)
+```
+
+<pre><code class="caution">var はスコープが関数単位なので、ループ内で作った関数はすべて同じ変数を共有してしまう。ループ変数には let を使う。</code></pre>
+
+### 注意点
+
+- **メモリ**: クロージャが参照している変数は、その関数が参照され続ける限り解放されない。大きなデータを捕捉したままの関数をイベントリスナーなどに登録し続けると、メモリを消費し続ける。不要になったら `removeEventListener` で解除したり、参照を `null` にしたりする。
+- **意図しない共有**: 同じ環境から作った関数は同じ変数を共有する。独立した状態が必要な場合は、呼び出しごとに関数を生成して、環境を分ける。
+- **可読性**: 状態の流れが関数の外から見えにくくなる。状態が複雑になる場合は、クラスの使用も検討する。
+
+### クラスの private との比較
+
+クラスの `#` で始まるプライベートフィールドでも、状態のカプセル化ができる。
+
+| | クロージャ | クラスの `#private` |
+| --- | --- | --- |
+| 状態の隠し方 | 関数スコープの変数に閉じ込める | `#名前` のフィールドとして宣言する |
+| インスタンスの生成 | 関数を呼び出す (`new` 不要) | `new` を使う |
+| メソッドの共有 | 呼び出しごとに関数が作られる | プロトタイプで共有される |
+| 向いている場面 | 小さな状態や、1つの関数に設定を持たせたい場合 | 状態とメソッドが多く、型として扱いたい場合 |
 
 ---
 
