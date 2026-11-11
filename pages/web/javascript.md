@@ -3437,3 +3437,397 @@ form.addEventListener("submit", async (e) =&gt; {
     body: formData
   });
 });</code></pre>
+
+---
+
+## 落とし穴 <a id="pitfalls" data-name="落とし穴"></a>
+
+エラーにならずに動いてしまうため、知らないと原因に気づきにくい挙動をまとめる。
+
+### return の直後で改行する
+
+`return` の直後で改行すると、セミコロンが自動挿入されて `return;` と解釈される。
+
+```javascript
+function getUser() {
+  return
+  {
+    name: "Taro"
+  }
+}
+console.log(getUser()); // undefined
+```
+
+<pre><code class="caution">戻り値は return と同じ行から書き始める。複数行にしたい場合は return &#40; や return &#123; のように、開き括弧を return と同じ行に置く。
+throw、break、continue も、直後で改行すると同様に扱われる。</code></pre>
+
+### セミコロンを省略して行頭が &#40; &#91; ` で始まる
+
+セミコロンを付けない書き方では、次の行が `(`、`[`、`` ` ``、`+`、`-`、`/` で始まると、前の行の続きとして解釈される。
+
+```javascript
+const x = 1
+const y = x
+(function () { console.log("IIFE") })()
+// TypeError: x is not a function
+// x(function () {...})() と解釈されてしまう
+```
+
+<pre><code class="caution">セミコロンなしで書く場合は、&#40; や &#91; で始まる行の先頭に ; を付ける
+(例) ;[1, 2].forEach(...)</code></pre>
+
+### for...in で配列を回す
+
+`for...in` で取り出される index は、数値ではなく**文字列**になる。
+
+```javascript
+const arr = [10, 20, 30];
+for (const i in arr) {
+  console.log(i + 1); // "01", "11", "21" (数値の足し算にならない)
+}
+```
+
+さらに、配列に追加されたプロパティやプロトタイプの列挙可能なプロパティも対象になる。配列は `for...of` を使い、index が必要なら `entries()` を使う。
+
+```javascript
+for (const [i, value] of arr.entries()) {
+  console.log(i + 1, value); // 1 10 / 2 20 / 3 30
+}
+```
+
+### 小数の計算に誤差が出る
+
+数値は2進数の浮動小数点数で保持されるため、10進数の小数は正確に表せないことがある。
+
+```javascript
+console.log(0.1 + 0.2);              // 0.30000000000000004
+console.log(0.1 + 0.2 === 0.3);      // false
+console.log((0.1 + 0.2).toFixed(2)); // "0.30" (toFixed は数値ではなく文字列を返す)
+```
+
+<pre><code class="caution">金額などは、円やセントなどの最小単位の整数で計算する。
+小数の比較は、差が十分小さいかどうかで判定する (例: Math.abs(a - b) &lt; 0.000001)。
+整数でも Number.MAX_SAFE_INTEGER (9007199254740991) を超えると正確に扱えないため、大きな整数は BigInt を使う。</code></pre>
+
+### + は文字列結合になる
+
+片方が文字列だと、`+` は足し算ではなく文字列の結合になる。`-` `*` `/` は数値に変換して計算する。
+
+```javascript
+console.log("1" + 2);      // "12"
+console.log("3" - 1);      // 2
+console.log(1 + 2 + "3");  // "33" (左から順に評価)
+console.log("1" + 2 + 3);  // "123"
+```
+
+<pre><code class="caution">input 要素の value は常に文字列。計算する前に Number() で数値に変換する。</code></pre>
+
+### 文字列から数値への変換
+
+```javascript
+["1", "2", "3"].map(parseInt); // [1, NaN, NaN]
+```
+
+`map` は callback に (要素, index, 配列) を渡すため、`parseInt` の第2引数 (基数) に index が渡されてしまう。
+
+```javascript
+["1", "2", "3"].map(Number);                // [1, 2, 3]
+["1", "2", "3"].map((s) => parseInt(s, 10)); // [1, 2, 3]
+```
+
+| 式 | 結果 | 備考 |
+| --- | --- | --- |
+| `Number("")` | `0` | 空文字や空白だけの文字列は 0 になる |
+| `Number(null)` | `0` | |
+| `Number(undefined)` | `NaN` | |
+| `Number("12px")` | `NaN` | 文字列全体が数値でないと NaN |
+| `parseInt("12px", 10)` | `12` | 先頭から読めるところまで変換する |
+| `NaN === NaN` | `false` | NaN の判定は `Number.isNaN(value)` を使う |
+
+### 真偽値としての扱い (falsy / truthy)
+
+条件式で `false` として扱われる値 (falsy) は次の8つだけで、それ以外はすべて `true` (truthy) として扱われる。
+
+`false`、`0`、`-0`、`0n`、`""` (空文字)、`null`、`undefined`、`NaN`
+
+```javascript
+if ([]) { console.log("実行される"); }   // 空配列は truthy
+if ({}) { console.log("実行される"); }   // 空オブジェクトも truthy
+if ("0") { console.log("実行される"); }  // 文字列 "0" も truthy
+
+const count = 0;
+console.log(count || 10); // 10 (0 が falsy のため、デフォルト値が使われる)
+console.log(count ?? 10); // 0  (null と undefined のときだけデフォルト値が使われる)
+```
+
+<pre><code class="caution">0 や空文字が有効な値の場合に || でデフォルト値を指定すると、意図せず置き換わる。その場合は ?? を使う。</code></pre>
+
+### オブジェクトや配列は参照で比較される
+
+オブジェクトや配列は、中身ではなく参照 (同じものかどうか) で比較される。
+
+```javascript
+console.log([1, 2] === [1, 2]); // false
+console.log({} === {});         // false
+
+const a = [1, 2];
+const b = a;        // コピーではなく、同じ配列への参照
+b.push(3);
+console.log(a);     // [1, 2, 3]
+
+console.log([{ id: 1 }].includes({ id: 1 })); // false
+```
+
+<pre><code class="caution">オブジェクトを探すときは、includes や indexOf ではなく、find や some で条件を指定する。</code></pre>
+
+### スプレッド構文のコピーは浅い
+
+スプレッド構文 (`...`) や `Object.assign()`、`slice()` によるコピーは、1階層目だけのコピー (浅いコピー) になる。ネストしたオブジェクトや配列は参照が共有される。
+
+```javascript
+const user = { name: "Taro", address: { city: "Osaka" } };
+const copy = { ...user };
+
+copy.address.city = "Tokyo";
+console.log(user.address.city); // "Tokyo" (元のオブジェクトも変わる)
+```
+
+ネストも含めてコピーする (深いコピー) には `structuredClone()` を使う。
+
+```javascript
+const deepCopy = structuredClone(user);
+deepCopy.address.city = "Kyoto";
+console.log(user.address.city); // "Tokyo" (元は変わらない)
+```
+
+<pre><code class="caution">structuredClone() は、関数を含むオブジェクトをコピーしようとするとエラーになる。
+JSON.parse(JSON.stringify(obj)) でも深いコピーはできるが、Date が文字列になる、undefined が消えるなど、値が変わってしまう。</code></pre>
+
+### JSON.stringify で値が消えたり変わったりする
+
+```javascript
+const obj = {
+  a: undefined,
+  b: () => {},
+  c: NaN,
+  d: new Date(0),
+  e: new Map([[1, 2]])
+};
+console.log(JSON.stringify(obj));
+// {"c":null,"d":"1970-01-01T00:00:00.000Z","e":{}}
+```
+
+| 値 | stringify の結果 |
+| --- | --- |
+| `undefined`、関数、Symbol | プロパティごと消える (配列の要素の場合は `null` になる) |
+| `NaN`、`Infinity` | `null` になる |
+| `Date` | ISO 形式の文字列になる (`JSON.parse` しても Date には戻らない) |
+| `Map`、`Set` | 中身が失われて `{}` になる |
+
+### this が変わる
+
+メソッドを変数に代入したり、コールバックとして渡したりすると、`this` が元のオブジェクトではなくなる。
+
+```javascript
+const user = {
+  name: "Taro",
+  hello() {
+    console.log(this.name);
+  }
+};
+
+user.hello();              // "Taro"
+
+const fn = user.hello;
+fn();                      // this が user ではなくなるため "Taro" にならない
+
+setTimeout(user.hello, 0); // 同様に "Taro" にならない
+```
+
+`this` を固定するには、`bind()` を使うか、アロー関数で呼び出しを包む。
+
+```javascript
+setTimeout(user.hello.bind(user), 0);   // "Taro"
+setTimeout(() => user.hello(), 0);      // "Taro"
+```
+
+<pre><code class="caution">アロー関数は this を持たず、外側の this をそのまま使う。そのため、オブジェクトのメソッドをアロー関数で書くと、this はオブジェクトにならない。
+イベントリスナーをアロー関数で書いた場合も this は要素にならないので、要素は event.currentTarget で取得する。</code></pre>
+
+### Date の月は 0 始まり
+
+```javascript
+const d = new Date(2026, 0, 15);  // 2026年1月15日 (月は 0〜11 で指定する)
+console.log(d.getMonth());        // 0 (1月)
+console.log(d.getDay());          // 曜日 (0 が日曜日)。日にちは getDate()
+```
+
+文字列から Date を作る場合、形式によって UTC として扱われるかローカル時刻として扱われるかが変わる。
+
+```javascript
+new Date("2026-01-15");           // UTC の 0 時として扱われる (日本時間では 9 時)
+new Date("2026-01-15T00:00:00");  // ローカル時刻の 0 時として扱われる
+```
+
+<pre><code class="caution">日付だけの ISO 形式 (2026-01-15) は UTC として扱われるため、日本より西のタイムゾーンでは、ローカル時刻で表示すると前日になることがある。</code></pre>
+
+### オブジェクトのキーの順序
+
+整数として扱えるキーは、書いた順番に関係なく小さい順に先頭に並び、それ以外の文字列キーは追加した順に並ぶ。
+
+```javascript
+const obj = { b: 1, 2: "x", a: 2, 1: "y" };
+console.log(Object.keys(obj)); // ["1", "2", "b", "a"]
+```
+
+<pre><code class="caution">キーの追加順を保ちたい場合は Map を使う。</code></pre>
+
+### forEach は途中で止められない
+
+`forEach` の中の `return` は、その回のコールバックを抜けるだけで、ループ全体は止まらない (`for` 文の `continue` と同じ動きになる)。`break` は書けない。
+
+```javascript
+[1, 2, 3].forEach((n) => {
+  if (n === 2) return;
+  console.log(n);
+});
+// 1, 3 (2 だけ飛ばされて、3 まで実行される)
+```
+
+途中で止めたい場合は、`for...of` に `break` を書くか、`some`、`every`、`find` を使う。
+
+### g フラグ付きの正規表現で test() を繰り返す
+
+`g` フラグ付きの正規表現は、前回のマッチ位置 (`lastIndex`) を覚えている。同じ正規表現オブジェクトで `test()` や `exec()` を繰り返すと、結果が変わってしまう。
+
+```javascript
+const re = /a/g;
+console.log(re.test("a")); // true
+console.log(re.test("a")); // false (前回の続きから検索して、見つからずに lastIndex が 0 に戻る)
+console.log(re.test("a")); // true
+```
+
+<pre><code class="caution">test() で判定するだけなら g フラグは付けない。
+g フラグ付きの正規表現オブジェクトを変数に保持して使い回すと、状態が残るため特に注意する。</code></pre>
+
+### 宣言より前に let / const を参照する (TDZ)
+
+`let` と `const` は、宣言の行に到達するまで参照できない (一時的デッドゾーン)。`var` は `undefined` になるのでエラーにならず、挙動が異なる。
+
+```javascript
+console.log(a); // undefined (var は宣言前でも参照できる)
+var a = 1;
+
+console.log(b); // ReferenceError: Cannot access 'b' before initialization
+let b = 1;
+```
+
+<pre><code class="caution">関数の中で後ろに宣言した let / const の変数は、同名の外側の変数があっても、宣言前に参照するとエラーになる (外側の変数は参照されない)。</code></pre>
+
+### then チェーンで return を忘れる
+
+`then` の中で値を `return` しないと、次の `then` には `undefined` が渡される。Promise を返し忘れると、その完了も待たれない。
+
+```javascript
+fetch("/api/user")
+  .then((res) => {
+    res.json(); // return がない
+  })
+  .then((user) => {
+    console.log(user); // undefined
+  });
+```
+
+<pre><code class="caution">波括弧 { } を付けたアロー関数は、return を書かないと undefined を返す。値を返すなら return を書くか、波括弧を省略して式だけにする (res => res.json())。</code></pre>
+
+### removeEventListener で解除できない
+
+`removeEventListener` は、登録したときと**同じ関数**を渡さないと解除できない。無名関数やアロー関数は、書くたびに別の関数になる。
+
+```javascript
+// 解除できない (別々の関数になっている)
+button.addEventListener("click", () => console.log("click"));
+button.removeEventListener("click", () => console.log("click"));
+
+// 解除できる (同じ関数を渡している)
+const onClick = () => console.log("click");
+button.addEventListener("click", onClick);
+button.removeEventListener("click", onClick);
+```
+
+<pre><code class="caution">解除が必要なリスナーは、関数を変数に入れてから登録する。
+addEventListener の第3引数に AbortController の signal を渡して、abort() でまとめて解除する方法もある。</code></pre>
+
+### 文字列は書き換えられない
+
+文字列は不変 (イミュータブル) で、インデックスを指定して代入しても変更されない。
+
+```javascript
+let str = "abc";
+str[0] = "x";
+console.log(str); // "abc" (エラーにならず、何も起きない)
+```
+
+<pre><code class="caution">strict モード (モジュールやクラスの中) では TypeError になる。
+文字を置き換えたい場合は、replace() や slice() などで新しい文字列を作って再代入する。</code></pre>
+
+### Math.round の丸め方
+
+ちょうど `.5` のとき、`Math.round()` は正の無限大の方向に丸める。負の数では、四捨五入のイメージと逆になる。
+
+```javascript
+console.log(Math.round(2.5));  // 3
+console.log(Math.round(-2.5)); // -2 (-3 ではない)
+console.log(Math.round(-2.6)); // -3
+```
+
+<pre><code class="caution">銀行丸め (偶数丸め) ではなく、.5 のときは常に大きいほうに丸められる。
+さらに、小数の誤差 (0.1 + 0.2 など) があるため、1.005 のように .5 に見えても期待通りに丸められないことがある。</code></pre>
+
+### setMonth や setDate で日付があふれる
+
+存在しない日付になる場合、エラーにならずに翌月以降の日付に繰り上がる。
+
+```javascript
+const d = new Date(2026, 0, 31); // 2026年1月31日
+d.setMonth(1);                   // 2月に変更 → 2月31日は存在しない
+console.log(d.getMonth() + 1, d.getDate()); // 3 3 (3月3日になる)
+```
+
+<pre><code class="caution">月末の日付で月を足し引きするときは注意する。
+日付だけを扱う場合は、1日などの月初に揃えてから月を変更する。</code></pre>
+
+### parseInt に数値を渡す
+
+`parseInt()` は引数を文字列に変換してから読み取る。数値を渡すと、文字列化した表記によって結果が変わる。
+
+```javascript
+console.log(parseInt(0.5));       // 0
+console.log(parseInt(0.0000005)); // 5 ("5e-7" と文字列化されて、先頭の 5 だけ読まれる)
+console.log(parseInt(1e21));      // 1 ("1e+21" と文字列化される)
+```
+
+<pre><code class="caution">数値の小数部を切り捨てるなら Math.trunc() や Math.floor() を使う。parseInt は文字列を整数に変換するときに使う。</code></pre>
+
+### その他の罠
+
+| 書き方 | 起きること | 対策 |
+| --- | --- | --- |
+| `for (const i = 0; i < 3; i++)` | 2周目の `i++` で TypeError (const は再代入できない) | カウンタ式では `let` を使う |
+| `new Array(3).map((_, i) => i)` | 空要素はスキップされるため `[empty × 3]` のままになる | `Array.from({ length: 3 }, (_, i) => i)` を使う |
+| `arr[-1]` | 末尾ではなく `undefined` になる | `arr.at(-1)` を使う |
+| `"a-b-c".replace("-", "+")` | 最初の1つだけ置換される (`"a+b-c"`) | すべて置換するなら `replaceAll()` を使う |
+
+### 他の章にも載っている罠
+
+| 罠 | 章 |
+| --- | --- |
+| `==` は型変換してから比較する | 演算子 > 比較演算子 |
+| `typeof null` は `"object"` になる | 演算子 > 型関連・その他演算子 |
+| `switch` の `break` を忘れるとフォールスルーする | 制御構文 > switch文 |
+| `sort()` は引数なしだと文字列として比較する | 配列 > array.sort |
+| `fill()` に参照型を渡すと全要素で共有される | 配列 > 生成 |
+| `delete array[n]` は要素が詰まらず空要素になる | 配列 > 要素の取り出しと追加と削除 |
+| `var` のループ変数がクロージャで共有される | クロージャ > ループとクロージャ |
+| `forEach` に async 関数を渡すと待たない、`await` の付け忘れ | 非同期 > async > よくある間違い |
+| `str.length` は絵文字を 2 と数える | 文字列 > 文字列の長さ |
