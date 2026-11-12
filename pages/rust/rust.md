@@ -1098,7 +1098,7 @@ MyStruct::by_mut(&mut obj);   // &mut を明示的に付ける必要がある</c
 ### 関連関数
 
 self を第1引数に持たない関数は、メソッドではなく関連関数と呼ぶ (他言語の静的メソッドに相当)。<br>
-関連関数は、構造体の新規インスタンスを返すコンストラクタとしてよく使われる。
+関連関数は、構造体の新規インスタンスを返すコンストラクタとしてよく使われる (`new` や `with_*` などの命名は <a href="#naming">関数の命名</a> を参照)。
 
 ```rust
 impl Rectangle {
@@ -1383,6 +1383,170 @@ collect で Iterator をコレクションに変換する (collect はアダプ�
 ```rust
 let v: Vec<_> = iter.collect();
 ```
+
+---
+
+## 関数の命名 <a id="naming" data-name="関数の命名"></a>
+
+Rust の標準ライブラリは、名前の接頭辞・接尾辞に意味を持たせている。<br>
+自作の関数も同じ規則に揃えると、名前を見ただけで「所有権を奪うか」「失敗するか」「コストは重いか」が伝わる。<br>
+基になっているのは公式の [Rust API Guidelines](https://rust-lang.github.io/api-guidelines/naming.html) で、`clippy` が一部を自動で検査してくれる。
+
+`to_*` / `into_*` / `as_*` と所有権の関係は、<a href="#ownership">所有権</a> の「所有権を軸にしたメソッドの命名規則」を参照。
+
+### 大文字・小文字
+
+| 対象 | 規則 | 例 |
+| --- | --- | --- |
+| 関数・メソッド・変数・モジュール・クレート | `snake_case` | `read_to_string` |
+| 型・トレイト・enum のバリアント | `UpperCamelCase` | `HashMap`, `Iterator` |
+| 定数・static | `SCREAMING_SNAKE_CASE` | `MAX_SIZE` |
+| 型パラメータ | 大文字1文字、または短い CamelCase | `T`, `E`, `K`, `V` |
+
+略語は1語として扱う (`Uuid`, `Stdin`。`UUID` や `StdIn` にはしない)。
+
+### コンストラクタ
+
+| 名前 | 意味 | 例 |
+| --- | --- | --- |
+| `new` | 主たるコンストラクタ。`Self` を返す | `Vec::new`, `String::new` |
+| `with_*` | 特定の設定や値を指定して構築する | `Vec::with_capacity`, `HashMap::with_hasher` |
+| `from_*` | 別の表現から変換して構築する (`self` を取らない関連関数) | `String::from_utf8`, `u32::from_str_radix` |
+| `default` | `Default` トレイトによる既定値 | `Config::default()` |
+| `open` / `create` / `connect` | I/O を伴い、失敗しうる取得は `new` ではなく動詞にする | `File::open`, `TcpStream::connect` |
+| `parse` | 文字列から解析する (`FromStr` と対) | `Url::parse`, `"5".parse::<i32>()` |
+
+- `new` は「初期化するだけで、重い処理や副作用を持たない」ことが期待される。
+- 引数なしの `new()` を作ったら `Default` も実装する (clippy の `new_without_default` が指摘する)。
+- 検証に失敗しうるときは `Option` や `Result` を返す (`NonZeroU32::new(0)` は `None`)。
+- 検査を省く `unsafe` 版は `*_unchecked` (`String::from_utf8_unchecked`)。
+
+### ビルダー (builder / build)
+
+設定項目が多いときのパターン。`Foo::builder()` が `FooBuilder` を返し、`build()` で `Foo` を組み立てる。
+
+```rust
+struct Server { host: String, port: u16 }
+struct ServerBuilder { host: String, port: u16 }
+
+impl Server {
+    fn builder() -> ServerBuilder {
+        ServerBuilder { host: "localhost".into(), port: 8080 }
+    }
+}
+
+impl ServerBuilder {
+    // 設定メソッドは接頭辞を付けず、項目名だけにするのが標準ライブラリの流儀
+    fn host(mut self, host: &str) -> Self { self.host = host.into(); self }
+    fn port(mut self, port: u16) -> Self { self.port = port; self }
+    fn build(self) -> Server { Server { host: self.host, port: self.port } }
+}
+
+let server = Server::builder().host("0.0.0.0").port(3000).build();
+```
+
+| 名前 | 役割 |
+| --- | --- |
+| `builder()` | ビルダーを返す関連関数 |
+| 項目名 (`host`, `port`) | 設定して `Self` (または `&mut Self`) を返す。`with_host` と書くクレートもある |
+| `build()` | 目的の型を組み立てる。検証が必要なら `Result<Foo, E>` を返す |
+| `spawn` / `open` / `output` | 組み立てと実行を兼ねる終端メソッドは、操作の名前にする (`OpenOptions::open`, `Command::spawn`) |
+| `finish()` | 状態を持つ処理を締めくくる (`Hasher::finish`, `DebugStruct::finish`) |
+
+<pre><code class="tips">設定メソッドの形は2通りある。
+- self を消費して Self を返す (consuming): チェーンの途中で所有権が移る。build(self) で中身をムーブしたいときに向く。
+- &amp;mut self を取って &amp;mut Self を返す (non-consuming): 変数に持ち回って条件付きで設定を足せる (Command::arg など)。
+API Guidelines では、終端メソッドが &amp;self で済むなら non-consuming が推奨される。</code></pre>
+
+### 取り出し・置換 (take / replace / swap)
+
+| 名前 | 動作 | 例 |
+| --- | --- | --- |
+| `take` | 値を取り出し、元の場所に「空」を残す | `Option::take` (`None` を残す), `Cell::take` |
+| `mem::take` | `Default` の値を残して取り出す | `mem::take(&mut vec)` |
+| `replace` | 新しい値を入れて、古い値を返す | `mem::replace`, `Option::replace` |
+| `swap` | 2つの値を入れ替える | `mem::swap`, `slice::swap` |
+| `insert` | 値を入れて、その可変参照を返す (コレクションでは要素の挿入) | `Option::insert`, `Vec::insert` |
+| `get_or_insert_with` | なければクロージャで作って、その参照を返す | `Option::get_or_insert_with` |
+| `take_if` | 条件を満たすときだけ `take` する (Rust 1.80 以降) | `Option::take_if` |
+
+`Iterator::take(n)` と `Read::take(limit)` は同名だが別物で、「先頭 n 個 (n バイト) までに制限する」アダプタ。`take_while` も同系統。<br>
+`std::mem` の詳細は <a href="#std">std</a> を参照。
+
+### getter / setter
+
+getter には `get_` を付けない (API Guidelines の C-GETTER)。フィールド名をそのままメソッド名にする。
+
+```rust
+impl User {
+    fn name(&self) -> &str { &self.name }                    // getter (get_name にしない)
+    fn name_mut(&mut self) -> &mut String { &mut self.name } // 可変版は _mut
+    fn set_name(&mut self, name: String) { self.name = name } // setter は set_*
+}
+```
+
+`get` が使われるのは、添字などで **失敗しうる取得** (`Vec::get(i)` → `Option`) や、`Cell::get` のように取得するものが1つに決まるとき。
+
+### 接尾辞・接頭辞のパターン
+
+| 名前 | 意味 | 例 |
+| --- | --- | --- |
+| `_mut` | 可変参照版 | `iter_mut`, `get_mut`, `last_mut` |
+| `_by` / `_by_key` | 比較関数・キー関数を渡す版 | `sort_by`, `max_by_key`, `dedup_by_key` |
+| `_with` | 値をクロージャで遅延生成する | `get_or_insert_with`, `or_insert_with` |
+| `_or` / `_or_else` / `_or_default` | 代替値 / 遅延評価 / `Default` | `unwrap_or`, `unwrap_or_else`, `unwrap_or_default` |
+| `_all` | 全部やりきる | `write_all` |
+| `_exact` | 指定サイズちょうど | `read_exact`, `chunks_exact` |
+| `_to_end` / `_to_string` | 終端や文字列まで読む | `read_to_end`, `read_to_string` |
+| `_lossy` | 不正なデータを置換して続行する | `String::from_utf8_lossy` |
+| `_ascii` | ASCII 限定 | `to_ascii_uppercase` |
+| `r` で始まる | 逆方向 | `rfind`, `rsplit` |
+| `_start` / `_end` | 文字列の先頭側・末尾側 | `trim_start`, `trim_end` (`trim_left` は非推奨) |
+| `_at` / `_first` / `_last` | 位置・端での分割 | `split_at`, `split_first` |
+
+### 失敗の表現 (try_ / checked_ / unwrap / expect)
+
+| 名前 | 失敗したとき | 例 |
+| --- | --- | --- |
+| `checked_*` | `None` を返す (主に算術のオーバーフロー) | `checked_add` |
+| `wrapping_*` / `saturating_*` / `overflowing_*` | 折り返す / 上限・下限で止まる / 折り返しと発生の有無を返す | `wrapping_add`, `saturating_sub` |
+| `try_*` | `Result` を返す | `try_from`, `try_into`, `try_reserve` |
+| `try_*` (ブロックしない版) | 待たずに、取れなければ `Err` を返す | `Mutex::try_lock`, `mpsc::try_recv` |
+| `unwrap` / `expect` | パニックする | `opt.expect("...")` |
+| `*_unchecked` | 検査を省く。違反すると未定義動作になる `unsafe` 関数 | `get_unchecked`, `unwrap_unchecked` |
+
+- `try_` には「失敗しうる」と「ブロックしない」の2つの意味がある。型 (`Result` が返るか) と文脈で見分ける。
+- `expect` のメッセージには、失敗の内容ではなく **期待していたこと** を書く (`"環境変数 HOME が設定されているはず"` のように)。
+- 値を取り出す系の `unwrap_or*` や `ok_or*` は <a href="#option-result">Option と Result</a> を参照。
+
+### 変更するか、新しい値を返すか
+
+名前が「その場で変更する」のか「新しい値を返す」のかを表す。
+
+| 変更する (`&mut self`) | 新しい値を返す | 違い |
+| --- | --- | --- |
+| `sort` | itertools の `sorted` など | std の `sort` は破壊的 |
+| `reverse` | `rev` | `reverse` はその場で並べ替え、`rev` は逆順のイテレータを返す |
+| `make_ascii_uppercase` | `to_ascii_uppercase` | `make_*` は「その場で」、`to_*` は新しい値 |
+| `Rc::make_mut` | - | 共有されていればクローンして、可変参照を返す |
+
+- 状態を変える操作は **動詞** (`push`, `sort`, `clear`)。
+- 状態を観察するだけの操作は **名詞・形容詞** (`len`, `capacity`, `is_empty`)。
+- `bool` を返すものは `is_*` / `has_*` (`is_empty`, `has_root`)。
+
+### clippy による検査
+
+`clippy::wrong_self_convention` は、接頭辞と `self` の型の対応を検査する。
+
+| 接頭辞 | 期待される `self` |
+| --- | --- |
+| `as_` | `&self` / `&mut self` |
+| `to_` | `&self` (`Copy` 型なら `self`) |
+| `into_` | `self` |
+| `is_` | `&self` (`self` も可) |
+| `from_` | なし (関連関数) |
+
+<pre><code class="tips">cargo clippy を通しておくと、to_ で self を消費していたり、new() に Default がなかったりといった命名の不整合に気付ける。</code></pre>
 
 ---
 
@@ -3505,6 +3669,7 @@ let x = v.get(1); // Some(&2)
 ```
 
 - 戻り値: `Option<T>` や `Option<&T>`
+- フィールドを返すだけの getter には `get_` を付けない (<a href="#naming">関数の命名</a> の「getter / setter」を参照)
 
 #### `from`
 
@@ -3520,6 +3685,8 @@ let x = v.get(1); // Some(&2)
 
 `is_*` は `bool` を返す (`is_empty()`, `is_some()` など)。<br>
 `try_*` は失敗しうる操作で、`Result` を返す (`try_from()`, `try_borrow()` など)。
+
+このほかの命名パターン (`new` / `with_*` / `build` / `take` / `_mut` / `_by` など) は <a href="#naming">関数の命名</a> にまとめている。
 
 ---
 

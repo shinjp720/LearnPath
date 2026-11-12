@@ -1227,7 +1227,7 @@ arr.forEach((value, index, array) => {
 
 #### array.entries(), array.keys(), array.values()
 
-entries() は [index, value] の組からなるイテレータ、keys() は index のみからなるイテレータ、values() は value のみからなるイテレータを返す。
+entries() は `[index, value]` の組からなるイテレータ、keys() は index のみからなるイテレータ、values() は value のみからなるイテレータを返す。
 
 ```javascript
 const arr = ["Red", "Green", "Blue"];
@@ -1512,7 +1512,7 @@ arr.copyWithin(2, 8, 10);
 console.log(arr); // ["0", "1", "8", "9", "4", "5", "6", "7", "8", "9"]
 ```
 
-#### array.flat([depth])
+#### `array.flat([depth])`
 
 多次元配列を低次元の配列にフラット化する。depth にはフラット化する階層の深さを指定する (省略時は 1)。
 
@@ -1575,7 +1575,7 @@ map.size;   // 2
 
 ### map.keys()<br>map.values()<br>map.entries()
 
-keys() はキー、values() は値、entries() は [キー, 値] のペアのイテレータを返す。Map をそのまま for...of に渡すと、entries() と同じ結果になる。
+keys() はキー、values() は値、entries() は `[キー, 値]` のペアのイテレータを返す。Map をそのまま for...of に渡すと、entries() と同じ結果になる。
 
 ```javascript
 for (const [key, value] of map) {
@@ -3157,7 +3157,7 @@ Object.values(obj) // [1, 2]
 
 #### Object.entries
 
-キーと値のペア ([key, value] の配列) を返す。for...of と分割代入を組み合わせると、キーと値を同時に扱える。Vue でも便利。
+キーと値のペア `([key, value] の配列)` を返す。for...of と分割代入を組み合わせると、キーと値を同時に扱える。Vue でも便利。
 
 ```javascript
 const object = {
