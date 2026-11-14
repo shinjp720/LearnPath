@@ -579,7 +579,7 @@ let app = Router::new()
 <pre><code class="caution">axum 0.7 から 0.8 で、パスの書き方が変わった。
 0.7: /users/:id、/files/*path
 0.8: /users/{id}、/files/{*path}
-パスに { や } の文字そのものを使いたい場合は、{{ と }} と書く。</code></pre>
+パスに { や } の文字そのものを使いたい場合は、{% raw %}{{ と }}{% endraw %} と書く。</code></pre>
 
 ### ルーターを分割する (nest / merge)
 
