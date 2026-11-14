@@ -11,7 +11,70 @@ layout: default
 - 空要素を除き、基本的に`<body>`と`</body>`のように開始タグと終了タグがある。
 - 要素に対する付加情報のような形で属性(Attribute)を付けられる。
 - 属性には要素固有のものと、全要素で共通して使用できるグローバル属性がある。
-- `<-- コメント -->`
+- `<!-- コメント -->`
+
+---
+
+## 基本構造 <a id="basic-structure" data-name="基本構造"></a>
+
+HTML 文書の基本の形。
+
+```html
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ページのタイトル</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>...</header>
+  <main>...</main>
+  <footer>...</footer>
+  <script src="app.js" defer></script>
+</body>
+</html>
+```
+
+| 部分 | 役割 |
+| --- | --- |
+| `<!DOCTYPE html>` | HTML5 の文書であることを示す宣言。必ず先頭に書く (ないと、ブラウザが古い互換モードで表示する) |
+| `<html lang="ja">` | ルート要素。`lang` で、文書の言語を指定する |
+| `<meta charset="UTF-8">` | 文字コードの指定。文書の先頭近く (`<head>` の最初) に書く |
+| `<meta name="viewport">` | スマートフォンで、画面幅に合わせて表示するために必要 |
+| `<title>` | ページのタイトル (タブや検索結果に表示される) |
+| `<body>` | 画面に表示される内容を書く |
+
+### 要素と属性の書き方
+
+| 項目 | 内容 |
+| --- | --- |
+| 開始タグと終了タグ | `<p>本文</p>` のように、内容を囲む |
+| 空要素 | 内容を持たず、終了タグがない要素 (`<br>`、`<hr>`、`<img>`、`<input>`、`<meta>`、`<link>` など)。`<br />` と書いてもよいが、HTML5 では不要 |
+| 属性 | 開始タグの中に `名前="値"` の形で書く。値は、引用符 (`"`) で囲む |
+| 真偽値属性 | `disabled`、`checked`、`required` など。**書いてあれば有効**で、値は不要 (`disabled` または `disabled=""`) |
+| 大文字と小文字 | タグ名と属性名は区別されないが、小文字で書くのが慣習 |
+
+<pre><code class="caution">真偽値属性は、値が "false" でも、書いてあれば有効になる。
+無効にしたいときは、disabled="false" と書くのではなく、属性ごと取り除く。</code></pre>
+
+### 入れ子の規則
+
+- 要素は、開始と終了が交差しないように、入れ子にする (`<b><i>text</b></i>` はNG)。
+- `<p>` の中には、段落や `<div>`、`<ul>` などのブロック要素を入れられない (入れると、`<p>` が自動で閉じられる)。
+- `<a>` の中に `<a>` や `<button>` を入れてはいけない。
+- `<li>` は、`<ul>`、`<ol>`、`<menu>` の直接の子にする。
+- `<table>` の中の `<tr>` は、ブラウザが `<tbody>` を自動で補う。
+
+### コメント
+
+```html
+<!-- コメント (画面には表示されない) -->
+```
+
+<pre><code class="tips">書いた HTML が正しいかは、W3C の Nu Html Checker (validator.w3.org/nu) で検証できる。
+閉じタグの抜けや、入れ子の間違いを指摘してくれる。</code></pre>
 
 ---
 
@@ -20,6 +83,12 @@ layout: default
 ### `<html>`
 HTML文書におけるルート要素(最上位の要素)を表す。他の全ての要素は、この要素の子孫要素として配置しなければならない。
 
+```html
+<html lang="ja">
+```
+
+`lang` 属性で、文書の言語を指定する。スクリーンリーダーの読み上げ、翻訳の提案、ハイフネーション、フォントの選択 (中国語・日本語・韓国語で、字形が異なる漢字) などに使われる。
+
 ---
 
 ## 文書メタデータ <a id="meta-data" data-name="文書メタデータ"></a>
@@ -27,27 +96,102 @@ HTML文書におけるルート要素(最上位の要素)を表す。他の全�
 ### `<base>`
 文書内における全ての相対URLの起点となるURLを指定する。文書内に1つだけ置くことができる。
 
+```html
+<base href="https://example.com/app/" target="_blank">
+```
+
+<pre><code class="caution">base を指定すると、ページ内リンク (#section) も、base の URL を基準に解決され、意図しない移動になることがある。
+使うときは、すべての相対 URL への影響に注意する。</code></pre>
+
 ### `<head>`
 文書に関する機械可読な情報(メタデータ)、例えば`<title>`, `<script>`, `<style>`などを含む。
+
+`<head>` の中身は、画面には表示されない。`<head>` 内に書けるのは、`<title>`、`<meta>`、`<link>`、`<style>`、`<script>`、`<base>`、`<noscript>`、`<template>` など。
+
+<pre><code class="caution">&lt;head&gt; の中に、&lt;div&gt; や &lt;p&gt; などの、画面に表示される要素を書くと、ブラウザは、そこで &lt;head&gt; が終わって &lt;body&gt; が始まったと解釈する。
+その後ろに書いた &lt;meta&gt; や &lt;link&gt; が、&lt;head&gt; として扱われなくなるので注意する。</code></pre>
 
 ### `<link>`
 現在の文書と外部リソースとの関係を指定する。この要素はCSSをリンクするために最もよく使用されるが、他にもサイトアイコン(ファビコンスタイルのアイコンやモバイル端末でのホーム画面やアプリのアイコンの両方)を設定するために使用される。
 
+`rel` 属性で、関係の種類を指定する。
+
+| rel の値 | 用途 |
+| --- | --- |
+| `stylesheet` | CSS を読み込む |
+| `icon` | ファビコン (タブに表示されるアイコン) |
+| `apple-touch-icon` | iOS のホーム画面のアイコン |
+| `manifest` | Web アプリのマニフェスト (PWA) |
+| `canonical` | 同じ内容のページが複数あるときの、正規の URL (検索エンジン向け) |
+| `alternate` | 別の言語版や、RSS フィードなど、別の表現 |
+| `preload` | 現在のページで、すぐに必要なリソースを、先に読み込む |
+| `preconnect` | 別のドメインへの接続を、先に済ませておく |
+| `dns-prefetch` | 別のドメインの名前解決を、先に済ませておく |
+| `modulepreload` | JavaScript のモジュールを、先に読み込む |
+
+```html
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="/favicon.ico">
+<link rel="canonical" href="https://example.com/page">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<!-- フォントの preload は、crossorigin が必要 -->
+<link rel="preload" href="/fonts/main.woff2" as="font" type="font/woff2" crossorigin>
+```
+
 ### `<meta>`
 メタデータを表す。これは、他のメタ関連要素`<base>`, `<link>`, `<script>`, `<style>`, `<title>`で表すことができないものを表す。
+
+```html
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="検索結果に表示される、ページの説明文">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#3498db">
+```
+
+| 種類 | 書き方 | 用途 |
+| --- | --- | --- |
+| 文字コード | `charset="UTF-8"` | 文字コードの宣言 |
+| `name` と `content` | `name="description"` など | ページの情報 (説明、検索エンジンへの指示、テーマカラー) |
+| `http-equiv` | `http-equiv="refresh"` など | HTTP ヘッダーの代わりになる指示 |
+| `property` と `content` | `property="og:title"` など | OGP (SNS で共有されたときの表示) |
+
+SNS で共有されたときの表示は、OGP (Open Graph Protocol) で指定する。
+
+```html
+<meta property="og:title" content="ページのタイトル">
+<meta property="og:description" content="ページの説明">
+<meta property="og:image" content="https://example.com/ogp.png">
+<meta property="og:url" content="https://example.com/page">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+```
 
 ### `<style>`
 文書あるいは文書の一部分のスタイル情報を含む。`<style>`要素を含んでいる文書のコンテンツに適用されるCSSを含む。
 
+```html
+<style>
+  body { margin: 0; }
+</style>
+```
+
+`media` 属性で、適用する条件を指定できる (`<style media="print">`)。複数のページで共有するスタイルは、`<link>` で外部ファイルに分ける方が、キャッシュされて効率がよい。
+
 ### `<title>`
 ブラウザのタイトルバーやページのタブに表示される文書のタイトルを定義する。テキストのみを含めることができる。要素内のHTMLタグは存在しても、プレーンテキストとして扱われる。
 
+<pre><code class="tips">title は、ページごとに固有の内容にする。ブラウザのタブ、ブックマーク、検索結果、スクリーンリーダーで、ページを区別する手がかりになる。
+「ページ名 | サイト名」のように、内容を先に書くと、タブが狭くても、見分けやすい。</code></pre>
+
 ---
 
-## 区分化ルート <a id="selectionalized-route" data-name="区分化ルート"></a>
+## 区分化ルート <a id="sectioning-root" data-name="区分化ルート"></a>
 
 ### `<body>`
 HTML文書のコンテンツを示す要素で、文書中に1つだけ配置できる。
+
+画面に表示される内容は、すべて `<body>` の中に書く。
 
 ---
 
@@ -56,14 +200,48 @@ HTML文書のコンテンツを示す要素で、文書中に1つだけ配置で
 ### `<address>`
 これを含んでいるHTMLが個人、団体、組織の連絡先を提供していることを示す。
 
+```html
+<article>
+  <h2>記事のタイトル</h2>
+  <p>本文...</p>
+  <address>
+    著者: <a href="mailto:author@example.com">山田 太郎</a>
+  </address>
+</article>
+```
+
+<pre><code class="caution">address は、住所を書くための要素ではなく、「直近の article や body の、著者や管理者の連絡先」を示す要素。
+店舗の所在地など、連絡先以外の住所は、p などで書く。</code></pre>
+
 ### `<article>`
 文書、ページ、アプリケーション、サイトなどの中で自己完結しており、(集合したものの中で)個別に配信や再利用を行うことを意図した構成物を表す。例えば、フォーラムの投稿、雑誌や新聞の記事、ブログの記事、商品カード、ユーザーが投稿したコメント、対話型のウィジェットやガジェット、その他の独立したコンテンツの項目が含まれる。
+
+```html
+<article>
+  <header>
+    <h2>記事のタイトル</h2>
+    <p><time datetime="2024-11-04">2024年11月4日</time></p>
+  </header>
+  <p>本文...</p>
+</article>
+```
 
 ### `<aside>`
 文書のメインコンテンツと間接的な関係しか持っていない文書の部分を表現する。サイドバーやコールアウトボックスなどを表現するためによく使用される。
 
+```html
+<aside>
+  <h2>関連記事</h2>
+  <ul>
+    <li><a href="/a">記事A</a></li>
+  </ul>
+</aside>
+```
+
 ### `<footer>`
-直近の区分コンテンツまたな区分化ルート要素のフッターを表す。フッターには通常、そのセクションの著作者に関する情報、関連文書へのリンク、著作権情報等を含める。
+直近の区分コンテンツまたは区分化ルート要素のフッターを表す。フッターには通常、そのセクションの著作者に関する情報、関連文書へのリンク、著作権情報等を含める。
+
+`<footer>` と `<header>` は、ページ全体だけでなく、`<article>` や `<section>` の中にも置ける。
 
 ### `<header>`
 導入的なコンテンツ、普通は導入部やナビゲーション等のグループを表す。見出し要素だけでなく、ロゴ、検索フォーム、作者名、その他の要素を含むこともできる。
@@ -71,20 +249,111 @@ HTML文書のコンテンツを示す要素で、文書中に1つだけ配置で
 ### `<h1>`, `<h2>`, `<h3>`, `<h4>`, `<h5>`, `<h6>`
 セクションの見出しを6段階で表す。`<h1>`が最上位で、`<h6>`が最下位。
 
+```html
+<h1>ページのタイトル</h1>
+  <h2>大きな見出し</h2>
+    <h3>小さな見出し</h3>
+  <h2>別の大きな見出し</h2>
+```
+
+- 見出しレベルは、**文書の構造**で選ぶ。文字の大きさは、CSS で調整する。
+- レベルを飛ばさない (`<h2>` の次に `<h4>` を置かない)。
+- `<h1>` は、ページに1つにするのが、慣習として推奨される。
+- スクリーンリーダーの利用者は、見出しの一覧から、目的の箇所に移動するため、構造が正しいことが重要。
+
 ### `<hgroup>`
 小見出し、代替タイトル、キャッチフレーズなどの副次的コンテンツとグループ化された見出しを表す。
+
+```html
+<hgroup>
+  <h1>HTML 入門</h1>
+  <p>要素と属性をひとつずつ学ぶ</p>
+</hgroup>
+```
+
+見出し (`<h1>`〜`<h6>`) と、それを補足する `<p>` をグループ化する。
 
 ### `<main>` {#main-section}
 文書の本体の主要な内容を表す。主要な内容とは、文書の中心的な主題、またはアプリケーションの中心的な機能に直接関連または拡張した内容の範囲の事。
 
+<pre><code class="tips">main は、ページに1つだけ置く (hidden 属性を付けたものを除く)。
+article、aside、header、footer、nav の中には置けない。スキップリンク (本文へ移動するリンク) の移動先にもなる。</code></pre>
+
 ### `<nav>`
 現在の文書内の他の部分や他の文書へのナビゲーションリンクを提供するためのセクションを表す。ナビゲーションセクションの一般的な例としてメニュー、目次、索引などがある。
+
+```html
+<nav aria-label="メインメニュー">
+  <ul>
+    <li><a href="/">ホーム</a></li>
+    <li><a href="/about">概要</a></li>
+  </ul>
+</nav>
+```
+
+ページに複数の `<nav>` があるときは、`aria-label` で区別できるようにする。フッターの小さなリンクなどは、`<nav>` にしなくてもよい (主要なナビゲーションに使う)。
 
 ### `<section>`
 文書の自立した一般的なセクション(区間)を表す。そのセクションを表現するより意味的に具体的な要素がない場合に使用する。少数の例外を除いて、セクションには見出しを置く。
 
+```html
+<section>
+  <h2>特徴</h2>
+  <p>...</p>
+</section>
+```
+
 ### `<search>`
 検索または絞り込み処理を実行することに関連する一連のフォームコントロールまたは他のコンテンツを含む部分を表す。
+
+```html
+<search>
+  <form action="/search">
+    <label for="q">検索</label>
+    <input type="search" id="q" name="q">
+    <button>検索</button>
+  </form>
+</search>
+```
+
+比較的新しい要素で、これまでは `<div role="search">` で表していた。
+
+### 区分要素の使い分け
+
+| 要素 | 使いどころ |
+| --- | --- |
+| `<header>` | ページや区分の、導入部 (ロゴ、タイトル、ナビゲーションなど) |
+| `<nav>` | 主要なナビゲーションリンクのまとまり |
+| `<main>` | ページの主要な内容 (1つだけ) |
+| `<article>` | 単独で意味が通る内容 (記事、投稿、コメント、商品カード) |
+| `<section>` | 見出しを持つ、内容のまとまり |
+| `<aside>` | 本文と間接的に関係する内容 (サイドバー、関連記事、広告) |
+| `<footer>` | ページや区分の、末尾 (著作権、関連リンク) |
+| `<div>` | 上のどれにも当てはまらず、スタイル付けやまとめるためだけのとき |
+
+```html
+<body>
+  <header>
+    <h1>サイト名</h1>
+    <nav>...</nav>
+  </header>
+
+  <main>
+    <article>
+      <h2>記事のタイトル</h2>
+      <section>
+        <h3>見出し</h3>
+        <p>本文...</p>
+      </section>
+    </article>
+    <aside>関連記事...</aside>
+  </main>
+
+  <footer>
+    <p><small>&copy; 2024 Example</small></p>
+  </footer>
+</body>
+```
 
 ---
 
@@ -93,14 +362,34 @@ HTML文書のコンテンツを示す要素で、文書中に1つだけ配置で
 ### `<blockquote>`
 内包するテキストが引用文であることを示す。通常、字下げを伴ってレンダリングされる。`cite`属性により引用元の文書のURLを、`<cite>` 要素により引用元の文書のタイトルなどを明示可能。
 
+```html
+<blockquote cite="https://example.com/source">
+  <p>引用する文章。</p>
+</blockquote>
+<p>出典: <cite>書籍のタイトル</cite></p>
+```
+
 ### `<div>`
 フローコンテンツの汎用コンテナー。CSSを用いて何らかのスタイル付け(例えば、スタイルが直接適用されたり、親要素にフレックスボックスなどの何らかのレイアウトモデルが適用されるなど)がされない限り、コンテンツやレイアウトには影響を与えない。
 
+<pre><code class="tips">div は、意味を持たない最後の手段。ヘッダー、ナビゲーション、記事などに当てはまる場合は、header、nav、article などの、意味のある要素を使う。
+スタイル付けやレイアウトのために、まとめるだけのときに、div を使う。</code></pre>
+
 ### `<dl>`
-説明リストを表す。この要素は、一連の用語(`<dt>`要素を使用して指定)と説明(`<dd>`要素によって提供)をリスト化したものです。一般的な使用例として、用語集の作成やメタデータ(キーと値のペアのリスト)の表示が挙げられる。
+説明リストを表す。この要素は、一連の用語(`<dt>`要素を使用して指定)と説明(`<dd>`要素によって提供)をリスト化したものである。一般的な使用例として、用語集の作成やメタデータ(キーと値のペアのリスト)の表示が挙げられる。
+
+```html
+<dl>
+  <dt>HTML</dt>
+  <dd>ウェブページの構造を作るマークアップ言語。</dd>
+
+  <dt>CSS</dt>
+  <dd>見た目を整えるスタイルシート言語。</dd>
+</dl>
+```
 
 ### `<dt>`
-説明または定義リストの中で用語を表す部分であり、`<dl>`の子要素としてのみ用いることがでる。普通は`<dd>`要素が続く。しかし、複数の`<dt>`要素が続くと、複数の用語がすぐ後に続く`<dd>`要素で定義されていることを表す。
+説明または定義リストの中で用語を表す部分であり、`<dl>`の子要素としてのみ用いることができる。普通は`<dd>`要素が続く。しかし、複数の`<dt>`要素が続くと、複数の用語がすぐ後に続く`<dd>`要素で定義されていることを表す。
 
 ### `<dd>`
 説明リスト要素`<dl>`内で、その前の用語`<dt>`の説明、定義、値などを示す。
@@ -108,26 +397,82 @@ HTML文書のコンテンツを示す要素で、文書中に1つだけ配置で
 ### `<figure>`
 自己完結型のコンテンツを表し、任意で`<figcaption>`要素を使用して表されるキャプションを付けることができる。図、すなわちキャプションとその中身は一つの単位として参照される。
 
+```html
+<figure>
+  <img src="chart.png" alt="2024年の売上の推移を示す折れ線グラフ">
+  <figcaption>図1: 2024年の売上の推移</figcaption>
+</figure>
+```
+
+画像のほか、コードやグラフ、引用などにも使える。
+
 ### `<figcaption>`
-親の`<figure>`要素内にあるその他のコンテンツを説明するキャプションや凡例を表します。
+親の`<figure>`要素内にあるその他のコンテンツを説明するキャプションや凡例を表す。
 
 ### `<ul>`
 項目の順序なしリストを表す。一般的に、行頭記号を伴うリストとして描画される。
 
+```html
+<ul>
+  <li>りんご</li>
+  <li>みかん</li>
+</ul>
+```
+
 ### `<ol>`
 項目の順序付きリストを表す。普通は番号付きのリストとして表示される。
 
+| 属性 | 説明 |
+| --- | --- |
+| `start` | 開始する番号 (`<ol start="3">` は 3 から始まる) |
+| `reversed` | 番号を、降順にする |
+| `type` | 番号の種類 (`1`、`a`、`A`、`i`、`I`) |
+
+```html
+<ol start="3" reversed>
+  <li>第3位</li>
+  <li>第2位</li>
+  <li>第1位</li>
+</ol>
+```
+
 ### `<li>`
 リストの項目を表すために用いられる。この要素は、その項目が属する順序付きリスト`<ol>`、順序なしリスト`<ul>`、メニュー`<menu>`のいずれかの子要素として配置する必要がある。メニュー要素および順序なしリスト内においては、リストの項目は通常、行頭文字伴って表示され、順序付きリスト内では、数字や文字による連番のリストマーカーを伴って表示される。
+
+`<ol>` の中の `<li>` には、`value` 属性で、その項目の番号を指定できる。
+
+リストは入れ子にできる。入れ子のリストは、`<li>` の中に置く。
+
+```html
+<ul>
+  <li>果物
+    <ul>
+      <li>りんご</li>
+      <li>みかん</li>
+    </ul>
+  </li>
+  <li>野菜</li>
+</ul>
+```
 
 ### `<menu>`
 `<ul>`とは異なる意味づけで、ブラウザーでは`<ul>`と同じものとして扱われる(アクセシビリティツリーで公開されます)。`<li>`要素で表現される）項目の順不同リストを表す。
 
 ### `<p>`
-テキストの段落を表す。視覚メディアにおいて、段落は普通隣接するブロックと上下の空白や最初の行の字下げによって隔てられたテキストのブロックとして表現され、HTMLの段落は画像やフォーム欄などの関連するコンテンツを構造的にまとめることがでる。
+テキストの段落を表す。視覚メディアにおいて、段落は普通隣接するブロックと上下の空白や最初の行の字下げによって隔てられたテキストのブロックとして表現され、HTMLの段落は画像やフォーム欄などの関連するコンテンツを構造的にまとめることができる。
+
+<pre><code class="caution">段落の間隔や余白を作るために、空の p や br を並べない。余白は、CSS の margin や padding で調整する。</code></pre>
 
 ### `<pre>`
 整形済みテキスト(preformatted text)を表す。この要素内のテキストは一般的に、ファイル内でのレイアウトをそのまま反映して等幅フォントで表示される。この要素内のホワイトスペース文字はそのまま表示する。
+
+コードを表示するときは、`<pre>` の中に `<code>` を入れる。`<` や `&` は、文字参照 (`&lt;`、`&amp;`) にする。
+
+```html
+<pre><code>function hello() {
+  console.log("hello");
+}</code></pre>
+```
 
 ### `<hr>`
 段落レベルの要素間において、テーマの意味的な区切りを表す。例えば、話の場面の切り替えや、節内での話題の転換など。以前はこれは水平の区切り線として定義されていた。現在でもブラウザーでは水平線として表示されるが、この要素は表示論的な用語ではなく意味論的な用語で定義されたので、水平線を引きたいのであれば、適切な CSS を使用する。
@@ -139,11 +484,52 @@ HTML文書のコンテンツを示す要素で、文書中に1つだけ配置で
 ### `<a>`
 `href`属性を用いて、ウェブページ、ファイル、メールアドレス、現在のページ内の場所、または他の`URL`へのハイパーリンクを作成する。
 
+```html
+<a href="https://example.com">外部サイト</a>
+<a href="/about">サイト内のページ</a>
+<a href="#section2">ページ内の移動</a>
+<a href="mailto:info@example.com">メールを送る</a>
+<a href="tel:0312345678">電話をかける</a>
+<a href="/doc.pdf" download>ダウンロード</a>
+<a href="https://example.com" target="_blank" rel="noopener noreferrer">新しいタブで開く</a>
+```
+
+| 属性 | 説明 |
+| --- | --- |
+| `href` | リンク先の URL。ない `<a>` は、リンクとして機能しない |
+| `target` | 開く場所 (`_self`: 同じタブ (既定)、`_blank`: 新しいタブ) |
+| `rel` | リンク先との関係 (`noopener`、`noreferrer`、`nofollow`、`external` など) |
+| `download` | クリックしたときに、ファイルとして保存する |
+| `hreflang` | リンク先の言語 |
+
+<pre><code class="tips">target="_blank" のときは、rel="noopener" を付ける習慣がある (現在のブラウザは、暗黙で noopener を適用する)。
+リンクの文言は、「こちら」ではなく、リンク先の内容が分かる言葉にする。
+ボタンの動作 (送信や開閉) には、a ではなく button を使う。</code></pre>
+
 ### `<abbr>`
 略語や頭字語を表す。
 
+```html
+<abbr title="HyperText Markup Language">HTML</abbr>
+```
+
 ### `<b>`
 要素の内容に読み手の注意を惹きたい場合で、他の特別な重要性が与えられないものに使用する。これは以前は太字要素と呼ばれており、ほとんどのブラウザーでは文字列を太字で描画していた。しかし、`<b>`を文字列の装飾に使うべきではない。太字の文字列を作成するには、CSSの`font-weight`プロパティを使用し、特別な重要性を持つテキストを示すには`<strong>`要素を使用する。
+
+### 見た目が同じでも、意味が違う要素
+
+| 要素 | 意味 | 既定の見た目 | 使いどころ |
+| --- | --- | --- | --- |
+| `<b>` | 注意を引く (特別な重要性はない) | 太字 | キーワード、製品名 |
+| `<strong>` | 重要、重大、緊急 | 太字 | 警告、注意書き |
+| `<i>` | 他と区別される文字列 | 斜体 | 専門用語、外国語、思考 |
+| `<em>` | 強調 (読むときの抑揚が変わる) | 斜体 | 文の意味を変える強調 |
+| `<u>` | 非言語的な注釈 | 下線 | 誤字の指摘、固有名詞の表記 (中国語) |
+| `<s>` | すでに有効でない内容 | 取り消し線 | 値引き前の価格 |
+| `<mark>` | 関連性のために目立たせる | 黄色の背景 | 検索結果の一致箇所 |
+| `<small>` | 注釈、法的表記 | 小さい文字 | 著作権表示 |
+
+見た目だけが目的なら、要素ではなく、CSS の `font-weight` や `font-style` を使う。
 
 ### `<bdi>`
 ブラウザーの書字方向アルゴリズムにこのテキストが周囲のテキストから独立していると扱うよう指示する。これは特に、ウェブサイトがテキストを動的に挿入し、挿入されるテキストの書字方向が不明な場合に便利。
@@ -154,20 +540,51 @@ HTML文書のコンテンツを示す要素で、文書中に1つだけ配置で
 ### `<br>`
 文中に改行(キャリッジリターン)を生成する。詩や住所など、行の分割が重要な場合に有用。
 
+<pre><code class="caution">br は、詩や住所のように、改行そのものに意味があるときに使う。
+段落を分けたいときは p、余白を作りたいときは CSS を使う。</code></pre>
+
 ### `<cite>`
 創作物のタイトルをマークアップするために使用する。参照は、引用メタデータに関する利用場面に合わせた慣習に応じて省略形が用いられることがある。
+
+```html
+<p>詳細は <cite>プログラミング言語 Rust</cite> を参照。</p>
+```
+
+作品のタイトルを示すもので、人名には使わない。
 
 ### `<code>`
 コンピューターコードの短い断片の文字列であると識別できるような外見のコンテンツを表示する。既定では、中の文字列がユーザーエージェントの既定の等幅フォントを使用して表示される。
 
+### コンピューター関連のマークアップ
+
+| 要素 | 意味 | 例 |
+| --- | --- | --- |
+| `<code>` | コードの断片 | `<code>console.log()</code>` |
+| `<kbd>` | キーボードなどからの入力 | `<kbd>Ctrl</kbd> + <kbd>C</kbd>` |
+| `<samp>` | プログラムの出力例 | `<samp>Hello, World!</samp>` |
+| `<var>` | 変数の名前 | `<var>x</var> + <var>y</var>` |
+| `<pre>` | 整形済みテキスト (複数行のコード) | 前述 |
+
 ### `<data>`
 与えられたコンテンツの断片を機械可読な翻訳にリンクする。コンテンツが時刻または日付に関連するものであれば、`<time>`要素を使用する必要がある。
+
+```html
+<data value="1280">1,280円</data>
+```
 
 ### `<dfn>`
 定義句や文の文脈の中で定義している用語を示すために用いられる。`<dfn>`の直近の祖先である`<p>`要素、`<dt>`/`<dd>`の組み合わせ、`<section>`要素が用語の定義とみなされる。
 
+```html
+<p><dfn>HTML</dfn> は、ウェブページの構造を作るためのマークアップ言語である。</p>
+```
+
 ### `<em>`
-強調されたテキストを示します。`<em>`要素は入れ子にすることができ、入れ子の階層に応じてより強い程度の強調を表すことができる。
+強調されたテキストを示す。`<em>`要素は入れ子にすることができ、入れ子の階層に応じてより強い程度の強調を表すことができる。
+
+```html
+<p>私は<em>本当に</em>行きたい。</p>
+```
 
 ### `<i>`
 何らかの理由で他のテキストと区別されるテキストの範囲を表す。例えば、慣用句、技術用語、分類学上の呼称、など。英文においてはよくイタリック体で表現されてきたものであり、それがこの要素の`<i>`という名前の元になっている。
@@ -181,11 +598,22 @@ HTML文書のコンテンツを示す要素で、文書中に1つだけ配置で
 ### `<q>`
 その内容がインラインの引用であることを表す。最近の多くのブラウザーでは、文字列を引用符で囲むように実装している。この要素は、段落区切りをまたがない短い引用のためのもの。長文の引用には、`<blockquote>`要素を使用する。
 
+```html
+<p>彼は <q cite="https://example.com/source">明日また来る</q> と言った。</p>
+```
+
 ### `<ruby>`
 ベーステキストの上、下、隣に描画される小さな注釈で、よく東アジアの文字の発音を表すのに使われる。他の種類の注釈にも使われることがあるが、この使い方はあまり一般的ではない。
 
+```html
+<ruby>
+  漢<rp>(</rp><rt>かん</rt><rp>)</rp>
+  字<rp>(</rp><rt>じ</rt><rp>)</rp>
+</ruby>
+```
+
 ### `<rp>`
-`<ruby>`要素によるルビの表示に対応していないブラウザー向けの代替表示用括弧を提供するために使用する。`<rp>`要素は、注釈の文字列を`<rt>`要素を囲む開き括弧と閉じ括弧をそれぞれ囲む必要がある。
+`<ruby>`要素によるルビの表示に対応していないブラウザー向けの代替表示用括弧を提供するために使用する。`<rp>`要素は、注釈の文字列を表す`<rt>`要素の前後に置き、それぞれ開き括弧と閉じ括弧を指定する。
 
 ### `<rt>`
 ルビによる注釈(振り仮名)のルビ文字列の部分を定義し、東アジアの組版において発音、翻訳、音写などの情報を提供するために使用する。`<rt>`要素は常に`<ruby>`要素の中で使用される。
@@ -202,11 +630,19 @@ HTML文書のコンテンツを示す要素で、文書中に1つだけ配置で
 ### `<span>`
 記述コンテンツの汎用的なインラインコンテナーであり、何かを表すものではない。スタイル付けのため(`class`または`id`属性を使用して)、または`lang`のような属性値を共有したりするために要素をグループ化する用途で使用することができる。他に適切な意味的要素がない時にのみ使用する。`<span>`は`<div>`要素ととても似ているが`<div>`がブロックレベル要素であるのに対し、`<span>`はインラインレベル要素。
 
+```html
+<p>価格は <span class="price">1,280円</span> です。</p>
+```
+
 ### `<strong>`
 内容の重要性、重大性、または緊急性が高いテキストを表す。ブラウザーは一般的に太字で描画する。
 
 ### `<sub>`
 表記上の理由で下付き文字として表示するべきインライン文字列を指定する。下付き文字は普通、小さめのテキストを使用してベースラインよりも低く表示される。
+
+```html
+<p>水は H<sub>2</sub>O、面積は 5m<sup>2</sup>。</p>
+```
 
 ### `<sup>`
 表記上の理由で上付き文字として表示するべきインライン文字列を指定する。上付き文字は普通、小さめのテキストを使用して高いベースラインで表示される。
@@ -214,14 +650,26 @@ HTML文書のコンテンツを示す要素で、文書中に1つだけ配置で
 ### `<time>`
 特定の時の区間を表す。`datetime`属性を使用して、機械可読な形式の日付を記述することができ、検索エンジンの結果を改善したりリマインダーなどの独自機能に使用したりすることができる。
 
+```html
+<time datetime="2024-11-04">2024年11月4日</time>
+<time datetime="2024-11-04T08:30:00+09:00">午前8時30分</time>
+<time datetime="PT15M">15分</time>
+```
+
+`datetime` の書式は、後述の「時刻と経過時間」を参照。
+
 ### `<u>`
 非言語的に注釈があることを示す方法で表示するインラインテキストの区間を示す。これは既定で単一の実線の下線として表示されるが、CSSを使用して変更することもできる。
 
 ### `<var>`
 数式やプログラムコード内の変数の名前を表す。挙動はブラウザーに依存するが、通常は現在のフォントのイタリック体を使って表示される。
 
-### `<vbr>`
-改行可能位置。テキスト内でブラウザーが任意で改行してよい位置を表すが、この改行規則は必要のない場合は改行を行わない。
+### `<wbr>`
+改行可能位置 (Word Break Opportunity)。テキスト内で、ブラウザーが改行してもよい位置を示す。必要がなければ改行されない。長い URL や単語の途中に置くと、狭い画面で、その位置で折り返せる。
+
+```html
+<p>https://example.com/<wbr>very-long-path<wbr>/that-is-too-long</p>
+```
 
 ---
 
@@ -230,20 +678,98 @@ HTML文書のコンテンツを示す要素で、文書中に1つだけ配置で
 ### `<img>`
 文書に画像を埋め込む。
 
+```html
+<img src="photo.jpg" alt="海辺で夕日を眺める人" width="800" height="600" loading="lazy">
+```
+
+| 属性 | 説明 |
+| --- | --- |
+| `src` | 画像の URL |
+| `alt` | 画像が表示できないときや、スクリーンリーダーが読み上げる代替テキスト。**必ず指定する** |
+| `width` / `height` | 画像の幅と高さ (px)。指定しておくと、読み込み前に場所が確保され、レイアウトのずれ (CLS) を防げる |
+| `loading` | `lazy` にすると、画面に近づいたときに読み込む (画面の外にある画像向け) |
+| `decoding` | 画像のデコード方法 (`async` など) |
+| `srcset` / `sizes` | 画面の幅や解像度に合わせて、複数の画像から選ばせる |
+
+```html
+<img
+  src="photo-800.jpg"
+  srcset="photo-400.jpg 400w, photo-800.jpg 800w, photo-1600.jpg 1600w"
+  sizes="(min-width: 768px) 50vw, 100vw"
+  alt="海辺で夕日を眺める人">
+```
+
+### alt の書き方
+
+| 画像の種類 | alt の書き方 |
+| --- | --- |
+| 内容を伝える画像 | 内容を、簡潔に説明する (「2024年の売上の推移を示すグラフ」) |
+| 装飾の画像 | 空にする (`alt=""`)。スクリーンリーダーが、読み飛ばす |
+| リンクの中の画像 | リンク先や、動作を説明する (「ホームへ戻る」) |
+| 文字を含む画像 | 画像の中の文字を、そのまま書く |
+
+<pre><code class="caution">alt 属性そのものがないと、スクリーンリーダーは、画像のファイル名を読み上げることがある。
+装飾の画像は、alt を省略せずに、alt="" と、空にして書く。
+また、ページを開いてすぐ見える大きな画像 (ファーストビュー) に loading="lazy" を付けると、表示が遅くなる。</code></pre>
+
 ### `<video>`
-文書中に動画再生に対応するメディアプレイヤーを埋め込む。`<video>`を音声コンテンツのために使用することもでるが、`audio`要素の方がユーザーにとって使い勝手が良い。
+文書中に動画再生に対応するメディアプレイヤーを埋め込む。`<video>`を音声コンテンツのために使用することもできるが、`audio`要素の方がユーザーにとって使い勝手が良い。
+
+```html
+<video controls width="640" poster="thumbnail.jpg">
+  <source src="movie.webm" type="video/webm">
+  <source src="movie.mp4" type="video/mp4">
+  <track kind="subtitles" src="ja.vtt" srclang="ja" label="日本語" default>
+  <p>お使いのブラウザは、動画の再生に対応していません。</p>
+</video>
+```
+
+| 属性 | 説明 |
+| --- | --- |
+| `controls` | 再生ボタンなどの操作部品を表示する |
+| `autoplay` | 自動で再生する (多くのブラウザは、`muted` がないと自動再生をブロックする) |
+| `muted` | 消音にする |
+| `loop` | 繰り返し再生する |
+| `poster` | 再生前に表示する画像 |
+| `preload` | 事前の読み込み方 (`none`、`metadata`、`auto`) |
+| `playsinline` | iPhone で、全画面にせず、その場で再生する |
 
 ### `<audio>`
-文書内に音声コンテンツを埋め込むために使用します。この要素は、1つまたは複数の音源を含むことができます。音源は`src`属性または`<source>`要素を使用して表し、ブラウザーがもっとも適切な音源を選択する。また、`MediaStream`を使用してストリーミングメディアを指し示すこともできる。
+文書内に音声コンテンツを埋め込むために使用する。この要素は、1つまたは複数の音源を含むことができる。音源は`src`属性または`<source>`要素を使用して表し、ブラウザーがもっとも適切な音源を選択する。また、`MediaStream`を使用してストリーミングメディアを指し示すこともできる。
+
+```html
+<audio controls>
+  <source src="sound.ogg" type="audio/ogg">
+  <source src="sound.mp3" type="audio/mpeg">
+  お使いのブラウザは、音声の再生に対応していません。
+</audio>
+```
 
 ### `<track>`
 メディア要素(`<audio>`と`<video>`)の子として使用する。この要素は自動的に処理される字幕など、時間指定されたテキストトラック(または時系列データ)を指定することができる。トラックはWebVTT形式(.vtt ファイル)を用いる。
+
+| 属性 | 説明 |
+| --- | --- |
+| `kind` | トラックの種類 (`subtitles`、`captions`、`descriptions`、`chapters`、`metadata`) |
+| `src` | WebVTT ファイルの URL |
+| `srclang` | トラックの言語 |
+| `label` | ユーザーに表示する名前 |
+| `default` | 既定で有効にする |
 
 ### `<area>`
 イメージマップの中でクリック可能な領域をあらかじめ定義する。イメージマップでは、画像上の幾何学的な領域をハイパーテキストリンクと関連付けすることができる。
 
 ### `<map>`
 `<area>`要素とともに、イメージマップ(クリック可能なリンク領域)を定義するために使用する。
+
+```html
+<img src="map.png" alt="日本の地図" usemap="#japan">
+
+<map name="japan">
+  <area shape="rect" coords="0,0,100,100" href="/tokyo" alt="東京">
+  <area shape="circle" coords="150,50,30" href="/osaka" alt="大阪">
+</map>
+```
 
 ---
 
@@ -252,17 +778,64 @@ HTML文書のコンテンツを示す要素で、文書中に1つだけ配置で
 ### `<iframe>`
 入れ子になった閲覧コンテキストを表現し、現在の HTML ページに他のページを埋め込むことができる。
 
+```html
+<iframe
+  src="https://www.youtube.com/embed/xxxxxxxx"
+  title="動画のタイトル"
+  width="560" height="315"
+  loading="lazy"
+  allow="fullscreen"
+  referrerpolicy="strict-origin-when-cross-origin"></iframe>
+```
+
+| 属性 | 説明 |
+| --- | --- |
+| `src` | 埋め込むページの URL |
+| `title` | 内容を説明する名前。**スクリーンリーダーのために必要** |
+| `loading` | `lazy` で、画面に近づいたときに読み込む |
+| `sandbox` | 埋め込んだページの権限を制限する (スクリプトの実行、フォーム送信など) |
+| `allow` | 使えるブラウザの機能を許可する (`fullscreen`、`camera` など) |
+| `referrerpolicy` | Referer ヘッダーの送り方 |
+
+<pre><code class="caution">信頼できない外部のページを埋め込む場合は、sandbox を指定して、権限を制限する。
+また、埋め込み先のサイトが、X-Frame-Options や CSP の frame-ancestors で、埋め込みを禁止している場合は、表示されない。</code></pre>
+
 ### `<fencedframe>`
 入れ子になった閲覧コンテキストを表す。`<iframe>`と同様だが、より多くのネイティブのプライバシー機能が組み込まれている。
+
+<pre><code class="caution">fencedframe は、プライバシー保護の仕組み (Privacy Sandbox) の中で、主に広告のために設計された実験的な要素。
+対応しているブラウザが限られているため、一般的なページの埋め込みには、iframe を使う。</code></pre>
 
 ### `<picture>`
 0個以上の`<source>`要素と一つの`<img>`要素を含み、様々な画面や端末の条件に応じた画像を提供する。
 
+```html
+<picture>
+  <!-- 上から順に、対応している最初の source が使われる -->
+  <source srcset="photo.avif" type="image/avif">
+  <source srcset="photo.webp" type="image/webp">
+  <!-- 画面幅によって、別の画像を出す (アートディレクション) -->
+  <source srcset="photo-wide.jpg" media="(min-width: 768px)">
+  <!-- フォールバック (必須) -->
+  <img src="photo.jpg" alt="説明">
+</picture>
+```
+
 ### `<source>`
 picture 要素、`<audio>`要素、`<video>`要素に対し、複数のメディアリソースを指定する。この要素は空要素であり、つまり中身も閉じタグもない。画像ファイル形式やメディアファイル形式の対応状況が様々であるブラウザーの幅広い互換性を確保するために、同じメディアコンテンツを複数のファイル形式で提供することはよくある。
 
+| 属性 | 説明 |
+| --- | --- |
+| `src` | メディアの URL (`<audio>`、`<video>` 内) |
+| `srcset` | 画像の URL (`<picture>` 内) |
+| `type` | ファイルの形式 (MIME タイプ)。ブラウザが、対応していない形式の読み込みを省略できる |
+| `media` | 適用する条件 (メディアクエリ) |
+
 ### `<embed>`
 外部のコンテンツを文書中の指定された場所に埋め込む。コンテンツは外部アプリケーションや、対話型コンテンツの他の出所(ブラウザーのプラグインなど)によって提供される。
+
+<pre><code class="tips">embed と object は、ブラウザのプラグイン (Flash など) のための要素だった。プラグインが廃止された現在は、ほとんど使われない。
+画像は img、動画は video、音声は audio、他のページは iframe を使う。</code></pre>
 
 ### `<object>`
 画像、内部の閲覧コンテキスト、プラグインによって扱われるリソースなどのように扱われる外部リソースを表す。
@@ -275,15 +848,56 @@ picture 要素、`<audio>`要素、`<video>`要素に対し、複数のメディ
 ### `<svg>`
 新しい座標系とビューポートを定義するコンテナー。これはSVG文書の最も外側の要素として使用されるが、SVGまたはHTML文書の中にSVGフラグメントを埋め込むためにも使用できる。
 
+```html
+<svg width="100" height="100" viewBox="0 0 100 100" role="img" aria-label="赤い円">
+  <circle cx="50" cy="50" r="40" fill="red" />
+</svg>
+```
+
+HTML の中に直接書くと、CSS や JavaScript で操作できる。単に表示するだけなら、`<img src="icon.svg" alt="...">` でもよい。
+
 ### `<math>`
 MathMLにおける最上位の要素。すべての有効なMathMLのインスタンスを囲む。加えて、`<math>`要素を入れ子状に配置してはならないが、中にその他の子要素をいくつでも持つことができる。
+
+```html
+<math>
+  <mfrac>
+    <mn>1</mn>
+    <mn>2</mn>
+  </mfrac>
+</math>
+```
 
 ---
 
 ## スクリプト <a id="script" data-name="スクリプト"></a>
 
 ### `<script>`
-実行できるコードやデータを埋め込むために使用します。ふつうは JavaScript のコードの埋め込みや参照に使用される。`<script>`要素はWebGLのGLSL shaderプログラミング言語、JSON等の他の言語にも使用することができる。
+実行できるコードやデータを埋め込むために使用する。ふつうは JavaScript のコードの埋め込みや参照に使用される。`<script>`要素はWebGLのGLSL shaderプログラミング言語、JSON等の他の言語にも使用することができる。
+
+```html
+<!-- 外部ファイル (HTMLの解析後に実行) -->
+<script src="app.js" defer></script>
+
+<!-- ES モジュール (defer と同じく、解析後に実行される) -->
+<script type="module" src="main.js"></script>
+
+<!-- インライン -->
+<script>
+  console.log('hello');
+</script>
+```
+
+| 属性 | 動作 |
+| --- | --- |
+| (なし) | 読み込みと実行の間、HTML の解析が止まる |
+| `defer` | 解析と並行して読み込み、**解析の完了後に、書いた順に**実行する |
+| `async` | 並行して読み込み、**読み込みが終わった順に**、すぐ実行する (実行順は不定) |
+| `type="module"` | ES モジュールとして扱う。`defer` と同様に、遅れて実行される |
+| `integrity` | ファイルが改ざんされていないか確認するためのハッシュ (SRI)。`crossorigin` と一緒に使う |
+
+<pre><code class="tips">通常のスクリプトは、defer を付けて、&lt;head&gt; に書くか、&lt;/body&gt; の直前に置く。
+他のスクリプトに依存しない、計測タグなどには async を使う。</code></pre>
 
 ### `<noscript>`
 このページ上のスクリプトの種類に対応していない場合や、スクリプトの実行がブラウザーで無効にされている場合に表示するHTMLの部分を定義する。
@@ -291,12 +905,30 @@ MathMLにおける最上位の要素。すべての有効なMathMLのインス�
 ### `<canvas>`
 CanvasスクリプティングAPIやWebGLAPIを使用して、グラフィックやアニメーションを描画することができるコンテナー要素。
 
+```html
+<canvas id="c" width="200" height="100">
+  canvas に対応していない場合の、代替コンテンツ
+</canvas>
+
+<script>
+  const ctx = document.getElementById('c').getContext('2d');
+  ctx.fillStyle = 'tomato';
+  ctx.fillRect(10, 10, 100, 50);
+</script>
+```
+
 ---
 
 ## 編集範囲の特定 <a id="edited" data-name="編集範囲の特定"></a>
 
 ### `<del>`
 文書から削除された文字列の範囲を表す。これは例えば、変更の追跡や、ソースコードの差分情報を描画するときに使用することができる。`<ins>`要素は逆の目的に、文書に追加された文字列を示すために用いることができる。
+
+```html
+<p>価格は <del datetime="2024-11-01">1,000円</del> <ins datetime="2024-11-01">800円</ins> です。</p>
+```
+
+`cite` 属性で変更の理由の URL を、`datetime` 属性で変更日時を指定できる。
 
 ### `<ins>`
 文書に追加されたテキストの範囲を表す。同様に、`<del>`要素を使用して文書から削除されたテキストの範囲を表すことができる。
@@ -308,6 +940,50 @@ CanvasスクリプティングAPIやWebGLAPIを使用して、グラフィック
 ### `<table>` 
 表形式のデータ、つまり、行と列の組み合わせによるセルに含まれたデータによる二次元の表で表現される情報。
 
+```html
+<table>
+  <caption>2024年の売上</caption>
+  <thead>
+    <tr>
+      <th scope="col">月</th>
+      <th scope="col">売上</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th scope="row">1月</th>
+      <td>100</td>
+    </tr>
+    <tr>
+      <th scope="row">2月</th>
+      <td>120</td>
+    </tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <th scope="row">合計</th>
+      <td>220</td>
+    </tr>
+  </tfoot>
+</table>
+```
+
+| 属性 | 要素 | 説明 |
+| --- | --- | --- |
+| `colspan` | `<td>`、`<th>` | 横に、何列分のセルにするか |
+| `rowspan` | `<td>`、`<th>` | 縦に、何行分のセルにするか |
+| `scope` | `<th>` | 見出しが、列 (`col`) と行 (`row`) のどちらの見出しか |
+| `headers` | `<td>` | 複雑な表で、関連する見出しの `id` を指定する |
+
+```html
+<tr>
+  <td colspan="2">2列分のセル</td>
+</tr>
+```
+
+<pre><code class="caution">table は、表形式のデータを表すための要素で、ページのレイアウトには使わない。
+レイアウトは、CSS の Flexbox や Grid で行う。</code></pre>
+
 ### `<caption>`
 表のキャプション(またはタイトル)を指定する。
 
@@ -315,10 +991,10 @@ CanvasスクリプティングAPIやWebGLAPIを使用して、グラフィック
 `<tr>`要素の子要素であり、表セルのグループの見出しとしてセルを定義する。このグループの性質は、`scope`および`headers`属性によって明示的に定義することができる。
 
 ### `<tr>`
-表内でセルの行を定義する。行のセルには`<td>`(データセル)および`<th>`(見出しセル)要素をを混在させることができる。
+表内でセルの行を定義する。行のセルには`<td>`(データセル)および`<th>`(見出しセル)要素を混在させることができる。
 
 ### `<td>`
-`<tr>`要素の子要素であり、表のデータの入った含むセルを定義する。
+`<tr>`要素の子要素であり、表のデータを含むセルを定義する。
 
 ### `<colgroup>`
 表内の列のグループを定義する。
@@ -342,24 +1018,135 @@ CanvasスクリプティングAPIやWebGLAPIを使用して、グラフィック
 ### `<form>`
 ウェブサーバーに情報を送信するための対話型コントロールを含む文書の区間を表す。
 
+```html
+<form action="/submit" method="post">
+  <label for="name">名前</label>
+  <input type="text" id="name" name="name" required>
+
+  <label for="email">メールアドレス</label>
+  <input type="email" id="email" name="email" required>
+
+  <button type="submit">送信</button>
+</form>
+```
+
+| メソッド | 動作 | 用途 |
+| --- | --- | --- |
+| GET | データを URL (クエリ文字列) に付けて送る。URL に残る | 検索、絞り込み (何度送っても、結果が変わらないもの) |
+| POST | データをリクエストの本体に入れて送る | 登録、ログイン、更新 (データが変わるもの) |
+
 #### フォームで重要な属性
 
-| 属性 | 役割 |
-| --- | --- |
-| action | 送信先のURL |
-| method | GET/POST |
-| id | label/JS/CSS用 |
-| name | サーバーに送るデータのキー(key) |
-| value | サーバーに送るデータ(value) |
+| 属性 | 付ける要素 | 役割 |
+| --- | --- | --- |
+| action | form | 送信先のURL (省略すると、現在のページ) |
+| method | form | GET/POST (`dialog` は、`<dialog>` を閉じるときに使う) |
+| enctype | form | データの送信形式。ファイルを送るときは `multipart/form-data` |
+| novalidate | form | ブラウザの入力チェックを無効にする |
+| autocomplete | form、input など | ブラウザの自動入力を、オン・オフする |
+| id | 全部 | label/JS/CSS用 |
+| name | input など | サーバーに送るデータのキー(key)。**name がないと、送信されない** |
+| value | input など | サーバーに送るデータ(value) |
 
 ### `<input>`
 ユーザーからデータを受け取るための、ウェブベースのフォーム用の操作可能なコントロールを作成するために使用する。端末とユーザーエージェントによるが、広範に渡る種類のデータ入力やコントロールウィジェットが利用できる。`<input>`要素は入力型と属性の組み合わせの数が非常に多いため、HTMLの中で最も強力かつ最も複雑な要素の一つ。
 
+### type の種類
+
+| type | 用途 |
+| --- | --- |
+| `text` | 1行のテキスト (既定) |
+| `password` | パスワード (入力が伏せ字になる) |
+| `email` | メールアドレス (形式のチェックと、メール用のキーボード) |
+| `url` | URL |
+| `tel` | 電話番号 (チェックはされないが、数字用のキーボード) |
+| `search` | 検索キーワード |
+| `number` | 数値 (`min`、`max`、`step` を指定できる) |
+| `range` | スライダー |
+| `date` / `time` / `datetime-local` / `month` / `week` | 日付や時刻 |
+| `color` | 色の選択 |
+| `checkbox` | チェックボックス (複数選択) |
+| `radio` | ラジオボタン (同じ `name` の中から1つ選択) |
+| `file` | ファイルの選択 |
+| `hidden` | 画面に表示しない値 |
+| `submit` / `reset` / `button` | ボタン (`<button>` が推奨) |
+
+### 共通の属性
+
+| 属性 | 説明 |
+| --- | --- |
+| `name` | 送信するデータの名前 |
+| `value` | 値 (初期値) |
+| `placeholder` | 入力例などの、薄く表示されるヒント (ラベルの代わりにはならない) |
+| `required` | 必須にする |
+| `disabled` | 無効にする (送信もされない) |
+| `readonly` | 読み取り専用にする (送信はされる) |
+| `min` / `max` / `step` | 数値や日付の、範囲と刻み |
+| `minlength` / `maxlength` | 文字数の範囲 |
+| `pattern` | 正規表現による形式のチェック |
+| `multiple` | 複数の値を許可する (`file`、`email`) |
+| `accept` | 選べるファイルの種類 (`accept="image/*"`) |
+| `autocomplete` | 自動入力のヒント |
+| `autofocus` | ページを開いたときに、フォーカスを当てる |
+| `inputmode` | ソフトウェアキーボードの種類 |
+
+```html
+<input type="number" name="age" min="0" max="120" required>
+<input type="text" name="zip" pattern="[0-9]{3}-[0-9]{4}" placeholder="123-4567">
+<input type="file" name="photo" accept="image/*">
+```
+
+### checkbox と radio
+
+```html
+<!-- チェックボックス: 同じ name で、複数を選べる -->
+<label><input type="checkbox" name="fruit" value="apple"> りんご</label>
+<label><input type="checkbox" name="fruit" value="orange" checked> みかん</label>
+
+<!-- ラジオボタン: 同じ name の中から、1つだけ選べる -->
+<label><input type="radio" name="size" value="s"> S</label>
+<label><input type="radio" name="size" value="m" checked> M</label>
+```
+
+### autocomplete の値
+
+自動入力のヒントを正しく指定すると、ブラウザが適切な情報を入力してくれる。
+
+| 値 | 内容 |
+| --- | --- |
+| `name` / `given-name` / `family-name` | 氏名 / 名 / 姓 |
+| `email` | メールアドレス |
+| `tel` | 電話番号 |
+| `username` | ユーザー名 |
+| `current-password` | 今のパスワード (ログイン) |
+| `new-password` | 新しいパスワード (登録) |
+| `one-time-code` | ワンタイムコード (SMS の認証コードなど) |
+| `postal-code` | 郵便番号 |
+| `street-address` | 住所 |
+
+<pre><code class="tips">type="number" は、数値を計算するための入力で、郵便番号や電話番号には向かない (先頭の 0 が消える、矢印で値が変わる)。
+そのような入力は、type="text" に、inputmode="numeric" を組み合わせる。</code></pre>
+
 ### `<textarea>`
 複数行のプレーンテキスト編集コントロールを表し、レビューのコメントやお問い合わせフォーム等のように、ユーザーが大量の自由記述テキストを入力できるようにするときに便利。
 
+```html
+<textarea name="message" rows="5" cols="40" maxlength="500" placeholder="内容を入力"></textarea>
+```
+
+`rows` と `cols` で大きさを指定する (CSS の `width` と `height` でも指定できる)。
+
 ### `<button>`
 ユーザーがマウス、キーボード、指、音声コマンド、または他にも支援技術を使って起動するインタラクティブ要素。アクティブになると、フォームを送信したり、ダイアログを開いたりするなどのアクションを実行できる。
+
+| type | 動作 |
+| --- | --- |
+| `submit` | フォームを送信する (**`<form>` 内では、これが既定**) |
+| `button` | 何もしない (JavaScript で動作を付ける) |
+| `reset` | フォームの入力を、初期値に戻す |
+
+<pre><code class="caution">form の中の button は、type を書かないと、submit になる。
+送信以外の動作 (開閉など) のボタンには、type="button" を指定する。</code></pre>
 
 ### `<option>`
 `<select>`要素、`<optgroup>`要素、`<datalist>`要素内で項目を定義するために使われる。したがって、`<option>`はHTML文書でポップアップメニューのメニュー項目や、その他の項目の一覧を表すことができる。
@@ -367,14 +1154,53 @@ CanvasスクリプティングAPIやWebGLAPIを使用して、グラフィック
 ### `<select>`
 選択式のメニューを提供するコントロールを表す。
 
+```html
+<label for="pref">都道府県</label>
+<select id="pref" name="pref">
+  <option value="">選択してください</option>
+  <optgroup label="関東">
+    <option value="tokyo">東京</option>
+    <option value="kanagawa" selected>神奈川</option>
+  </optgroup>
+  <optgroup label="関西">
+    <option value="osaka">大阪</option>
+  </optgroup>
+</select>
+```
+
+`<select multiple>` で、複数選択になる。`<option>` の `value` が、送信される値になる (省略すると、表示されている文字が送信される)。
+
 ### `<optgroup>`
 `<select>`要素内の選択肢(`<option>`)のグループを作成する。
 
 ### `<datalist>`
 他のコントロールで利用可能な値を表現する一連の`<option>`要素を含む。
 
+```html
+<label for="browser">ブラウザ</label>
+<input list="browsers" id="browser" name="browser">
+
+<datalist id="browsers">
+  <option value="Chrome">
+  <option value="Firefox">
+  <option value="Safari">
+</datalist>
+```
+
+候補から選ぶこともでき、自由に入力することもできる。
+
 ### `<fieldset>`
-ウェブフォーム内のラベル(`<label>`)などのようにいくつかのコントロールをグループ化するために使用する。
+ウェブフォーム内の、複数のコントロールやラベル(`<label>`)をグループ化するために使用する。
+
+```html
+<fieldset>
+  <legend>配送方法</legend>
+  <label><input type="radio" name="delivery" value="normal"> 通常便</label>
+  <label><input type="radio" name="delivery" value="express"> お急ぎ便</label>
+</fieldset>
+```
+
+`<fieldset disabled>` にすると、中のすべてのコントロールが、無効になる。
 
 ### `<legend>`
 その親要素である`<fieldset>`の内容のキャプションを表す。
@@ -382,21 +1208,87 @@ CanvasスクリプティングAPIやWebGLAPIを使用して、グラフィック
 ### `<label>`
 ユーザーインターフェイスの項目のキャプションを表す。
 
+```html
+<!-- for と id で関連付ける -->
+<label for="email">メールアドレス</label>
+<input type="email" id="email" name="email">
+
+<!-- label の中に入れる (for と id は不要) -->
+<label>
+  メールアドレス
+  <input type="email" name="email">
+</label>
+```
+
+`<label>` をクリックすると、関連付けられたコントロールにフォーカスが移る (チェックボックスなら、切り替わる)。<br>
+スクリーンリーダーが、入力欄の内容を読み上げるためにも、必要。
+
+<pre><code class="caution">placeholder は、入力を始めると消えるため、label の代わりにはならない。
+すべての入力欄に、label を付ける。</code></pre>
+
 ### `<meter>`
 既知の範囲内のスカラー値、または小数値を表す。
+
+```html
+<label for="disk">ディスク使用量</label>
+<meter id="disk" min="0" max="100" low="50" high="80" optimum="20" value="70">70%</meter>
+```
+
+`low`、`high`、`optimum` で、値の良し悪しの範囲を指定すると、値に応じて色が変わる。
 
 ### `<output>`
 サイトやアプリが計算結果やユーザー操作の結果を挿入することができるコンテナー要素。
 
+```html
+<form oninput="total.value = Number(a.value) + Number(b.value)">
+  <input type="number" id="a" value="1"> +
+  <input type="number" id="b" value="2"> =
+  <output name="total" for="a b">3</output>
+</form>
+```
+
 ### `<progress>`
-タスクの進捗状況を表示します。プログレスバーとしてよく表示される。
+タスクの進捗状況を表示する。プログレスバーとしてよく表示される。
+
+```html
+<label for="file">アップロード</label>
+<progress id="file" max="100" value="70">70%</progress>
+```
+
+`value` を省略すると、完了時間が分からない処理中の状態 (インジケーター) として表示される。
 
 ---
 
-## インタラクティブ <a id="interacitv" data-name="インタラクティブ"></a>
+## インタラクティブ <a id="interactive" data-name="インタラクティブ"></a>
 
 ### `<details>`
 ウィジェットが「開いた」状態になった時のみ情報が表示される折りたたみウィジェットを作成する。概要やラベルは`<summary>`要素を使用して提供する必要がある。
+
+```html
+<details>
+  <summary>詳細を見る</summary>
+  <p>折りたたまれていた内容。</p>
+</details>
+
+<!-- 最初から開いておく -->
+<details open>
+  <summary>最初から開いている</summary>
+  <p>内容</p>
+</details>
+```
+
+同じ `name` 属性を付けた `<details>` は、同時に1つだけ開く (アコーディオン)。
+
+```html
+<details name="faq">
+  <summary>質問1</summary>
+  <p>回答1</p>
+</details>
+<details name="faq">
+  <summary>質問2</summary>
+  <p>回答2</p>
+</details>
+```
 
 ### `<summary>`
 `<details>`要素の折り畳みボックスの要約、キャプション、説明、凡例を表す。`<summary>`要素をクリックすると、親の`<details>`要素の開閉状態を切り替えることができる。
@@ -404,15 +1296,77 @@ CanvasスクリプティングAPIやWebGLAPIを使用して、グラフィック
 ### `<dialog>`
 ダイアログボックスや、消すことができるアラート、インスペクター、サブウィンドウ等のような対話的コンポーネントを表す。
 
+```html
+<dialog id="dlg">
+  <p>ダイアログの内容</p>
+  <form method="dialog">
+    <button>閉じる</button>
+  </form>
+</dialog>
+
+<button id="open">開く</button>
+
+<script>
+  const dlg = document.getElementById('dlg');
+  document.getElementById('open').addEventListener('click', () => {
+    dlg.showModal(); // モーダルで開く (背景は操作できなくなる)
+  });
+</script>
+```
+
+| メソッド | 動作 |
+| --- | --- |
+| `showModal()` | モーダルとして開く。背景に、`::backdrop` が表示され、Esc キーで閉じられる |
+| `show()` | モーダルではなく、通常のダイアログとして開く |
+| `close()` | 閉じる |
+
+`<form method="dialog">` の中のボタンを押すと、JavaScript なしで、ダイアログを閉じられる。
+
+### popover 属性
+
+`popover` 属性を付けた要素を、ボタンで開閉できる (ポップアップ、メニュー、ツールチップなど)。
+
+```html
+<button popovertarget="menu">メニュー</button>
+
+<div id="menu" popover>
+  <p>ポップオーバーの内容</p>
+</div>
+```
+
+| 値 | 動作 |
+| --- | --- |
+| `popover` (または `auto`) | 外側をクリックしたり、Esc キーを押したりすると、閉じる |
+| `popover="manual"` | 自分で閉じるまで、開いたまま |
+
 ---
 
-## ウェブコンポーネント <a id="web-compornents" data-name="ウェブコンポーネント"></a>
+## ウェブコンポーネント <a id="web-components" data-name="ウェブコンポーネント"></a>
 
 ### `<slot>`
 ウェブコンポーネント 技術群の一部であるこの要素は、ウェブコンポーネント内のプレースホルダーで、自分自身でマークアップを埋めることができ、別個のDOMツリーを作成して一緒に表示することができる。
 
 ### `<template>`
 ページが読み込まれたときにすぐにレンダリングされるのではなく、実行時にJavaScriptを使って後からインスタンス化することができるHTMLを保持するためのメカニズム。
+
+```html
+<template id="my-card">
+  <style>p { color: blue; }</style>
+  <p><slot name="title">タイトル</slot></p>
+</template>
+
+<my-card><span slot="title">こんにちは</span></my-card>
+
+<script>
+  customElements.define('my-card', class extends HTMLElement {
+    constructor() {
+      super();
+      const root = this.attachShadow({ mode: 'open' });
+      root.append(document.getElementById('my-card').content.cloneNode(true));
+    }
+  });
+</script>
+```
 
 ---
 
@@ -428,11 +1382,11 @@ CanvasスクリプティングAPIやWebGLAPIを使用して、グラフィック
 </td></tr>
     <tr><td>autocapitalize</td><td>ユーザーによってテキストが入力、編集された時に、入力文字列の先頭文字を大文字化するか、またどのように実行されるかを指定できる</td></tr>
     <tr><td>autofocus</td><td>文書が読み込まれた時やダイアログが表示された時に、指定した要素がフォーカスを持つべきであることを表す<br>
-    dialog要素もしくはhtml要素内に1つだけ存在できる</td></tr>
+    文書内(ダイアログの中では、ダイアログ内)に1つだけ指定できる</td></tr>
     <tr><td>class</td><td>要素にクラス名を付与する。空白文字によって複数指定可能<br>
     またHTMLの仕様において注意書きを赤い文字にするために"red"とするよりも、"attention"のように意味を表すほうが妥当とされている</td></tr>
-    <tr><td>id</td><td>要素に一意な識別子を指定する。付与した識別子は、CSSセレクターや、リンクのフラグメント識別子として利用できる<br>また一意な識別子である ため、同一文書内に同じid識別子を持つ要素が存在してはならない</td></tr>
-    <tr><td>contenteditable</td><td>要素内の編集の可否を指定する。指定できる値は以下の通り
+    <tr><td>id</td><td>要素に一意な識別子を指定する。付与した識別子は、CSSセレクターや、リンクのフラグメント識別子として利用できる<br>また一意な識別子であるため、同一文書内に同じid識別子を持つ要素が存在してはならない</td></tr>
+    <tr><td>contenteditable</td><td>要素内の編集の可否を指定する。指定できる値は以下の通り (属性がない場合や、不正な値の場合は、親要素の設定を継承する)
         <table>
             <tr>
                 <td>true</td>
@@ -444,7 +1398,11 @@ CanvasスクリプティングAPIやWebGLAPIを使用して、グラフィック
             </tr>
             <tr>
                 <td>空文字列</td>
-                <td>親要素の編集可否を継承する</td>
+                <td>trueと同じ (編集可能)</td>
+            </tr>
+            <tr>
+                <td>plaintext-only</td>
+                <td>プレーンテキストとしてのみ編集できる (書式の変更はできない)</td>
             </tr>
         </table></td></tr>
     <tr><td>dir</td><td>要素内のテキストの書字方向を指定する</td></tr>
@@ -475,7 +1433,7 @@ CanvasスクリプティングAPIやWebGLAPIを使用して、グラフィック
             </tr>
             <tr>
                 <td>go</td>
-                <td>進みます</td>
+                <td>進む</td>
             </tr>
             <tr>
                 <td>next</td>
@@ -520,7 +1478,11 @@ CanvasスクリプティングAPIやWebGLAPIを使用して、グラフィック
             </tr>
             <tr>
                 <td>tel</td>
-                <td>電話番号入力が可能、かつURLの入力を補助するソフトウェアキーボードを表示する</td>
+                <td>電話番号の入力に適した、テンキー形式のソフトウェアキーボードを表示する</td>
+            </tr>
+            <tr>
+                <td>url</td>
+                <td>URLの入力に適した(「/」や「.」が入力しやすい)ソフトウェアキーボードを表示する</td>
             </tr>
             <tr>
                 <td>email</td>
@@ -543,7 +1505,7 @@ CanvasスクリプティングAPIやWebGLAPIを使用して、グラフィック
     <tr><td>itemscope</td><td>関連付けられたメタデータのスコープを定義する<br>
     itemscopeを付与された要素がitemtype属性を持たない場合は、関連付けられたitemref属性を持つ必要がある</td></tr>
     <tr><td>itemtype</td><td>使用されるプロパティの語彙を定義するURLを指定する</td></tr>
-    <tr><td>itemref</td><td>何らかの理由でitemscope属性を持つ要素の子孫意外と関連付けたい場合、関連付けたい要素が持つidをitemrefに指定することで関連付けられる<br>
+    <tr><td>itemref</td><td>何らかの理由でitemscope属性を持つ要素の子孫以外と関連付けたい場合、関連付けたい要素が持つidをitemrefに指定することで関連付けられる<br>
     itemrefはitemscopeが付与された要素に対してのみ使用可能</td></tr>
     <tr><td>itemid</td><td>itemscope属性、およびitemtype属性を持つ要素に対してグローバル識別子を付与する</td></tr>
     <tr><td>itemprop</td><td>要素にプロパティを追加することにより、データをより構造化することができる<br>
@@ -601,9 +1563,19 @@ CanvasスクリプティングAPIやWebGLAPIを使用して、グラフィック
                 <td>yesとして扱われる</td>
             </tr>
         </table></td></tr>
+    <tr><td>popover</td><td>要素を、ボタンなどで開閉できるポップオーバー(ポップアップ、メニュー、ツールチップなど)にする。<br>
+    値は、空(または<span class="code-like">auto</span>)で、外側のクリックやEscキーで閉じる。<span class="code-like">manual</span>は、自分で閉じるまで開いたまま<br>
+    開閉するボタンには、<span class="code-like">popovertarget</span>属性で、対象の要素のidを指定する
+        <pre><code class="example">&lt;button popovertarget="menu"&gt;メニュー&lt;/button&gt;
+&lt;div id="menu" popover&gt;ポップオーバーの内容&lt;/div&gt;</code></pre></td></tr>
+    <tr><td>role</td><td>要素の役割を、支援技術(スクリーンリーダーなど)に伝える(WAI-ARIA)。<br>
+    適切なHTML要素があれば、<span class="code-like">role</span>を付けるよりも、その要素を使う方がよい(<span class="code-like">&lt;button&gt;</span>があるのに<span class="code-like">&lt;div role="button"&gt;</span>としない)</td></tr>
+    <tr><td>aria-*</td><td>要素の状態や、名前、関係を、支援技術に伝える属性(WAI-ARIA)<br>
+    例えば、<span class="code-like">aria-label</span>(名前)、<span class="code-like">aria-expanded</span>(開閉の状態)、<span class="code-like">aria-hidden</span>(支援技術から隠す)など</td></tr>
+    <tr><td>part</td><td>シャドウツリー内の要素に名前を付けて、外側のCSSから、<span class="code-like">::part()</span>で、スタイルを指定できるようにする</td></tr>
     <tr><td>カスタムデータ</td><td>data-で始まる属性で、独自に定義することができ、それをJavaScriptなどで使用できる。<br>
     属性名にはASCII大文字を含んではならない。
-        <pre><code class="example">&lt;-- HTML --&gt;
+        <pre><code class="example">&lt;!-- HTML --&gt;
 &lt;div id ="sample" data-name="apple" data-price="280"&gt;&lt;/div&gt;</code></pre>
             <b>dataset</b>からアクセスする場合は、data-を除いて記述する。
         <pre><code class="example">// JavaScript
@@ -613,60 +1585,157 @@ elm.dataset.price;  // 280</code></pre>
             <b>getAttribute</b>や<b>setAttribute</b>を使う場合は、data-も含めて記述する。
         <pre><code class="example">// JavaScript
 elm.getAttribute("data-name");
-elm.getAttribute("data-price");</code></pre></td></tr>
+elm.getAttribute("data-price");</code></pre>
+            <b>注意</b>
+            <ul>
+                <li><span class="code-like">dataset</span>の値は、常に<b>文字列</b>(<span class="code-like">elm.dataset.price</span>は、数値の280ではなく、文字列の"280")</li>
+                <li>ハイフンで区切った名前は、<span class="code-like">dataset</span>ではキャメルケースになる(<span class="code-like">data-user-name</span>は<span class="code-like">dataset.userName</span>)</li>
+                <li>CSSの属性セレクターからも使える(<span class="code-like">[data-name="apple"]</span>)</li>
+            </ul></td></tr>
     <tr><td>イベントハンドラーコンテンツ属性</td><td>特定のイベントハンドラーに対するコンテンツ属性で、ユーザーが要素に対象の操作を行ったときにJavaScriptを実行する<br>
-    ただし、コードが長くなるとHTMLの可読性が下がる。HTMLとJavaScriptが混在して保守性が下がる。場合によってはセキュリティリスク(XSS攻撃の可能性)が増す。などの理由から、DOM操作はJavaScriptファイル側で完結させることが推奨される</td></tr>
+    ただし、コードが長くなるとHTMLの可読性が下がる。HTMLとJavaScriptが混在して保守性が下がる。場合によってはセキュリティリスク(XSS攻撃の可能性)が増す。などの理由から、DOM操作はJavaScriptファイル側で完結させることが推奨される
+        <pre><code class="example">&lt;!-- 属性に書く方法(非推奨) --&gt;
+&lt;button onclick="alert('clicked')"&gt;押す&lt;/button&gt;</code></pre>
+        <pre><code class="example">// JavaScript側で登録する方法(推奨)
+document.querySelector("button").addEventListener("click", () => {
+    alert("clicked");
+});</code></pre></td></tr>
 </table>
 
 ---
 
 ## ステータスコード <a id="status-code" data-name="ステータスコード"></a>
 
-| ステータスコード | 説明 | 状態 |
+HTTP のレスポンスに付く、3桁の数字。先頭の桁で、大きく分類される。
+
+| 範囲 | 分類 | 意味 |
 | --- | --- | --- |
-| 100 Continue | リクエスト継続可能 | 正常 |
-| 101 Switching Protocol | プロトコルの切り替え | 正常 |
-| 102 Processing | 処理中 | 正常 |
-| 103 Early Hints | 早期に予測されるヘッダを伝達 | 正常 |
-| 200 OK | リクエストが正常に処理できた | 正常 |
-| 201 Created | リクエストが成功してリソースの作成が完了 | 正常 |
-| 202 Accepted | リクエストを受け取ったが処理はされていない | 正常 |
-| 203 Non-Authoritative Information | リクエストが成功したものの、変換プロキシによって<br>元のサーバーの200(OK)レスポンスからペイロードが変更された | 正常 |
-| 204 No Content | リクエストに対して送信するコンテンツは無いがヘッダは有用である | 正常 |
-| 205 Reset Content | クライアントにドキュメントビューをリセットするように指示 | 正常 |
-| 206 Partial Content | 要求された範囲のデータやリソースの一部分だけのリクエストが成功 | 正常 |
-| 300 Multiple Choice | リクエストに対して複数のレスポンスがあることを示す | 正常 |
-| 301 Moved Permanently | 恒久的に移動する | 正常 |
-| 302 Found | 一時的に移動する<br>※Google検索エンジンの検索リストでは旧URLを示すため<br>将来的に元のURLに戻すなどの時に利用する | 正常 |
-| 304 Not Modified | 更新されていない<br>※正常に処理されているがブラウザキャッシュの内容を表示している為<br>サーバからダウンロードをしていない | 正常 |
-| 400 Bad Request | 一般的なクライアントエラー | エラー |
-| 401 Unauthorized | アクセス権が無い、または認証に失敗 | エラー |
-| 402 Payment Required | 料金の支払いをするまでリクエストを処理できない状態 | エラー |
-| 403 Forbidden | 閲覧権限が無いファイルやフォルダ | エラー |
-| 404 Not Found | Webページが見つからない | エラー |
-| 405 Method Not Allowed | 送信するクライアント側のメソッドが許可されていない | エラー |
-| 406 Not Acceptable | サーバ側が受付不可能な値（ファイルの種類など）であり提供できない状態 | エラー |
-| 407 Proxy Authentication Required | プロキシサーバ経由で通信を行う際にプロキシサーバの認証情報が不足している | エラー |
-| 408 Request Timeout | リクエスト送信後のやり取りに時間が長すぎるため時間切れ | エラー |
-| 409 Conflict | サーバに既に存在しているデータが競合しているためリクエストを完了できない | エラー |
-| 410 Gone | ファイルが削除されたため、ほぼ永久的にWebページが存在しない | エラー |
-| 411 Length Required | Content-Lengthとはリクエストヘッダに送るデータ容量が書いてある項目<br>サーバの方でContent-Lengthヘッダが無いためアクセスを拒否した | エラー |
-| 412 Precondition Failed | ヘッダで定義された前提条件が満たされていない場合にアクセス拒否される | エラー |
-| 413 Payload Too Large | ファイルをアップロードする際に<br>サーバで定めたファイル容量の上限を超えてしまった為アクセス拒否された | エラー |
-| 414 URI Too Long | 指定したURLが長すぎる | エラー |
-| 415 Unsupported Media Type | サーバで許可していないリクエストの種類の為アクセス拒否された | エラー |
-| 416 Range Not Satisfiable | サーバーがリクエストされた範囲（容量）を提供できない | エラー |
-| 417 Expectation Failed | サーバが拡張されたステータスコードを返すことが出来ない | エラー |
-| 422 Unprocessable Entity | WebDAVの拡張ステータスコード<br>リクエストは適正だが<br>意味が異なるためサーバが返すことが出来ない | エラー |
-| 423 Locked | WebDAVの拡張ステータスコードリクエスト内容が<br>ロックされているためサーバが返すことが出来ない | エラー |
-| 425 Too Early | サーバが繰り返し処理が発生される可能性のあるリクエストと判断した<br>※ 無限ループでサーバに高負荷がかかるリスクの可能性がある為 | エラー |
-| 426 Upgrade Required | Upgrading to TLS Within HTTP/1.1の拡張ステータスコード<br>HTTP/1.1にアップグレードが必要な為、サーバが処理できない | エラー |
-| 429 Too Many Requests | 一定時間内にリクエスト数が多すぎるためアクセスを拒否した<br>※ DDos攻撃によるサーバダウンのリスクを回避する為 | エラー |
-| 431 Request Header Fields Too Large | リクエストヘッダーが長すぎるためサーバ処理が拒否した | エラー |
+| 1xx | 情報 | リクエストを受け取って、処理を続けている |
+| 2xx | 成功 | リクエストが成功した |
+| 3xx | リダイレクト | 別の場所へ移動する必要がある |
+| 4xx | クライアントエラー | リクエストに問題がある (クライアント側の原因) |
+| 5xx | サーバーエラー | サーバー側で、問題が起きた |
+
+### 1xx 情報
+
+| ステータスコード | 説明 |
+| --- | --- |
+| 100 Continue | リクエスト継続可能 |
+| 101 Switching Protocols | プロトコルの切り替え (WebSocket への切り替えなど) |
+| 102 Processing | 処理中 (WebDAV の拡張。現在はほとんど使われない) |
+| 103 Early Hints | 本来のレスポンスの前に、先読みさせたいリソース (CSS など) のヒントを伝える |
+
+### 2xx 成功
+
+| ステータスコード | 説明 |
+| --- | --- |
+| 200 OK | リクエストが正常に処理できた |
+| 201 Created | リクエストが成功してリソースの作成が完了 |
+| 202 Accepted | リクエストを受け取ったが処理はされていない |
+| 203 Non-Authoritative Information | リクエストが成功したものの、変換プロキシによって<br>元のサーバーの200(OK)レスポンスから内容が変更された |
+| 204 No Content | リクエストに対して送信するコンテンツは無いがヘッダは有用である |
+| 205 Reset Content | クライアントにドキュメントビューをリセットするように指示 |
+| 206 Partial Content | 要求された範囲のデータやリソースの一部分だけのリクエストが成功 |
+
+### 3xx リダイレクト
+
+| ステータスコード | 説明 |
+| --- | --- |
+| 300 Multiple Choices | リクエストに対して複数のレスポンスがあることを示す |
+| 301 Moved Permanently | 恒久的に移動する |
+| 302 Found | 一時的に移動する<br>※Google検索エンジンの検索リストでは旧URLを示すため<br>将来的に元のURLに戻すなどの時に利用する |
+| 303 See Other | 別のURLの結果を、GET で取得するよう指示する (POST の後に、結果のページへ移動させるときなど) |
+| 304 Not Modified | 更新されていない<br>※正常に処理されているがブラウザキャッシュの内容を表示している為<br>サーバからダウンロードをしていない |
+| 307 Temporary Redirect | 一時的に移動する (**リクエストのメソッドを、変えずに**再送する) |
+| 308 Permanent Redirect | 恒久的に移動する (**リクエストのメソッドを、変えずに**再送する) |
+
+#### リダイレクトの使い分け
+
+| | 恒久的 | 一時的 |
+| --- | --- | --- |
+| メソッドを変えてよい (POST が GET に変わることがある) | 301 | 302 |
+| メソッドを保つ | 308 | 307 |
+| POST の後に、GET で別のページを表示する | - | 303 |
+
+### 4xx クライアントエラー
+
+| ステータスコード | 説明 |
+| --- | --- |
+| 400 Bad Request | 一般的なクライアントエラー (リクエストの形式が不正など) |
+| 401 Unauthorized | 認証が必要、または認証に失敗 (名前に反して、「未認証」の意味) |
+| 402 Payment Required | 料金の支払いをするまでリクエストを処理できない状態 |
+| 403 Forbidden | 認証されていても、アクセスする権限が無い |
+| 404 Not Found | Webページが見つからない |
+| 405 Method Not Allowed | 送信するクライアント側のメソッドが許可されていない |
+| 406 Not Acceptable | クライアントが指定した形式 (Accept ヘッダー) では、サーバが応答できない |
+| 407 Proxy Authentication Required | プロキシサーバ経由で通信を行う際にプロキシサーバの認証情報が不足している |
+| 408 Request Timeout | リクエスト送信後のやり取りに時間が長すぎるため時間切れ |
+| 409 Conflict | サーバに既に存在しているデータが競合しているためリクエストを完了できない |
+| 410 Gone | ファイルが削除されたため、ほぼ永久的にWebページが存在しない |
+| 411 Length Required | Content-Length ヘッダー (送るデータの容量) が無いため、サーバがアクセスを拒否した |
+| 412 Precondition Failed | ヘッダで定義された前提条件が満たされていない場合にアクセス拒否される |
+| 413 Content Too Large (旧 Payload Too Large) | ファイルをアップロードする際に<br>サーバで定めたファイル容量の上限を超えてしまった為アクセス拒否された |
+| 414 URI Too Long | 指定したURLが長すぎる |
+| 415 Unsupported Media Type | サーバが対応していない形式 (Content-Type) のデータが送られたため、アクセス拒否された |
+| 416 Range Not Satisfiable | サーバーがリクエストされた範囲（容量）を提供できない |
+| 417 Expectation Failed | Expect ヘッダーの期待に、サーバが応えられない |
+| 422 Unprocessable Content (旧 Unprocessable Entity) | リクエストの形式は正しいが、<br>内容の意味が正しくないためサーバが処理できない (入力値の検証エラーなど。もとは WebDAV の拡張) |
+| 423 Locked | WebDAVの拡張ステータスコード<br>リクエスト対象のリソースがロックされているためサーバが処理できない |
+| 425 Too Early | TLS 1.3 の Early Data (0-RTT) で送られた、再送攻撃 (リプレイ) の恐れがあるリクエストを、サーバが処理しない |
+| 426 Upgrade Required | 現在のプロトコルでは処理できず、Upgrade ヘッダーで示すプロトコルへの切り替えが必要 |
+| 429 Too Many Requests | 一定時間内にリクエスト数が多すぎるためアクセスを拒否した<br>※ DDos攻撃によるサーバダウンのリスクを回避する為 |
+| 431 Request Header Fields Too Large | リクエストヘッダーが長すぎるためサーバ処理が拒否した |
+| 451 Unavailable For Legal Reasons | 法的な理由により、リソースを提供できない |
+
+### 5xx サーバーエラー
+
+| ステータスコード | 説明 |
+| --- | --- |
+| 500 Internal Server Error | サーバー内部で、予期しないエラーが起きた (プログラムの例外など) |
+| 501 Not Implemented | リクエストされた機能を、サーバーが実装していない |
+| 502 Bad Gateway | ゲートウェイやプロキシが、上流のサーバーから、不正な応答を受け取った |
+| 503 Service Unavailable | サーバーが、メンテナンスや過負荷のため、一時的にリクエストを処理できない |
+| 504 Gateway Timeout | ゲートウェイやプロキシが、上流のサーバーからの応答を、待ちきれなかった |
+| 505 HTTP Version Not Supported | リクエストの HTTP バージョンに、サーバーが対応していない |
+
+### API でよく使うステータスコード
+
+| 操作 | 成功 | 失敗 |
+| --- | --- | --- |
+| 取得 | 200 OK | 404 Not Found |
+| 作成 | 201 Created | 400 Bad Request、409 Conflict、422 Unprocessable Content |
+| 更新 | 200 OK、204 No Content | 400、404、409 |
+| 削除 | 204 No Content | 404 |
+| 認証 | - | 401 Unauthorized (未認証)、403 Forbidden (権限なし) |
+| 制限 | - | 429 Too Many Requests |
+| サーバーの障害 | - | 500、502、503、504 |
 
 ---
 
-## よく使われる特殊文字 <a id="Special symbols" data-name="よく使われる特殊記号"></a>
+## よく使われる特殊文字 <a id="special-symbols" data-name="よく使われる特殊文字"></a>
+
+### 文字参照の書き方
+
+HTML では、`<`、`>`、`&` などの文字が特別な意味を持つため、そのまま表示するには、**文字参照**を使う。
+
+| 書き方 | 例 | 説明 |
+| --- | --- | --- |
+| `&名前;` | `&lt;` | 名前付き文字参照 |
+| `&#10進数;` | `&#60;` | 数値文字参照 (10進数のコードポイント) |
+| `&#x16進数;` | `&#x3C;` | 数値文字参照 (16進数のコードポイント) |
+
+最低限、エスケープが必要な文字は次のとおり。
+
+| 文字 | 文字参照 | 必要な場面 |
+| --- | --- | --- |
+| `&` | `&amp;` | 常に (文字参照の開始と区別するため) |
+| `<` | `&lt;` | 本文の中 (タグの開始と区別するため) |
+| `>` | `&gt;` | 習慣として、`<` と合わせて |
+| `"` | `&quot;` | `"` で囲んだ属性値の中 |
+
+<pre><code class="tips">&lt;meta charset="UTF-8"&gt; を指定して、UTF-8 で保存していれば、★ や ✓ や絵文字は、文字参照にせず、そのまま書ける。
+&amp;nbsp; は、改行されない空白だが、余白を作る目的で、何個も並べない。余白は CSS で調整する。
+&amp;apos; は HTML5 以降の文字参照で、古い HTML4 では使えない。</code></pre>
 
 ### 頻出記号
 
@@ -695,11 +1764,11 @@ elm.getAttribute("data-price");</code></pre></td></tr>
 | ″ | `&Prime;` | ダブルプライム |
 | ‴ | `&tprime;` | トリプルプライム |
 | ⁗ | `&qprime;` | クワトロプライム |
-| ¨ | `&uml;` | ウムラウト |
+| ¨ | `&uml;` | 分音記号 (ダイエレシス) |
 | … | `&hellip;` | 三連ドット |
 | / | `&sol;` | スラッシュ |
 | &#92; | `&bsol;` または `&#92;` | バックスラッシュ |
-| `|` | `&verbar;` | バーティカルバー |
+| &#124; | `&verbar;` | バーティカルバー |
 
 ### 矢印記号
 
@@ -817,8 +1886,8 @@ elm.getAttribute("data-price");</code></pre></td></tr>
 | = | `&equals;` | 等しい |
 | ≠ | `&ne;` | 等しくない |
 | ≈ | `&asymp;` | ほぼ等しい |
-| ≅ | `&cong;` | ほぼ等しい |
-| ≡ | `&equiv;` | 定義/合同 |
+| ≅ | `&cong;` | 合同 |
+| ≡ | `&equiv;` | 恒等 (合同) |
 | < | `&lt;` | 不等号（より小さい） |
 | > | `&gt;` | 不等号（より大きい） |
 | ∧ | `&and;` | 論理積 |
@@ -834,13 +1903,13 @@ elm.getAttribute("data-price");</code></pre></td></tr>
 | ² | `&sup2;` | 上付き2 |
 | ³ | `&sup3;` | 上付き3 |
 | ¹ | `&sup1;` | 上付き1 |
-| º | `&ordm;` | 上付き0 |
+| º | `&ordm;` | 男性序数標識 (上付きの o) |
 | ∀ | `&forall;` | 全てについて |
 | ∂ | `&part;` | 偏微分 |
 | ∃ | `&exist;` | 存在する |
 | ∇ | `&nabla;` | ナブラ |
-| ∏ | `&prod;` | n回の乗算 |
-| ∑ | `&sum;` | n回の加算 |
+| ∏ | `&prod;` | 総乗 |
+| ∑ | `&sum;` | 総和 |
 | √ | `&radic;` | 平方根 |
 | ∝ | `&prop;` | 比例記号 |
 | ∞ | `&infin;` | 無限 |
@@ -851,7 +1920,7 @@ elm.getAttribute("data-price");</code></pre></td></tr>
 | ∴ | `&therefore;` | したがって |
 | ∵ | `&because;` | なぜなら |
 | ∼ | `&sim;` | チルダ演算子 |
-| ∽ | `&bsim;` | 相似 |
+| ∽ | `&bsim;` | 逆チルダ (相似) |
 | ∅ | `&empty;` | 空集合 |
 | ∩ | `&cap;` | 集合の積 |
 | ∪ | `&cup;` | 集合の和 |
@@ -864,8 +1933,8 @@ elm.getAttribute("data-price");</code></pre></td></tr>
 | ∉ | `&notin;` | 右辺の要素でない |
 | ∋ | `&ni;` | 要素として含む |
 | ⊕ | `&oplus;` | 直和 |
-| ⊖ | `&ominus;` | 対称差 |
-| ⊗ | `&otimes;` | 直積 |
+| ⊖ | `&ominus;` | 丸囲みマイナス |
+| ⊗ | `&otimes;` | 丸囲み乗算 (テンソル積など) |
 | ⊘ | `&osol;` | 丸囲みスラッシュ |
 | ⊙ | `&odot;` | 丸囲みドット |
 | ⊚ | `&ocir;` | 丸囲みサークル |
@@ -924,34 +1993,117 @@ elm.getAttribute("data-price");</code></pre></td></tr>
     </tr>
 </table>
 
+`<time>` 要素の `datetime` 属性に、この書式を使う。
+
+```html
+<time datetime="2024-11-04T08:30:00+09:00">2024年11月4日 午前8時30分</time>
+<time datetime="PT1H30M">1時間30分</time>
+```
+
 ---
 
-## ブラウザで再生可能なフォーマット <a id="available-formats" data-name="利用可能なフォーマット"></a>
+## ブラウザで扱えるメディアのファイル形式 <a id="available-formats" data-name="ファイル形式"></a>
 
 ### 動画ファイル
 
 | 拡張子 | 説明                                                                     |
 | ------ | ------------------------------------------------------------------------ |
 | `mp4`  | 最も広くサポートされている動画形式で、ほとんどのブラウザで再生可能。     |
-| `webm` | 特にGoogle ChromeやFirefoxでサポートされている、オープンなフォーマット。 |
-| `ogv`  | 主にGoogle ChromeやFirefoxでサポートれている、オープンなフォーマット。   |
+| `webm` | 主要なブラウザで再生できる、オープンなフォーマット。                     |
+| `ogv`  | オープンなフォーマットだが、対応していないブラウザもあり、現在はほとんど使われない。 |
 
-### 画像ファイル
+### 音声ファイル
 
 | 拡張子 | 説明                                                                         |
 | ------ | ---------------------------------------------------------------------------- |
 | `mp3`  | 最も広くサポートされている音声フォーマットで、ほとんどのブラウザで再生可能。 |
-| `ogg`  | 特にGoogle ChromeやFirefoxでサポートされている、オープンなフォーマット。     |
+| `m4a` (AAC) | mp3 と並んで広く対応している、圧縮音声のフォーマット。                  |
+| `ogg`  | オープンなフォーマット。ブラウザによって、対応状況が異なる。                 |
 | `wav`  | 高音質な音声フォーマットで、ほとんどのブラウザでサポートされている。         |
 | `webm` | 音声だけでなく動画もサポートしているが、音声ファイルとしても使用できる。     |
 
-### 音声ファイル
+### 画像ファイル
 
 | 拡張子       | 説明                                                                                                                                                          |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `jpg` `jpeg` | 高い圧縮率を誇り、写真や画像に広く使用されており、ほとんどのブラウザでサポートされている。                                                                    |
 | `png`        | 可逆圧縮で、透明な背景をサポートするため、ロゴやアイコンなどでよく使われる。こちらも広くサポートされている。                                                  |
 | `gif`        | 動画のようなアニメーションを表示するために使用されることが多い形式。こちらも広くサポートされている。                                                          |
-| `webp`       | 高圧縮率を持ちながらも高画質を維持する新しいフォーマット。Chrome、Firefox、Edge、Operaなどでサポートされているが、Internet Explorerではサポートされていない。 |
+| `webp`       | 高圧縮率を持ちながらも高画質を維持するフォーマット。現在は、主要なブラウザのほとんどで対応している (Internet Explorer は非対応)。                             |
+| `avif`       | webp よりも、さらに高い圧縮率を持つ新しいフォーマット。主要なブラウザで対応が進んでいるため、`<picture>` で、対応していないブラウザ向けのフォールバックを用意する。 |
 | `svg`        | ベクター画像フォーマットで、スケーラブルなグラフィックに使用される。Webでの使用が増えており、ほとんどのモダンブラウザでサポートされている。                   |
-| `bmp`        | 圧縮されていない画像形式で、ブラウザによってはサポートされているが、使用は少なめ。                                                                            |
+| `ico`        | ファビコン (タブに表示されるアイコン) に使われる。                                                                                                            |
+
+### 複数の形式を用意する
+
+ブラウザによって、対応している形式が違う場合は、`<source>` で複数の形式を用意して、ブラウザに選ばせる。
+
+```html
+<video controls>
+  <source src="movie.webm" type="video/webm">
+  <source src="movie.mp4" type="video/mp4">
+</video>
+
+<picture>
+  <source srcset="photo.avif" type="image/avif">
+  <source srcset="photo.webp" type="image/webp">
+  <img src="photo.jpg" alt="説明">
+</picture>
+```
+
+---
+
+## 非推奨・廃止された要素 <a id="obsolete" data-name="非推奨・廃止された要素"></a>
+
+次の要素は、古い HTML で使われていたが、現在は使ってはいけない (多くは、ブラウザが対応を続けているだけ)。
+
+| 要素 | 代わりに使うもの |
+| --- | --- |
+| `<font>` | CSS の `font-family`、`font-size`、`color` |
+| `<center>` | CSS の `text-align: center`、`margin: 0 auto` |
+| `<big>` | CSS の `font-size` |
+| `<strike>` | `<s>` または `<del>` |
+| `<tt>` | `<code>`、`<kbd>`、`<samp>` |
+| `<marquee>` | CSS アニメーション |
+| `<blink>` | (廃止。CSS アニメーションなど) |
+| `<frame>` `<frameset>` `<noframes>` | `<iframe>`、CSS のレイアウト |
+| `<acronym>` | `<abbr>` |
+| `<dir>` | `<ul>` |
+| `<nobr>` | CSS の `white-space: nowrap` |
+| `<xmp>` `<plaintext>` `<listing>` | `<pre>` と `<code>` (特殊文字はエスケープする) |
+| `<bgsound>` | `<audio>` |
+| `<applet>` | (廃止。`<video>`、`<canvas>` など) |
+
+### 廃止された属性の例
+
+見た目に関する属性は、CSS に置き換えられている。
+
+| 属性 | 代わりに使うもの |
+| --- | --- |
+| `align` | CSS の `text-align`、`float`、Flexbox |
+| `bgcolor` | CSS の `background-color` |
+| `border` (`<table>` など) | CSS の `border` |
+| `cellpadding` / `cellspacing` | CSS の `padding`、`border-spacing` |
+| `width` / `height` (`<table>` など) | CSS の `width`、`height` |
+
+---
+
+## よくある間違い <a id="common-mistakes" data-name="よくある間違い"></a>
+
+| 間違い | 問題 | 正しい書き方 |
+| --- | --- | --- |
+| `<img>` に `alt` がない | 画像が読み込めないときや、スクリーンリーダーで、内容が伝わらない | 内容を説明する `alt` を書く (装飾なら `alt=""`) |
+| 入力欄に `<label>` がない | スクリーンリーダーで、何の入力か分からない。クリックできる範囲も狭い | `<label for="id">` で関連付ける |
+| `id` の重複 | CSS、JavaScript、ページ内リンクが、意図しない要素を指す | `id` は、ページ内で一意にする (共通のスタイルは `class`) |
+| `<p>` の中に `<div>` や `<ul>` を入れる | `<p>` が自動で閉じられて、構造が崩れる | ブロック要素は、`<p>` の外に置く |
+| `<br>` を並べて余白を作る | 構造と見た目が混ざる | CSS の `margin` や `padding` |
+| `<div>` や `<span>` にクリックの動作を付けて、ボタンにする | キーボードで操作できず、スクリーンリーダーにも、ボタンと伝わらない | `<button>` を使う |
+| `<button>` に `type` を書かない | フォームの中で、意図せず送信される | `type="button"` を明示する |
+| `disabled="false"` と書く | 属性があるだけで、有効 (無効化) のまま | 属性ごと取り除く |
+| 見た目のために、見出しレベルを選ぶ | 文書の構造が、崩れる | 構造で選び、見た目は CSS で調整する |
+| リンクの文言が「こちら」 | 何のリンクか、リンクの一覧で分からない | リンク先の内容が分かる言葉にする |
+| `<table>` をレイアウトに使う | 構造として、不適切 | CSS の Flexbox や Grid を使う |
+| `<meta name="viewport">` がない | スマートフォンで、縮小された PC 向けの表示になる | `<head>` に viewport を指定する |
+| 画像に `width` と `height` がない | 読み込み後に、レイアウトがずれる | 幅と高さを指定する (または CSS で、`aspect-ratio` を指定する) |
+| 終了タグの付け忘れ | 以降の構造が崩れ、原因を見つけにくい | validator で確認する |
+| `<head>` の中に、表示される要素を書く | `<head>` がそこで終わり、以降が `<body>` として扱われる | `<head>` には、メタデータだけを書く |
