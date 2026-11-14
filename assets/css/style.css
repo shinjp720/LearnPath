@@ -166,14 +166,13 @@ li {
 #toc ul {
     list-style: none;
     margin: 0;
-    padding: auto 0;
 }
 
 #navi ul li,
 #toc ul li {
     margin: 0;
     padding: 0;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, padding-left 0.2s ease;
 }
 
 #navi ul li:hover,
@@ -186,7 +185,9 @@ li {
 #navi ul li a,
 #toc ul li a {
     color: var(--text-muted);
+    font-size: 1rem;
     text-decoration: none;
+    padding: 4px;
     transition: color 0.2s ease;
 }
 
@@ -197,14 +198,6 @@ li {
 
 #toc ul {
     padding-left: 0.5rem;
-}
-
-/* 目次内リンクの縮小表示 */
-#toc ul li a,
-#navi ul li a {
-    font-size: 1rem;
-    padding: 4px;
-    margin: 0;
 }
 
 /* テーブル */

@@ -17,22 +17,28 @@ toc.appendChild(ulTag);
 const navi = document.getElementById('navi');
 const overlay = document.getElementById('overlay');
 
+const updateOverlay = () => {
+    overlay.classList.toggle('show', navi.classList.contains('open') || toc.classList.contains('open'));
+};
+
 document.getElementById('menuBtn').addEventListener('click', () => {
-    navi.classList.toggle('open');
-    if (navi.classList.contains('open')) {
-        overlay.classList.add('show');
-    } else {
-        overlay.classList.remove('show');
-    }
+    const isOpening = !navi.classList.contains('open');
+    navi.classList.toggle('open', isOpening);
+    toc.classList.remove('open');
+    updateOverlay();
 });
 
 document.getElementById('tocBtn').addEventListener('click', () => {
-    toc.classList.toggle('open');
-    if (toc.classList.contains('open')) {
-        overlay.classList.add('show');
-    } else {
-        overlay.classList.remove('show');
-    }
+    const isOpening = !toc.classList.contains('open');
+    toc.classList.toggle('open', isOpening);
+    navi.classList.remove('open');
+    updateOverlay();
+});
+
+toc.addEventListener('click', (event) => {
+    if (!event.target.closest?.('a')) return;
+    toc.classList.remove('open');
+    updateOverlay();
 });
 
 overlay.addEventListener('click', () => {
@@ -56,7 +62,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // クリック時のコピー処理
             button.addEventListener('click', () => {
-                const code = block.querySelector('code')?.innerText || block.innerText;
+                const codeElement = block.querySelector('code');
+                const code = codeElement ? codeElement.innerText : (() => {
+                    const clone = block.cloneNode(true);
+                    clone.querySelector('.copy-code-button')?.remove();
+                    return clone.innerText;
+                })();
 
                 navigator.clipboard.writeText(code).then(() => {
                     button.innerText = 'Copied!';
