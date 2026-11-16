@@ -4576,13 +4576,14 @@ dyn Trait
 
 などはサイズがコンパイル時に決まらない (動的サイズ型)。そのため `&str` や `Box<dyn Trait>` のように、参照やポインタ経由で扱う。
 
-#### Send / Sync
+#### Send / Sync <a id="send-sync"></a>
 
 `Send` は値を別スレッドに送れることを表す。
 
 `Sync` はある型への参照を複数スレッドから共有できることを表す。
 
-例えば `Rc<T>` は `Send` でも `Sync` でもないため、スレッド間で共有する場合は `Arc<T>` を使う。
+例えば `Rc<T>` は `Send` でも `Sync` でもないため、スレッド間で共有する場合は `Arc<T>` を使う。<br>
+主な型の対応は、<a href="#thread">スレッド</a> を参照。
 
 #### Fn / FnMut / FnOnce
 
@@ -4641,11 +4642,914 @@ a & b // BitAnd
 
 ---
 
+## スレッド <a id="thread" data-name="スレッド"></a>
+
+スレッドは、プログラムの中で、**複数の処理を同時に進める**ための仕組み。Rust の標準ライブラリの `std::thread` は、OS のスレッドを、そのまま使う (1つの Rust のスレッドが、1つの OS のスレッドになる)。
+
+Rust は、**データ競合 (複数のスレッドが、同時に同じデータを書き換えて、壊すこと) を、コンパイル時に防ぐ**。所有権と、`Send` / `Sync` のルールによって、安全でないコードは、コンパイルエラーになる。<br>
+共有の仕組み (`Arc`、`Mutex`、`RwLock`) は、<a href="#smart-pointer">スマートポインタ</a> の章を参照。
+
+### 並行と並列
+
+| 用語 | 意味 |
+| --- | --- |
+| 並行 (concurrent) | 複数の処理を、交互に進める (1つの CPU でも成り立つ) |
+| 並列 (parallel) | 複数の処理を、実際に同時に実行する (複数の CPU コアが必要) |
+
+### スレッドと非同期の使い分け
+
+| | スレッド (`std::thread`) | 非同期 (`async/await`) |
+| --- | --- | --- |
+| 単位 | OS のスレッド | タスク (ランタイムが、少数のスレッドで動かす) |
+| 軽さ | 重い (1つごとに、スタックのメモリを持つ。数千個が、限度の目安) | 軽い (数万個でも動かせる) |
+| 向いている処理 | CPU を使う計算、ブロッキングする処理 | ネットワークなど、待ち時間の多い I/O |
+| 追加の依存 | なし (標準ライブラリだけ) | ランタイム (`tokio` など) が必要 |
+| 書き方 | 通常の関数 | `async fn` と `.await` |
+
+<pre><code class="tips">計算が重い処理は、スレッド (または rayon)。待ち時間が多い大量の通信は、非同期。
+この2つは組み合わせられる。非同期のコードから重い処理を呼ぶときは、spawn_blocking で、専用のスレッドに逃がす (非同期の章を参照)。</code></pre>
+
+---
+
+### スレッドを起動する
+
+`thread::spawn` に、クロージャを渡すと、新しいスレッドで実行される。戻り値の `JoinHandle` の `join()` で、終了を待って、結果を受け取る。
+
+```rust
+use std::thread;
+
+fn main() {
+    let handle = thread::spawn(|| {
+        println!("別のスレッド");
+        42
+    });
+
+    println!("メインスレッド");
+
+    let result = handle.join().unwrap(); // スレッドの終了を待つ。戻り値は 42
+    println!("結果: {result}");
+}
+```
+
+| 要素 | 内容 |
+| --- | --- |
+| `thread::spawn(f)` | クロージャ `f` を、新しいスレッドで実行する。`JoinHandle<T>` を返す |
+| `handle.join()` | スレッドの終了を待つ。`Result<T, ...>` を返す (スレッドがパニックすると `Err`) |
+| `handle.is_finished()` | スレッドが終了したかを、待たずに確認する |
+| `handle.thread()` | スレッドの情報 (`Thread`) を取り出す (名前、`unpark` など) |
+
+<pre><code class="caution">main 関数が終わると、他のスレッドが実行中でも、プログラムごと終了する (実行中のスレッドは、打ち切られる)。
+スレッドの結果や完了が必要なら、必ず join() で待つ。</code></pre>
+
+JoinHandle を、`join` せずに `drop` すると、スレッドは「切り離され (detach)」て、そのまま動き続ける。ただし、`main` が終わると、打ち切られる。
+
+#### 複数のスレッドを起動する
+
+```rust
+use std::thread;
+
+fn main() {
+    let handles: Vec<_> = (0..4)
+        .map(|i| thread::spawn(move || i * i))
+        .collect();
+
+    let results: Vec<i32> = handles
+        .into_iter()
+        .map(|h| h.join().unwrap())
+        .collect();
+
+    println!("{:?}", results); // [0, 1, 4, 9] (起動した順に、結果が並ぶ)
+}
+```
+
+<pre><code class="tips">スレッドの実行順は、保証されない。println! の出力が、実行のたびに、順番が変わるのは、正常な動作。
+順番が必要なら、join の順や、チャネルで受け取る順を、制御する。</code></pre>
+
+### move クロージャ
+
+`thread::spawn` に渡すクロージャは、`'static` (呼び出し元の関数より、長く生きられる) でなければならない。そのため、**ローカル変数を借用できず、所有権を `move` で渡す**必要がある。
+
+```rust
+use std::thread;
+
+fn main() {
+    let v = vec![1, 2, 3];
+
+    let handle = thread::spawn(move || {
+        println!("{:?}", v); // v の所有権が、スレッドに移る
+    });
+
+    // println!("{:?}", v); // ❌ v は、すでにムーブされている
+
+    handle.join().unwrap();
+}
+```
+
+`move` を付けないと、「closure may outlive the current function, but it borrows `v`」というエラーになる (スレッドが、`v` よりも長く生きる可能性があるため)。
+
+#### 複数のスレッドで同じデータを使う
+
+| 方法 | 内容 |
+| --- | --- |
+| `clone` して、それぞれに渡す | データが小さいときに、各スレッドが、自分のコピーを持つ |
+| `Arc` で、共有する | 大きなデータを、コピーせずに、共有する (読み取り専用) |
+| `thread::scope` | ローカル変数を、借用する (後述) |
+
+```rust
+use std::sync::Arc;
+use std::thread;
+
+fn main() {
+    let data = Arc::new(vec![1, 2, 3]);
+
+    let handles: Vec<_> = (0..3)
+        .map(|i| {
+            let data = Arc::clone(&data); // 参照カウントを増やして、スレッドに渡す
+            thread::spawn(move || println!("thread {i}: {:?}", data))
+        })
+        .collect();
+
+    for h in handles {
+        h.join().unwrap();
+    }
+}
+```
+
+### スレッドのパニック
+
+スレッドの中でパニックしても、他のスレッドや、メインスレッドは、**そのまま動き続ける**。パニックは、`join()` の戻り値が `Err` になることで、知らせられる。
+
+```rust
+use std::thread;
+
+fn main() {
+    let handle = thread::spawn(|| {
+        panic!("失敗しました");
+    });
+
+    match handle.join() {
+        Ok(_) => println!("成功"),
+        Err(payload) => {
+            // パニックのメッセージを、取り出す
+            if let Some(msg) = payload.downcast_ref::<&str>() {
+                println!("スレッドがパニックしました: {msg}");
+            } else if let Some(msg) = payload.downcast_ref::<String>() {
+                println!("スレッドがパニックしました: {msg}");
+            }
+        }
+    }
+}
+```
+
+| `panic!` の書き方 | ペイロードの型 |
+| --- | --- |
+| `panic!("固定の文字列")` | `&'static str` |
+| `panic!("値: {}", x)` | `String` |
+
+<pre><code class="tips">スレッドのパニックを、プログラム全体の失敗として扱いたいときは、join().unwrap() (または expect) を使う。
+パニックを、エラーとして処理して続けたいときは、join() の Err を、match で処理する。</code></pre>
+
+### スレッドの設定 (Builder)
+
+`thread::Builder` で、スレッドの名前やスタックサイズを、指定できる。
+
+```rust
+use std::thread;
+
+fn main() {
+    let handle = thread::Builder::new()
+        .name("worker-1".to_string())
+        .stack_size(4 * 1024 * 1024) // スタックサイズ (4 MiB)
+        .spawn(|| {
+            println!("名前: {:?}", thread::current().name()); // Some("worker-1")
+        })
+        .unwrap(); // OS がスレッドを作れないとき、Err になる
+
+    handle.join().unwrap();
+}
+```
+
+| 項目 | 内容 |
+| --- | --- |
+| `name(...)` | スレッドの名前。パニックのメッセージや、デバッガーに表示される |
+| `stack_size(...)` | スレッドのスタックのサイズ (バイト) |
+| `spawn(...)` | `io::Result<JoinHandle<T>>` を返す (`thread::spawn` は、失敗するとパニックする) |
+
+名前を付けておくと、パニックのメッセージが、`thread 'worker-1' panicked at ...` の形になり、原因を探しやすい。
+
+---
+
+### スコープ付きスレッド
+
+`thread::scope` の中で起動したスレッドは、**スコープが終わるときに、自動で join される**。そのため、`'static` の制約がなく、**ローカル変数を、借用できる**。
+
+```rust
+use std::thread;
+
+fn main() {
+    let numbers: Vec<u32> = (1..=100).collect();
+
+    let total: u32 = thread::scope(|s| {
+        // 25 個ずつに分けて、別々のスレッドで、合計を計算する (numbers を借用している)
+        let handles: Vec<_> = numbers
+            .chunks(25)
+            .map(|chunk| s.spawn(move || chunk.iter().sum::<u32>()))
+            .collect();
+
+        handles.into_iter().map(|h| h.join().unwrap()).sum()
+    });
+
+    println!("{total}"); // 5050
+}
+```
+
+#### 分割して、書き換える
+
+データを、重ならない部分に分ければ、それぞれのスレッドが、**別々の部分を、可変で借用**できる (ロックは不要)。
+
+```rust
+use std::thread;
+
+fn main() {
+    let mut data = vec![1, 2, 3, 4, 5, 6];
+
+    thread::scope(|s| {
+        for chunk in data.chunks_mut(2) {
+            s.spawn(move || {
+                for x in chunk.iter_mut() {
+                    *x *= 10;
+                }
+            });
+        }
+    }); // ここで、すべてのスレッドの終了が、保証される
+
+    println!("{:?}", data); // [10, 20, 30, 40, 50, 60]
+}
+```
+
+| | `thread::spawn` | `thread::scope` |
+| --- | --- | --- |
+| 借用 | できない (`'static` が必要) | できる |
+| join | 自分で行う | スコープの終了時に、自動で行われる |
+| 向いている場面 | 長く動き続けるスレッド | 計算を分割して、結果を集める |
+
+<pre><code class="tips">計算を分割して、結果を集める処理は、まず thread::scope を検討する。Arc も Mutex も不要で、コードが簡潔になる。</code></pre>
+
+---
+
+### スレッドを制御する
+
+| 関数 | 内容 |
+| --- | --- |
+| `thread::sleep(d)` | 指定した時間、スレッドを止める |
+| `thread::yield_now()` | CPU を、他のスレッドに譲る |
+| `thread::park()` | `unpark` されるまで、スレッドを止める |
+| `thread::park_timeout(d)` | `unpark` されるか、時間が経つまで、止める |
+| `thread.unpark()` | `park` で止まっているスレッドを、起こす |
+| `thread::current()` | 現在のスレッドの情報 (`Thread`) を取得する |
+| `thread::available_parallelism()` | 同時に動かせるスレッド数の目安 (CPU のコア数など) |
+
+```rust
+use std::thread;
+use std::time::Duration;
+
+fn main() {
+    let handle = thread::spawn(|| {
+        println!("待機します");
+        thread::park(); // unpark されるまで、止まる
+        println!("再開しました");
+    });
+
+    thread::sleep(Duration::from_millis(100));
+    handle.thread().unpark(); // 起こす
+    handle.join().unwrap();
+}
+```
+
+```rust
+// 使うスレッド数の目安を取得する
+let n = thread::available_parallelism()
+    .map(|n| n.get())
+    .unwrap_or(1);
+println!("{n} スレッドを使う");
+```
+
+<pre><code class="caution">park は、unpark されていなくても、起きることがある (偽の起床)。
+park を使うときは、「条件が満たされたか」を、別の変数 (AtomicBool など) で確認して、満たされるまで、ループして park する。
+簡単に待ち合わせたいだけなら、チャネルや Condvar を使う方が、安全で分かりやすい。</code></pre>
+
+---
+
+### Send と Sync
+
+スレッド間で、値を安全に扱えるかは、2つのトレイトで、コンパイラが検査する。
+
+| トレイト | 意味 |
+| --- | --- |
+| `Send` | その型の値を、**別のスレッドに送れる** (所有権を移せる) |
+| `Sync` | その型への参照 (`&T`) を、**複数のスレッドで共有できる** |
+
+`T` が `Sync` であることと、`&T` が `Send` であることは、同じ意味。<br>
+ほとんどの型は、自動で `Send` と `Sync` になる。構成する要素のすべてが、`Send` / `Sync` なら、その型も、そうなる (自動トレイト)。
+
+`thread::spawn` の定義は、次のようになっている (簡略化)。
+
+```rust
+pub fn spawn<F, T>(f: F) -> JoinHandle<T>
+where
+    F: FnOnce() -> T + Send + 'static, // クロージャは、Send で、'static
+    T: Send + 'static,                 // 戻り値も、Send で、'static
+```
+
+#### 主な型の対応
+
+| 型 | `Send` | `Sync` | 補足 |
+| --- | --- | --- | --- |
+| `i32`、`String`、`Vec<T>` | ○ | ○ | `T` が `Send` / `Sync` のとき |
+| `Rc<T>` | ✕ | ✕ | 参照カウントが、アトミックではないため |
+| `Arc<T>` | ○ | ○ | `T` が `Send` かつ `Sync` のとき |
+| `Cell<T>`、`RefCell<T>` | ○ | ✕ | 借用の検査が、スレッドに対して安全でないため |
+| `Mutex<T>` | ○ | ○ | `T` が `Send` のとき |
+| `RwLock<T>` | ○ | ○ | `Sync` は、`T` が `Send` かつ `Sync` のとき |
+| `MutexGuard<T>` | ✕ | ○ | ロックを取ったスレッドで、解除する必要があるため |
+| `mpsc::Receiver<T>` | ○ | ✕ | 受信側は、1つのスレッドだけが持つ |
+| 生ポインタ (`*const T`) | ✕ | ✕ | 安全性を、コンパイラが保証できないため |
+
+```rust
+use std::rc::Rc;
+use std::thread;
+
+fn main() {
+    let rc = Rc::new(5);
+
+    // ❌ コンパイルエラー: `Rc<i32>` cannot be sent between threads safely
+    thread::spawn(move || {
+        println!("{}", rc);
+    });
+}
+```
+
+<pre><code class="caution">Send / Sync を、unsafe impl で、手動で実装すると、コンパイラの検査が、効かなくなる。
+生ポインタを持つ型などで、安全性を自分で保証できる場合だけに、限る。保証が間違っていると、データ競合が起きる。</code></pre>
+
+---
+
+### データの共有と通信
+
+| やりたいこと | 方法 |
+| --- | --- |
+| データを、別のスレッドに渡す | `move` で、所有権を移す |
+| 読み取り専用のデータを、共有する | `Arc<T>` (<a href="#arc">Arc&lt;T&gt;</a>) |
+| 共有したデータを、書き換える | `Arc<Mutex<T>>` (<a href="#mutex">Mutex&lt;T&gt;</a>) |
+| 読み取りが多い、共有データ | `Arc<RwLock<T>>` (<a href="#rwlock">RwLock&lt;T&gt;</a>) |
+| 数値やフラグを、軽く共有する | アトミック型 (後述) |
+| 処理の結果や、メッセージを送る | チャネル (`mpsc`) |
+| データを分割して、それぞれを処理する | `thread::scope` と `chunks_mut` |
+
+<pre><code class="tips">Go の「メモリを共有して通信するのではなく、通信によってメモリを共有する」という考え方は、Rust でも有効。
+ロックで共有するより、チャネルでメッセージを渡す方が、データの持ち主が、常に1つになり、デッドロックなどの問題を避けやすい。</code></pre>
+
+---
+
+### チャネル
+
+`mpsc` (multiple producer, single consumer) は、複数のスレッドから、1つのスレッドへ、メッセージを送る。基本は、<a href="#std">std</a> の `std::thread` の項を参照。ここでは、詳細を説明する。
+
+| 関数 | 種類 | 説明 |
+| --- | --- | --- |
+| `mpsc::channel()` | 無制限 | 送信は、待たずに完了する。受信が追いつかないと、メッセージが、メモリに溜まり続ける |
+| `mpsc::sync_channel(n)` | 容量付き | 容量 `n` が満杯なら、`send` は、空くまで待つ (バックプレッシャー)。`n = 0` は、受け取るまで待つ |
+
+#### 受信の方法
+
+| メソッド | 動作 |
+| --- | --- |
+| `rx.recv()` | メッセージが来るまで、待つ。すべての送信側が `drop` されると、`Err(RecvError)` |
+| `rx.try_recv()` | 待たずに、確認する。なければ `Err(TryRecvError::Empty)` |
+| `rx.recv_timeout(d)` | 最大 `d` の間、待つ。超えると `Err(RecvTimeoutError::Timeout)` |
+| `for msg in rx` / `rx.iter()` | 届いたメッセージを、順に処理する。すべての送信側が `drop` されると、終わる |
+| `rx.try_iter()` | 今すでに届いているメッセージだけを、待たずに処理する |
+
+#### 送信の失敗
+
+`tx.send(v)` は、**受信側が `drop` されていると、`Err(SendError(v))`** になる (送ろうとした値が、返される)。
+
+#### ワーカースレッドにジョブを渡す
+
+```rust
+use std::sync::mpsc;
+use std::thread;
+
+fn main() {
+    let (tx, rx) = mpsc::channel::<String>();
+
+    // ジョブを受け取って処理する、ワーカースレッド
+    let worker = thread::spawn(move || {
+        for job in rx {
+            // すべての送信側が drop されると、ループが終わる
+            println!("処理: {job}");
+        }
+        println!("ワーカー終了");
+    });
+
+    tx.send("job1".to_string()).unwrap();
+    tx.send("job2".to_string()).unwrap();
+
+    drop(tx); // 送信側を閉じる (これを忘れると、ワーカーが、終わらない)
+    worker.join().unwrap();
+}
+```
+
+#### 結果を、返してもらう (返信用のチャネル)
+
+リクエストに、返信用の `Sender` を含めると、ワーカーから、結果を受け取れる。
+
+```rust
+use std::sync::mpsc;
+use std::thread;
+
+fn main() {
+    // (入力, 返信用の送信側)
+    let (req_tx, req_rx) = mpsc::channel::<(u32, mpsc::Sender<u32>)>();
+
+    thread::spawn(move || {
+        for (n, reply) in req_rx {
+            reply.send(n * n).unwrap();
+        }
+    });
+
+    let (reply_tx, reply_rx) = mpsc::channel();
+    req_tx.send((7, reply_tx)).unwrap();
+    println!("{}", reply_rx.recv().unwrap()); // 49
+}
+```
+
+#### 容量付きのチャネル
+
+```rust
+use std::sync::mpsc;
+use std::thread;
+use std::time::Duration;
+
+fn main() {
+    let (tx, rx) = mpsc::sync_channel::<i32>(2); // 容量 2
+
+    let producer = thread::spawn(move || {
+        for i in 0..5 {
+            tx.send(i).unwrap(); // 満杯なら、受信側が取り出すまで、待つ
+            println!("送信: {i}");
+        }
+    });
+
+    thread::sleep(Duration::from_millis(100));
+    for v in rx {
+        println!("受信: {v}");
+    }
+    producer.join().unwrap();
+}
+```
+
+<pre><code class="tips">受信側が、複数のスレッドに分かれる (複数の消費者) 必要がある場合は、標準の mpsc ではなく、crossbeam-channel や flume を使う。
+これらは、複数の受信側を持て、select (複数のチャネルのうち、準備ができたものを待つ) も使える。</code></pre>
+
+---
+
+### ロックの注意点
+
+#### ポイズニング
+
+`Mutex` のロックを持ったスレッドが、パニックすると、その `Mutex` は「ポイズン状態」になり、以降の `lock()` は、`Err` を返す。データが、中途半端な状態の可能性があることを、知らせる仕組み。
+
+```rust
+use std::sync::{Arc, Mutex};
+use std::thread;
+
+fn main() {
+    let m = Arc::new(Mutex::new(0));
+    let m2 = Arc::clone(&m);
+
+    let _ = thread::spawn(move || {
+        let _guard = m2.lock().unwrap();
+        panic!("ロックを持ったまま、パニック");
+    })
+    .join();
+
+    println!("ポイズン状態: {}", m.is_poisoned()); // true
+
+    // ポイズン状態でも、データを取り出して使う (内容が壊れていないと判断できる場合)
+    let guard = m.lock().unwrap_or_else(|e| e.into_inner());
+    println!("値: {}", *guard);
+}
+```
+
+#### デッドロック
+
+複数のスレッドが、互いに相手の持つロックを待って、永久に進まなくなる状態。Rust の型システムでは、**デッドロックは防げない**。
+
+```rust
+// スレッド 1: a のロック → b のロック
+// スレッド 2: b のロック → a のロック
+// → それぞれが、相手のロックを待って、止まる可能性がある
+```
+
+| 対策 | 内容 |
+| --- | --- |
+| ロックの順序を、揃える | 複数のロックが必要なら、すべてのスレッドで、同じ順序で取る |
+| ロックを持つ時間を、短くする | ロックを持ったまま、別の関数 (特にロックを取る関数) を、呼ばない |
+| ロックを、まとめる | 1つの `Mutex` に、関連するデータを、まとめて入れる |
+| `try_lock` を使う | ロックを取れなければ、待たずに、別の処理をする |
+| チャネルを使う | ロックを使わず、メッセージで、やりとりする |
+
+<pre><code class="caution">同じスレッドで lock() を2回呼ぶ (再入) と、デッドロックするか、パニックする。
+ロックを持つスコープを、必要最小限に絞って、ロックを持ったまま、時間のかかる処理 (I/O や sleep) をしない。</code></pre>
+
+---
+
+### アトミック型
+
+`std::sync::atomic` の型 (`AtomicBool`、`AtomicUsize`、`AtomicI32` など) は、**ロックなしで、スレッド間から安全に読み書きできる**。カウンターやフラグなど、単純な値に向く。
+
+```rust
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use std::sync::Arc;
+use std::thread;
+use std::time::Duration;
+
+fn main() {
+    // 停止フラグ
+    let running = Arc::new(AtomicBool::new(true));
+    let r = Arc::clone(&running);
+
+    let worker = thread::spawn(move || {
+        while r.load(Ordering::Relaxed) {
+            thread::sleep(Duration::from_millis(10)); // 作業
+        }
+        println!("停止しました");
+    });
+
+    thread::sleep(Duration::from_millis(50));
+    running.store(false, Ordering::Relaxed); // 停止を、知らせる
+    worker.join().unwrap();
+
+    // カウンター
+    let counter = Arc::new(AtomicUsize::new(0));
+    let handles: Vec<_> = (0..4)
+        .map(|_| {
+            let c = Arc::clone(&counter);
+            thread::spawn(move || {
+                for _ in 0..1000 {
+                    c.fetch_add(1, Ordering::Relaxed);
+                }
+            })
+        })
+        .collect();
+    for h in handles {
+        h.join().unwrap();
+    }
+    println!("{}", counter.load(Ordering::SeqCst)); // 4000
+}
+```
+
+| メソッド | 内容 |
+| --- | --- |
+| `load(order)` | 値を読む |
+| `store(v, order)` | 値を書く |
+| `fetch_add(v, order)` / `fetch_sub` | 加算・減算して、**変更前の値**を返す |
+| `swap(v, order)` | 値を入れ替えて、変更前の値を返す |
+| `compare_exchange(current, new, ok, fail)` | 現在の値が `current` のときだけ、`new` に更新する (`Result` を返す) |
+
+### Ordering (メモリ順序)
+
+アトミック操作が、他のスレッドから、どの順序で見えるかを指定する。
+
+| Ordering | 意味 |
+| --- | --- |
+| `Relaxed` | 順序の保証なし。その変数だけの操作の、原子性だけを保証する。単純なカウンターや、停止フラグ向け |
+| `Release` | 書き込み側。それまでの書き込みが、`Acquire` で読んだスレッドから、見えるようにする |
+| `Acquire` | 読み取り側。`Release` された書き込みと、それ以前の書き込みが、見えるようにする |
+| `AcqRel` | 読み書きの両方 (`fetch_add` や `compare_exchange` で使う) |
+| `SeqCst` | すべてのスレッドから、同じ順序で見える。最も強く、最も簡単 |
+
+<pre><code class="caution">アトミック型は、1つの値の読み書きだけが、安全になる。複数の変数にまたがる整合性 (「A を更新したら B も更新する」) は、保証されない。
+そのような場合や、Ordering に自信がない場合は、Mutex を使う。迷ったら SeqCst を選ぶ。</code></pre>
+
+---
+
+### Condvar と Barrier
+
+#### Condvar (条件変数)
+
+「ある条件が成り立つまで、スレッドを、効率よく待たせる」ための仕組み。`Mutex` と組み合わせて使う。
+
+```rust
+use std::sync::{Arc, Condvar, Mutex};
+use std::thread;
+use std::time::Duration;
+
+fn main() {
+    let pair = Arc::new((Mutex::new(false), Condvar::new()));
+    let pair2 = Arc::clone(&pair);
+
+    thread::spawn(move || {
+        thread::sleep(Duration::from_millis(100));
+        let (lock, cvar) = &*pair2;
+        *lock.lock().unwrap() = true; // 条件を満たす
+        cvar.notify_one();            // 待っているスレッドを、起こす
+    });
+
+    let (lock, cvar) = &*pair;
+    // 条件が true になるまで、待つ (偽の起床があっても、条件を確認し直す)
+    let _ready = cvar.wait_while(lock.lock().unwrap(), |ready| !*ready).unwrap();
+    println!("準備ができました");
+}
+```
+
+| メソッド | 内容 |
+| --- | --- |
+| `cvar.wait(guard)` | ロックを解放して待ち、起こされたら、ロックを取り直す |
+| `cvar.wait_while(guard, 条件)` | 条件が `true` の間、待ち続ける (推奨) |
+| `cvar.wait_timeout(guard, d)` | 最大 `d` まで、待つ |
+| `notify_one()` / `notify_all()` | 待っているスレッドを、1つ / すべて起こす |
+
+#### Barrier (待ち合わせ)
+
+指定した数のスレッドが、**全員そろうまで**、待たせる。
+
+```rust
+use std::sync::{Arc, Barrier};
+use std::thread;
+
+fn main() {
+    let barrier = Arc::new(Barrier::new(3)); // 3 スレッドが、そろうまで待つ
+
+    let handles: Vec<_> = (0..3)
+        .map(|i| {
+            let b = Arc::clone(&barrier);
+            thread::spawn(move || {
+                println!("準備 {i}");
+                b.wait(); // 3つそろうまで、ここで待つ
+                println!("開始 {i}"); // 全員そろってから、実行される
+            })
+        })
+        .collect();
+
+    for h in handles {
+        h.join().unwrap();
+    }
+}
+```
+
+---
+
+### スレッドローカル
+
+`thread_local!` は、**スレッドごとに、別々の値**を持てる。他のスレッドからは、見えないため、ロックは不要。
+
+```rust
+use std::cell::RefCell;
+use std::thread;
+
+thread_local! {
+    static COUNTER: RefCell<u32> = RefCell::new(0);
+}
+
+fn main() {
+    COUNTER.with(|c| *c.borrow_mut() += 1);
+
+    thread::spawn(|| {
+        COUNTER.with(|c| *c.borrow_mut() += 100);
+        COUNTER.with(|c| println!("子スレッド: {}", c.borrow())); // 100
+    })
+    .join()
+    .unwrap();
+
+    COUNTER.with(|c| println!("メインスレッド: {}", c.borrow())); // 1
+}
+```
+
+`Cell` を使う場合は、Rust 1.73 以降、`with` を使わずに、`get` / `set` で、直接操作できる。
+
+```rust
+use std::cell::Cell;
+
+thread_local! {
+    static ID: Cell<u32> = const { Cell::new(0) };
+}
+
+fn main() {
+    ID.set(5);
+    println!("{}", ID.get()); // 5
+}
+```
+
+<pre><code class="tips">スレッドローカルは、スレッドごとのキャッシュ、リクエストごとの ID、乱数生成器などに使う (rand::rng() も、スレッドごとの生成器を返す)。
+一度だけ初期化するグローバルな値は、OnceLock や LazyLock (std の項を参照)。</code></pre>
+
+---
+
+### スレッドプール
+
+リクエストのたびに、スレッドを起動すると、起動のコストが大きく、数が増えすぎる危険もある。**あらかじめ決まった数のスレッド (ワーカー) を用意して、仕事を渡す**仕組みが、スレッドプール。
+
+#### 自作する (チャネルを共有する)
+
+`Receiver` は、複数のスレッドで共有できないため、`Arc<Mutex<Receiver>>` で包んで、ワーカー同士で、ジョブを取り合う。
+
+```rust
+use std::sync::{mpsc, Arc, Mutex};
+use std::thread;
+
+type Job = Box<dyn FnOnce() + Send + 'static>;
+
+fn main() {
+    let (tx, rx) = mpsc::channel::<Job>();
+    let rx = Arc::new(Mutex::new(rx));
+
+    let workers: Vec<_> = (0..4)
+        .map(|id| {
+            let rx = Arc::clone(&rx);
+            thread::spawn(move || loop {
+                // ジョブを1つ受け取る (この文が終わると、ロックは解放される)
+                let job = rx.lock().unwrap().recv();
+                match job {
+                    Ok(job) => {
+                        println!("worker {id}: 実行");
+                        job();
+                    }
+                    Err(_) => break, // 送信側がすべて drop されたら、終了
+                }
+            })
+        })
+        .collect();
+
+    for i in 0..8 {
+        tx.send(Box::new(move || println!("job {i}"))).unwrap();
+    }
+
+    drop(tx); // 送信側を閉じる
+    for w in workers {
+        w.join().unwrap();
+    }
+}
+```
+
+#### rayon (データ並列)
+
+実用では、`rayon` crate を使うのが、簡単。コレクションの `iter()` を `par_iter()` に変えるだけで、自動で並列処理される。
+
+```bash
+cargo add rayon
+```
+
+```rust
+use rayon::prelude::*;
+
+fn main() {
+    let v: Vec<i32> = (1..=1000).collect();
+
+    // map と sum が、複数のスレッドで並列に実行される
+    let sum: i32 = v.par_iter().map(|x| x * 2).sum();
+    println!("{sum}");
+
+    // 並列にソート
+    let mut data = vec![5, 3, 8, 1, 9, 2];
+    data.par_sort();
+    println!("{:?}", data);
+
+    // 2つの処理を、並列に実行する
+    let (a, b) = rayon::join(|| (1..=100).sum::<i32>(), || (1..=10).product::<i32>());
+    println!("{a} {b}");
+}
+```
+
+| 道具 | 内容 |
+| --- | --- |
+| `par_iter()` / `into_par_iter()` / `par_iter_mut()` | 並列版のイテレータ。`map`、`filter`、`sum`、`collect` などが使える |
+| `rayon::join(a, b)` | 2つのクロージャを、並列に実行する |
+| `rayon::scope` | 複数のタスクを、起動する (スコープ付き) |
+| `ThreadPoolBuilder::new().num_threads(n)` | スレッド数を指定した、独自のプールを作る |
+
+<pre><code class="tips">rayon は、処理が重いときに効果がある。要素ごとの処理が軽い場合は、スレッドの切り替えのコストの方が大きく、かえって遅くなることがある。
+計測 (ベンチマーク) して、効果を確認する。</code></pre>
+
+| crate | 内容 |
+| --- | --- |
+| `rayon` | データ並列。`par_iter()` で、並列処理する。プールは、自動で管理される |
+| `crossbeam` | チャネル (`crossbeam-channel`)、スコープ付きスレッド、ロックフリーのデータ構造など |
+| `threadpool` | シンプルな、スレッドプール |
+| `parking_lot` | 標準より軽量で高機能な、`Mutex` や `RwLock` (ポイズニングがない) |
+| `loom` | スレッドの、あらゆる実行順序を試して、バグを探すテストツール |
+
+---
+
+### 防げるものと防げないもの
+
+| 問題 | Rust で防げるか | 内容 |
+| --- | --- | --- |
+| データ競合 | **コンパイル時に防げる** | 複数のスレッドが、同時に同じデータを、書き換える (または書き換えと読み取りが重なる) |
+| メモリの不正アクセス | 防げる | 解放後のメモリの利用など |
+| デッドロック | **防げない** | ロックの待ち合わせが、循環して止まる |
+| 競合状態 (race condition) | **防げない** | 実行順によって、結果が変わる、ロジックのバグ (例: 確認してから更新する間に、他のスレッドが割り込む) |
+| 飢餓 (starvation) | 防げない | 特定のスレッドが、いつまでもロックを取れない |
+
+```rust
+// 競合状態の例: 確認と更新が、別々のロックになっている
+let exists = {
+    let map = shared.lock().unwrap();
+    map.contains_key("a")
+}; // ここでロックが解放される → 他のスレッドが、割り込める
+
+if !exists {
+    shared.lock().unwrap().insert("a", 1); // 確認した時点とは、状況が変わっているかもしれない
+}
+
+// 修正: 確認と更新を、1つのロックの中で、行う
+let mut map = shared.lock().unwrap();
+if !map.contains_key("a") {
+    map.insert("a", 1);
+}
+```
+
+---
+
+### スレッドのテスト
+
+| 方法 | 内容 |
+| --- | --- |
+| `cargo test` | テストは、既定で、複数のスレッドで並列に実行される (`--test-threads=1` で、直列にできる) |
+| `join` で結果を確認する | スレッドを起動して、`join` した結果を、`assert!` で確認する |
+| `loom` | 並行処理のコードを、あらゆる実行順序で試して、データ競合やデッドロックを探す |
+| Miri | `cargo +nightly miri test` で、未定義動作やデータ競合を、検出できる |
+
+```rust
+use std::sync::{Arc, Mutex};
+use std::thread;
+
+fn increment_in_threads(n: usize) -> u32 {
+    let counter = Arc::new(Mutex::new(0));
+
+    let handles: Vec<_> = (0..n)
+        .map(|_| {
+            let counter = Arc::clone(&counter);
+            thread::spawn(move || {
+                *counter.lock().unwrap() += 1;
+            })
+        })
+        .collect();
+
+    for h in handles {
+        h.join().unwrap();
+    }
+
+    let result = *counter.lock().unwrap();
+    result
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn counts_all_increments() {
+        assert_eq!(increment_in_threads(10), 10);
+    }
+}
+```
+
+<pre><code class="caution">sleep を使って、スレッドの完了を待つテストは、不安定になる (マシンの負荷で、時間が足りなくなる)。
+完了の確認は、join、チャネル、Condvar などの、同期の仕組みで行う。
+テストの詳細は、「Rustのテスト」のドキュメントを参照。</code></pre>
+
+---
+
+### よくある落とし穴
+
+| 症状 | 原因 | 対処 |
+| --- | --- | --- |
+| スレッドの出力が、途中で消える | `main` が終わって、プログラムごと終了した | `join()` で、スレッドの終了を待つ |
+| `closure may outlive the current function` | クロージャが、ローカル変数を借用している | `move` を付ける。または `thread::scope` を使う |
+| `Rc<...> cannot be sent between threads safely` | `Rc` は `Send` ではない | `Arc` を使う |
+| `RefCell<...> cannot be shared between threads safely` | `RefCell` は `Sync` ではない | `Mutex` や `RwLock` を使う |
+| `MutexGuard` が、`Send` でないというエラー | ロックのガードを、スレッドをまたいで保持している | ガードのスコープを狭くする。ガードを、別のスレッドへ渡さない |
+| チャネルのループが、終わらない | 送信側が、1つでも `drop` されずに残っている | 手元の `tx` を、`drop` する |
+| プログラムが、固まる | デッドロック | ロックの順序を揃える。ロックを持つ時間を短くする |
+| 結果が、実行のたびに変わる | 競合状態 (確認と更新が、別々のロック) | 確認と更新を、1つのロックの中で行う |
+| `lock()` が `Err` を返す | ロックを持ったスレッドが、パニックした (ポイズニング) | `PoisonError` の `into_inner()` で、中身を取り出す (前述の「ポイズニング」を参照)。または、パニックの原因を直す |
+| スレッドを、大量に起動して、遅い・失敗する | スレッドは、重い | スレッドプール (`rayon` など)、または非同期にする |
+| `sleep` で待つ処理が、たまに失敗する | 実行時間は、マシンの状態で変わる | `join`、チャネル、`Condvar` で、同期する |
+| 計算が、速くならない | スレッドの切り替えや、ロックの競合のコストが、大きい | 処理を大きな単位に分ける。ロックの範囲を狭くする。計測する |
+| 非同期のコードで、スレッドが止まる | async の中で、ブロッキングする処理をしている | `spawn_blocking` を使う (非同期の章を参照) |
+
+---
+
+---
+
 ## 非同期 (async/await) <a id="async" data-name="非同期"></a>
 
 `async fn` は、呼び出しただけでは実行されず、`Future` を返す。`.await` すると、その `Future` が完了するまで待つ。待っている間、スレッドは他のタスクの実行に使われる。<br>
 標準ライブラリには非同期ランタイムが含まれないため、`tokio` などの外部クレートを使う (`cargo add tokio --features full`)。<br>
-`Future` と `Pin` の仕組みは、<a href="#pin">Pin</a> と <a href="#trait">トレイト</a> の Future を参照。
+`Future` と `Pin` の仕組みは、<a href="#pin">Pin</a> と <a href="#trait">トレイト</a> の Future を参照。<br>
+OS のスレッドを直接使う場合や、スレッドとの使い分けは、<a href="#thread">スレッド</a> を参照。
 
 ```rust
 use std::time::Duration;
@@ -5004,7 +5908,8 @@ thread::scope(|s| {
 });
 ```
 
-共有データを可変にするには `Arc<Mutex<T>>` を使う (<a href="#mutex">Mutex&lt;T&gt;</a> を参照)。
+共有データを可変にするには `Arc<Mutex<T>>` を使う (<a href="#mutex">Mutex&lt;T&gt;</a> を参照)。<br>
+パニックの扱い、`Builder`、スレッドプール、`Condvar` など、スレッドの詳しい説明は、<a href="#thread">スレッド</a> を参照。
 
 #### チャネル (mpsc)
 
@@ -5843,6 +6748,11 @@ pub fn add(a: i32, b: i32) -> i32 {
 | 借用 (Borrow) | 所有権を移さず、参照 (`&T` / `&mut T`) を通して値を使うこと |
 | バリアント (Variant) | enum の各選択肢 (列挙子) |
 | 内部可変性 (Interior mutability) | 不変な参照からでも中身を変更できる仕組み。`Cell`、`RefCell`、`Mutex` など |
+| 並行 (Concurrency) / 並列 (Parallelism) | 並行は複数の処理を交互に進めること、並列は複数のコアで実際に同時に実行すること |
+| スレッドセーフ | 複数のスレッドから同時に使っても安全な性質。Rust では `Send` / `Sync` で表す |
+| データ競合 (Data race) | 複数のスレッドが、同期なしに、同じデータを同時に書き換える (または読み書きが重なる) こと。Rust はコンパイル時に防ぐ |
+| デッドロック (Deadlock) | 複数のスレッドが、互いの持つロックを待って、進めなくなる状態。Rust でも防げない |
+| ポイズニング (Poisoning) | ロックを持ったスレッドがパニックしたとき、その `Mutex` などを、データが壊れている可能性がある状態にすること |
 | 糖衣構文 (Syntactic sugar) | 読みやすさのために用意された短い書き方。`if let` や `?` など |
 | エディション (Edition) | 後方互換性を壊す変更を取り込むための、言語の区切り (2015 / 2018 / 2021 / 2024) |
 | ワークスペース (Workspace) | 複数のパッケージを1つのプロジェクトとして管理する仕組み |
