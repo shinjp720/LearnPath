@@ -3,11 +3,7 @@ title: DataBase
 layout: default
 ---
 
-# DataBase <a id="top" data-name="TOP"></a>
-
----
-
-# SQL <a id="sql" data-name="SQL"></a>
+# SQL <a id="top" data-name="TOP"></a>
 
 - SQLはデータベースを操作するための言語。
 
