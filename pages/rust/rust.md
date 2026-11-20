@@ -3000,9 +3000,11 @@ println!("{:?}", Some(3));    // Some(3)
 
 <div class="subtitle2">波括弧そのものを出力する</div>
 
+{% raw %}
 ```rust
 println!("{{}}"); // {}
 ```
+{% endraw %}
 
 ---
 

@@ -36,7 +36,7 @@
 }
 
 * {
-    font-size: 1.1rem;
+    font-size: 1.06rem;
     font-family: "Osaka-mono", "BIZ UDPGothic", "MS Gothic", monospace;
 }
 
@@ -96,12 +96,6 @@ h4 {
     color: var(--accent-blue-lighter);
     margin: 0;
     padding: 0;
-
-    &::before {
-        content: "▪️";
-        color: var(--accent-blue);
-        margin-right: 0.4rem;
-    }
 }
 
 h5 {
@@ -437,7 +431,7 @@ pre code.tips::before {
 /* ----------- スマホ用 ----------- */
 @media screen and (max-width: 980px) {
     * {
-        font-size: 1rem;
+        font-size: 0.95rem;
     }
 
     #container {

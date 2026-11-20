@@ -96,7 +96,7 @@ const element = <h1 className="title">Hello, React!</h1>;
 | 属性名はキャメルケースで書く。 | `tabIndex`, `onClick`, `maxLength` |
 | JavaScript の予約語と重なる属性は、別の名前になる。 | `class` → `className`<br>`for` → `htmlFor` |
 | 波括弧 `{ }` の中に JavaScript の式を書ける。属性の値にも使える。 | `<img src={user.icon} alt={user.name} />` |
-| style 属性は、文字列ではなくオブジェクトで渡す。波括弧が二重になるのは、外側が式、内側がオブジェクトのため。 | `style={{ color: "red", fontSize: 16 }}` |
+| style 属性は、文字列ではなくオブジェクトで渡す。波括弧が二重になるのは、外側が式、内側がオブジェクトのため。 | {% raw %}`style={{ color: "red", fontSize: 16 }}`{% endraw %} |
 | コメントは、波括弧の中に書く。 | `{/* コメント */}` |
 
 ### 式の埋め込み
@@ -993,6 +993,7 @@ useContext(ThemeContext) の代わりに、use(ThemeContext) でも読める。u
 
 Context と、それを読む処理を、カスタムフックにまとめておくと使いやすい。
 
+{% raw %}
 ```jsx
 const AuthContext = createContext(null);
 
@@ -1009,6 +1010,7 @@ export function useAuth() {
   return context;
 }
 ```
+{% endraw %}
 
 <pre><code class="caution">Context の value が変わると、その Context を読んでいるすべてのコンポーネントが再レンダーされる。頻繁に変わる値には向いていない。
 value にオブジェクトのリテラル ({ user, setUser } など) を直接書くと、親が再レンダーされるたびに新しいオブジェクトになり、読んでいるコンポーネントが毎回再レンダーされる。気になる場合は useMemo で包むか、React Compiler を使う。</code></pre>
@@ -1934,6 +1936,7 @@ function Profile({ user }) {
 
 ### Context の value にオブジェクトを直書きする
 
+{% raw %}
 ```jsx
 function Provider({ children }) {
   const [user, setUser] = useState(null);
@@ -1944,6 +1947,7 @@ function Provider({ children }) {
   );
 }
 ```
+{% endraw %}
 
 `value` が毎回新しいオブジェクトになるため、この Context を読んでいるすべてのコンポーネントが、毎回再レンダーされる。`useMemo` で包むか、React Compiler を使う。
 
