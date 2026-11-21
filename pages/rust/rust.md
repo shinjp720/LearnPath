@@ -5747,6 +5747,7 @@ println!("{}", config.exists());
 | `Read` | バイト列を読む (`read`, `read_to_string`, `read_to_end`) |
 | `Write` | バイト列を書く (`write`, `write_all`, `flush`) |
 | `BufRead` | バッファ付きで行単位などに読む (`read_line`, `lines`) |
+| `BufReader<R>` | `Read` を包んで、内部にバッファを持たせる。`File` などを、少ないシステムコールで読める (詳しくは <a href="#bufreader">BufReader</a> を参照) |
 | `io::Result<T>` | `Result<T, io::Error>` の別名 |
 
 標準入力から1行読む。
@@ -5799,6 +5800,419 @@ match fs::read_to_string("config.txt") {
     Err(e) => println!("読み込みに失敗: {e}"),
 }
 ```
+
+#### BufReader (バッファ付きの読み込み) <a id="bufreader"></a>
+
+`BufReader<R>` は、任意の `Read` を包んで、**内部にバッファを持たせる**型である。`File` や `TcpStream` のように、`read` を呼ぶたびに OS へのシステムコール (カーネルへの要求) が発生する読み込み元を、少ない回数のシステムコールで、効率よく読めるようにする。さらに `BufRead` トレイトを実装するため、`read_line` や `lines` のような、行単位の読み込みも使えるようになる。
+
+##### 仕組み
+
+```text
+読み込み元 (File など)
+    │  read (1 回で、最大 容量 バイト。既定は 8 KiB)
+    ▼
+┌─────────────────────────────────┐
+│ BufReader の内部バッファ         │ ◀── 呼び出し側の read / read_line / lines は、
+└─────────────────────────────────┘     まず、ここから切り出して返す (システムコールなし)
+```
+
+- 呼び出し側が読むとき、バッファに**残りがあれば**、そこからコピーして返す。システムコールは発生しない。
+- バッファが**空になったら**、読み込み元から、最大で容量いっぱいまで、まとめて読み込んで、バッファを埋める。
+- バッファが空で、要求されたサイズが容量**以上**のときは、バッファを経由せず、読み込み元から直接読む (余分なコピーを避ける)。
+
+仕組みは、読み込み元を数える自作の `Read` で確認できる。
+
+```rust
+use std::io::{BufReader, Read};
+
+/// read が呼ばれた回数と、そのとき要求されたサイズを記録する
+struct Counting<R> {
+    inner: R,
+    requests: Vec<usize>,
+}
+
+impl<R: Read> Read for Counting<R> {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        self.requests.push(buf.len());
+        self.inner.read(buf)
+    }
+}
+
+fn main() -> std::io::Result<()> {
+    let data = vec![b'x'; 100];
+    let source = Counting { inner: &data[..], requests: Vec::new() };
+
+    // 容量 8 バイトの BufReader
+    let mut reader = BufReader::with_capacity(8, source);
+
+    // 1 バイトずつ 20 回読む: 読み込み元には、8 バイトずつ要求される
+    let mut one = [0u8; 1];
+    for _ in 0..20 {
+        reader.read_exact(&mut one)?;
+    }
+    println!("{:?}", reader.get_ref().requests); // [8, 8, 8]
+
+    // バッファが空になるまで読んでから、容量以上のサイズを要求すると、直接読み込まれる
+    let mut rest = [0u8; 4];
+    reader.read_exact(&mut rest)?; // バッファの残り 4 バイトを使い切る
+    let mut big = [0u8; 16];
+    reader.read_exact(&mut big)?; // 16 バイトは、容量 (8) 以上なので、バッファを経由しない
+    println!("{:?}", reader.get_ref().requests); // [8, 8, 8, 16]
+
+    Ok(())
+}
+```
+
+<pre><code class="tips">BufReader の効果は、「小さな読み込みを何度も繰り返す」ときに出る。1 回で、バッファより大きなサイズを読む場合は、バッファを通らないため、速くならないが、遅くもならない。
+読み込み元が、すでにメモリ上にある (&amp;[u8] や Cursor) 場合は、システムコールがないため、BufReader で包んでも、速くはならない。</code></pre>
+
+##### システムコールの回数
+
+約 64 KiB のファイル (65,545 バイト) を、同じ内容で、読み方だけを変えて、`strace` で `read` システムコールの回数を数えた結果である (プログラムの起動時に発生する、数回の `read` を含む)。
+
+| 読み方 | `read` の回数 | 説明 |
+| --- | --- | --- |
+| `File` を直接、1 バイトずつ `read` | 65,551 | バイト数と、ほぼ同じ回数 |
+| `File::bytes()` | 65,551 | 内部で 1 バイトずつ `read` するため、上と同じ |
+| `BufReader::new` で包んで、1 バイトずつ `read` | 15 | 8 KiB ずつ、まとめて読み込む |
+| `BufReader::new` で包んで、`bytes()` | 15 | 同上 |
+| `BufReader::with_capacity(64 * 1024, ...)` で、1 バイトずつ `read` | 8 | 容量を増やすと、さらに減る |
+| `fs::read_to_string` | 7 | ファイルのサイズを先に調べて、一括で読む |
+
+回数が、約 4,000 分の 1 に減っている。システムコールは、1 回ごとに、ユーザーモードとカーネルモードの切り替えを伴うため、回数が減ると、時間が大きく短縮される (実際の時間は、環境によって変わる)。
+
+<pre><code class="caution">File の bytes() は、バッファがないため、1 バイトごとにシステムコールが発生する。大きなファイルに使うと、極端に遅くなる。
+バイト単位で処理したい場合は、BufReader::new(file).bytes() のように、BufReader で包む。</code></pre>
+
+#### BufReader の主なメソッド <a id="bufreader-methods"></a>
+
+##### BufReader 自身のメソッド
+
+| メソッド | 説明 |
+| --- | --- |
+| `BufReader::new(inner)` | 既定の容量 (現在は 8 KiB。将来、変わる可能性がある) で作る |
+| `BufReader::with_capacity(n, inner)` | 容量を、n バイトにして作る |
+| `buffer()` | 内部バッファに残っている、未読のデータを、`&[u8]` で返す。読み込みは行わない |
+| `capacity()` | 内部バッファの容量 |
+| `get_ref()` / `get_mut()` | 包んでいる読み込み元への、参照 / 可変な参照。直接読むと、バッファとずれるため、避ける |
+| `into_inner()` | 包んでいる読み込み元を、取り出す。**バッファに残っていた未読のデータは、失われる** |
+| `seek_relative(offset)` | 現在位置から、相対的に移動する。移動先が、バッファの範囲内なら、バッファを捨てない |
+
+`peek(n)` (バッファを進めずに、先頭の n バイトを見る) は、現時点では、nightly の Rust でしか使えない不安定な API である (`bufreader_peek`)。
+
+##### BufRead トレイトのメソッド
+
+| メソッド | 説明 |
+| --- | --- |
+| `fill_buf()` | 内部バッファの内容を返す。空なら、読み込み元から読み込んで、埋める |
+| `consume(n)` | バッファの先頭 n バイトを、「読み終えた」ことにする |
+| `read_line(&mut String)` | 改行 (`\n`) まで読んで、`String` の**末尾に追加**する。改行も含まれる。戻り値は読んだバイト数で、`0` が EOF |
+| `read_until(byte, &mut Vec<u8>)` | 指定したバイトまで読んで、`Vec<u8>` に追加する (区切りのバイトも含まれる) |
+| `skip_until(byte)` | 指定したバイトまで、読み飛ばす (Rust 1.83 以降) |
+| `lines()` | 行ごとの `io::Result<String>` を返すイテレータ。行末の `\n` と `\r\n` は取り除かれる |
+| `split(byte)` | 指定したバイトで区切った、`io::Result<Vec<u8>>` を返すイテレータ (区切りは含まれない) |
+
+`Read` トレイトのメソッド (`read`、`read_exact`、`read_to_string`、`read_to_end`、`bytes` など) も、そのまま使える。
+
+```rust
+use std::io::{BufRead, BufReader};
+
+fn main() -> std::io::Result<()> {
+    // &[u8] も Read を実装しているので、ファイルの代わりに使える
+    let text = "alpha\r\nbeta\n\ngamma";
+
+    // lines(): 改行は取り除かれる (\r\n も)
+    let lines: Vec<String> = BufReader::new(text.as_bytes())
+        .lines()
+        .collect::<Result<_, _>>()?;
+    println!("{lines:?}"); // ["alpha", "beta", "", "gamma"]
+
+    // read_line(): 改行も含まれ、EOF で 0 を返す
+    let mut reader = BufReader::new(text.as_bytes());
+    let mut line = String::new();
+    let n = reader.read_line(&mut line)?;
+    println!("{n} {line:?}"); // 7 "alpha\r\n"
+
+    // read_until(): 任意のバイトで区切る (区切りも含まれる)
+    let mut reader = BufReader::new("a,b,c".as_bytes());
+    let mut field = Vec::new();
+    reader.read_until(b',', &mut field)?;
+    println!("{:?}", String::from_utf8_lossy(&field)); // "a,"
+
+    // split(): 区切りのバイトを含めずに、順に取り出す
+    let fields: Vec<String> = BufReader::new("a,b,c".as_bytes())
+        .split(b',')
+        .map(|f| String::from_utf8(f.unwrap()).unwrap())
+        .collect();
+    println!("{fields:?}"); // ["a", "b", "c"]
+
+    // skip_until(): 区切りまで読み飛ばす (Rust 1.83 以降)
+    let mut reader = BufReader::new("# comment\nvalue".as_bytes());
+    reader.skip_until(b'\n')?;
+    let mut rest = String::new();
+    reader.read_line(&mut rest)?;
+    println!("{rest}"); // value
+
+    Ok(())
+}
+```
+
+##### fill_buf と consume
+
+`fill_buf` と `consume` は、`BufRead` の最も基本の部品で、`read_line` や `lines` は、これらを使って作られている。バッファの中身を、**コピーせずに**、直接見て処理できる。
+
+```rust
+use std::io::{BufRead, BufReader};
+
+fn main() -> std::io::Result<()> {
+    let data = b"hello, world";
+    let mut reader = BufReader::with_capacity(8, &data[..]);
+
+    println!("{}", reader.buffer().len()); // 0 (まだ何も読み込んでいない)
+
+    // fill_buf: バッファを埋めて、その内容を返す (最大で容量の 8 バイト)
+    let chunk = reader.fill_buf()?;
+    println!("{:?}", std::str::from_utf8(chunk)); // Ok("hello, w")
+
+    // consume: 5 バイト分を、読み終えたことにする
+    reader.consume(5);
+    println!("{:?}", std::str::from_utf8(reader.buffer())); // Ok(", w")
+
+    // 次の fill_buf は、バッファに残りがあるので、読み込み元を読まない
+    println!("{:?}", std::str::from_utf8(reader.fill_buf()?)); // Ok(", w")
+    Ok(())
+}
+```
+
+<pre><code class="caution">fill_buf で得たスライスは、consume を呼ぶまで、バッファの先頭のまま、変わらない。処理した分だけ、consume で進めないと、同じデータを、何度も受け取って、無限ループになる。
+fill_buf が空のスライスを返したら、EOF である。</code></pre>
+
+#### BufRead を受け取る関数にする <a id="bufread-generic"></a>
+
+ファイルを読む関数を、`File` や `&str` の引数ではなく、**`R: BufRead`** を受け取る形にすると、読み込み元を、差し替えられる。本番ではファイルや標準入力を渡し、テストでは、メモリ上のバイト列を渡せるため、テストファイルを用意しなくてよい。
+
+```rust
+use std::fs::File;
+use std::io::{self, BufRead, BufReader};
+
+/// 読み込み元に依存しない: BufRead を実装していれば、何でも受け取れる
+fn count_words<R: BufRead>(reader: R) -> io::Result<usize> {
+    let mut count = 0;
+    for line in reader.lines() {
+        count += line?.split_whitespace().count();
+    }
+    Ok(count)
+}
+
+fn main() -> io::Result<()> {
+    // 引数があればファイル (BufReader で包む)、なければ標準入力 (すでに BufRead) を読む
+    let count = match std::env::args().nth(1) {
+        Some(path) => count_words(BufReader::new(File::open(path)?))?,
+        None => count_words(io::stdin().lock())?,
+    };
+    println!("{count}");
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Cursor;
+
+    #[test]
+    fn 空の入力は_0() {
+        // &[u8] は BufRead を実装しているので、そのまま渡せる
+        assert_eq!(count_words("".as_bytes()).unwrap(), 0);
+    }
+
+    #[test]
+    fn 複数行を数える() {
+        assert_eq!(count_words(Cursor::new("one two\nthree\n")).unwrap(), 3);
+    }
+}
+```
+
+| 読み込み元 | `BufRead` の実装 |
+| --- | --- |
+| `&[u8]` | 実装されている (テスト向き) |
+| `Cursor<T>` (`T: AsRef<[u8]>`) | 実装されている (テスト向き。位置の確認もできる) |
+| `StdinLock` (`io::stdin().lock()`) | 実装されている (すでにバッファ付き) |
+| `File` / `TcpStream` | **実装されていない**。`BufReader::new(...)` で包む |
+
+<pre><code class="tips">R: BufRead を引数に取る関数に、BufReader&lt;File&gt; を渡すときは、値で渡す (所有権を移す) と、あとで使えなくなる。続けて使いたいときは、&amp;mut reader を渡す (&amp;mut R も BufRead を実装している)。</code></pre>
+
+#### BufReader の使い方の注意点 <a id="bufreader-caution"></a>
+
+##### 途中まで読んで、残りを別の処理に渡す
+
+`lines()` は、`self` を消費する。途中でやめて、同じリーダーで続けたいときは、`by_ref()` で、借用して使う。
+
+```rust
+use std::io::{BufRead, BufReader, Read};
+
+fn main() -> std::io::Result<()> {
+    let text = "header1\nheader2\nbody1\nbody2\n";
+    let mut reader = BufReader::new(text.as_bytes());
+
+    // 先頭の 2 行 (ヘッダー) だけを読む。by_ref() で、reader の所有権を、保つ
+    let header: Vec<String> = reader
+        .by_ref()
+        .lines()
+        .take(2)
+        .collect::<Result<_, _>>()?;
+    println!("{header:?}"); // ["header1", "header2"]
+
+    // 残りは、同じ reader から、続けて読める
+    let body: Vec<String> = reader.lines().collect::<Result<_, _>>()?;
+    println!("{body:?}"); // ["body1", "body2"]
+    Ok(())
+}
+```
+
+##### UTF-8 でない行
+
+`lines()` と `read_line()` は、UTF-8 として読めない行で、`ErrorKind::InvalidData` のエラーを返す。ログなど、文字コードが保証されないデータは、`read_until` で、バイト列として読んで、`String::from_utf8_lossy` で、変換する。
+
+```rust
+use std::io::{BufRead, BufReader, ErrorKind};
+
+fn main() -> std::io::Result<()> {
+    // 2 行目が、UTF-8 として、不正なバイト列 (0xFF)
+    let data: &[u8] = b"ok\n\xFF\xFE\nnext\n";
+
+    // lines(): 不正な行だけが Err になり、その後の行は読める
+    for line in BufReader::new(data).lines() {
+        match line {
+            Ok(s) => println!("Ok({s})"),
+            Err(e) if e.kind() == ErrorKind::InvalidData => println!("不正な行"),
+            Err(e) => return Err(e),
+        }
+    }
+
+    // read_until: バイト列として読んで、不正な部分を U+FFFD に置き換える
+    let mut reader = BufReader::new(data);
+    let mut buf = Vec::new();
+    while reader.read_until(b'\n', &mut buf)? > 0 {
+        let line = String::from_utf8_lossy(&buf);
+        println!("{:?}", line.trim_end());
+        buf.clear(); // read_until は追記するので、毎回クリアする
+    }
+    Ok(())
+}
+```
+
+```text
+Ok(ok)
+不正な行
+Ok(next)
+"ok"
+"��"
+"next"
+```
+
+<pre><code class="caution">lines().filter_map(Result::ok) は、読み込みの失敗が続くと、無限ループになる可能性があるため、clippy の lines_filter_map_ok が警告する (代わりに map_while(Result::ok) を提案する)。
+ただし、map_while(Result::ok) も、最初のエラーで、残りの行をすべて無視して、エラーを黙って捨てる。読み込みの失敗 (ディスクのエラーなど) と、文字コードの不正を、見逃さないために、? か match で、Err を処理する。</code></pre>
+
+##### バッファの未読データが失われる場合
+
+`BufReader` は、読み込み元から、容量いっぱいまで先に読み込んでいる。そのため、`into_inner()` で、読み込み元を取り出したり、`BufReader` を `drop` したりすると、**バッファに残っていた、未読のデータは、失われる**。
+
+```rust
+use std::io::{BufRead, BufReader, Cursor};
+
+fn main() -> std::io::Result<()> {
+    let source = Cursor::new("first\nsecond\nthird\n");
+    let mut reader = BufReader::new(source);
+
+    // 1 行だけ読む
+    let mut line = String::new();
+    reader.read_line(&mut line)?;
+    println!("{line:?}"); // "first\n"
+
+    // 読み込み元を取り出す: 位置は、1 行目の末尾 (6 バイト目) ではなく、データの末尾 (19 バイト目) まで進んでいる
+    let source = reader.into_inner();
+    println!("{}", source.position()); // 19
+
+    Ok(())
+}
+```
+
+| 状況 | 結果 |
+| --- | --- |
+| `into_inner()` で、読み込み元を取り出す | 取り出した読み込み元は、バッファに読み込み済みの分だけ、先に進んでいる |
+| `BufReader` を `drop` する | バッファの内容は、捨てられる |
+| 同じストリームに、複数の `BufReader` を作る | それぞれが、先読みするため、データが欠ける |
+
+<pre><code class="caution">同じ TcpStream や File に、別々の BufReader を、何度も作り直して読むと、先読みされたデータが失われる。
+1 つのストリームには、BufReader を 1 つだけ作り、それを、最後まで使い続ける。複数の関数に渡すときは、&amp;mut で、借用して渡す。</code></pre>
+
+##### シーク (位置の移動)
+
+`BufReader<R>` は、`R` が `Seek` を実装していれば、`Seek` も実装する。
+
+| メソッド | バッファの扱い |
+| --- | --- |
+| `seek(...)` | 常に、バッファを**捨てる** (移動先が、バッファの範囲内でも) |
+| `seek_relative(offset)` | 移動先が、バッファの範囲内なら、バッファを**捨てない** (効率がよい) |
+| `stream_position()` | バッファを考慮した、論理的な現在位置を返す |
+
+```rust
+use std::io::{BufRead, BufReader, Cursor, Read, Seek};
+
+fn main() -> std::io::Result<()> {
+    let mut reader = BufReader::new(Cursor::new("0123456789"));
+
+    let mut first = String::new();
+    reader.by_ref().take(4).read_line(&mut first)?; // 4 バイト読む: "0123"
+    println!("{first}"); // 0123
+    println!("{}", reader.stream_position()?); // 4 (論理的な位置)
+
+    // 2 バイト戻る: バッファの範囲内なので、バッファは維持される
+    reader.seek_relative(-2)?;
+    println!("{}", !reader.buffer().is_empty()); // true
+    println!("{}", reader.stream_position()?); // 2
+
+    // seek は、バッファを捨てる
+    reader.rewind()?;
+    println!("{}", reader.buffer().is_empty()); // true
+    Ok(())
+}
+```
+
+##### 容量の調整
+
+| 項目 | 内容 |
+| --- | --- |
+| 既定の容量 | 8 KiB (`BufReader::new`)。標準ライブラリのドキュメントでは、「現在は 8 KiB だが、将来、変わる可能性がある」とされている |
+| 増やす場合 | 大きなファイルを、先頭から末尾まで、順に読む場合に、システムコールの回数を、さらに減らせる (例: 64 KiB) |
+| 減らす場合 | メモリに制約があり、読み込み元が、多数ある場合 (数百の接続を、それぞれ、バッファ付きで読む場合など) |
+| 注意 | 容量を増やしても、1 回の読み込みで、読み込み元が返すサイズ以上には、一度に読めない (ネットワークでは、届いた分だけ) |
+
+```rust
+use std::io::BufReader;
+
+fn main() {
+    // 64 KiB のバッファで、大きなファイルを読む
+    let data = [0u8; 4];
+    let reader = BufReader::with_capacity(64 * 1024, &data[..]);
+    println!("{}", reader.capacity()); // 65536
+}
+```
+
+<pre><code class="tips">容量を変えて、速くなるかどうかは、環境と読み込み元に依存する。変更する前に、実際のデータで、計測する。
+ほとんどの用途は、既定の容量 (BufReader::new) で、十分に速い。</code></pre>
+
+##### 他の型との関係
+
+| 型 | 内容 |
+| --- | --- |
+| `BufWriter<W>` | 書き込み側の対応する型。小さな `write` をまとめる。最後に `flush()` するか、`drop` で書き出される |
+| `LineWriter<W>` | 改行ごとに、書き出す (`stdout` の動作と、同じ考え方) |
+| `StdinLock` | すでに、バッファ付きで、`BufRead` を実装しているため、`BufReader` で包む必要がない |
+| `tokio::io::BufReader` | 非同期版。`AsyncBufReadExt` の `lines()` などと組み合わせて使う |
+
+<pre><code class="tips">ファイルを丸ごと読むだけなら、BufReader よりも、fs::read_to_string や fs::read の方が、簡潔で、読み込み回数も、少ない。
+BufReader は、行単位や、区切り単位で、少しずつ処理するときや、巨大なファイルを、メモリに載せずに処理するときに使う。</code></pre>
 
 ### std::env
 
@@ -6543,6 +6957,7 @@ while reader.read_line(&mut line)? > 0 {
 - **標準入力はすでにバッファ付き**: `io::stdin()` は内部でバッファリングされており、`stdin().lock()` は `BufRead` を実装している。そのため、標準入力に `BufReader` をかぶせる必要はない。
 - **書き込み側も同じ発想**: `File` への書き込みも、小さな `write!` を繰り返すとシステムコールが増える。大量に書く場合は `BufWriter` で包み、最後に `flush()` するか、スコープを抜けて `drop` させる。`stdout` は行バッファのため、1行ごとに出力が走る点も同様に意識しておくと安心。
 - **`BufReader` は大きな読み込みをバイパスする**: バッファより大きなサイズを一度に要求した場合、内部バッファを経由せず直接読み込まれる。そのため、「`BufReader` を使うと必ず余分なコピーが入る」というわけではなく、小さな読み込みを多数行うケースで効果が出る仕組み。
+- **`BufReader` の仕組み・メソッド・注意点の詳細**: <a href="#bufreader">BufReader</a> を参照。システムコールの回数の実測、`fill_buf` / `consume`、`into_inner` でバッファの未読データが失われる点などをまとめている。
 - **エラー文脈の付与**: ファイル読み込みのエラーは `No such file or directory` だけでは、どのファイルか分からない。先ほどの **anyhow** の `.context(format!("{path} を読み込めませんでした"))` を併用すると、原因の特定が格段に楽になる。
 
 ### ログ・トレーシング
