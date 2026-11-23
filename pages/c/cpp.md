@@ -5,7 +5,20 @@ layout: default
 
 # C++ <a id="top" data-name="TOP"></a>
 
-- C++は、C言語を基盤にオブジェクト指向プログラミングの概念を取り入れた プログラミング言語。
+- C++は、C言語を基盤にオブジェクト指向プログラミングの概念を取り入れたプログラミング言語。
+- 手続き型、オブジェクト指向、ジェネリックプログラミング(テンプレート)、関数型(ラムダ式)など、複数のパラダイムをサポートするマルチパラダイム言語。
+
+<div class="subtitle">規格のバージョン</div>
+
+| 規格 | 主な追加機能 |
+| --- | --- |
+| C++11 | `auto`、範囲for、ラムダ式、右辺値参照とムーブ、スマートポインタ、`constexpr`、`override`/`final`、`unordered_*`コンテナ、`<regex>`、`<random>` |
+| C++14 | auto戻り値推論、ジェネリックラムダ、`std::make_unique` |
+| C++17 | 初期化付きif/switch、構造化束縛、`inline`変数、`optional`/`variant`、`<filesystem>`、`[*this]`キャプチャ |
+| C++20 | コンセプト、`<format>`、`consteval`/`constinit`、`contains()`、`<=>`演算子 |
+| C++23 | `std::expected`、`std::print` |
+
+使用する規格はコンパイラのオプションで指定する(例: <span class="code-like">g++ -std=c++17 main.cpp</span>)。
 
 ---
 
@@ -28,6 +41,17 @@ autoを使って参照として型推論したい場合は次のように記述�
 
 ```cpp
 auto& 変数名 = 式;
+```
+
+<div class="subtitle">constや参照の扱い</div>
+
+`auto`だけで推論すると、初期値の`const`と参照は落とされる。
+
+```cpp
+const int x = 10;
+auto a = x;        // int(constは落ちる)
+const auto b = x;  // const int
+auto& c = x;       // const int&(参照で受けるとconstは保持される)
 ```
 
 
@@ -84,6 +108,16 @@ auto add(T a, U b) -> decltype(a + b) {
 
 C++14以降は[auto戻り値推論](#auto戻り値推論)で省略可能。
 
+<div class="subtitle">decltype(auto) <span class="label">C++14以降</span></div>
+
+`decltype`の規則で型推論する。参照や`const`を落とさずに推論したい時に使う。
+
+```cpp
+int x = 10;
+decltype(auto) a = x;    // int
+decltype(auto) b = (x);  // int&
+```
+
 ---
 
 ### 型に別の名前を与える
@@ -101,6 +135,15 @@ void foo(integer a){} // オーバーロードはできない
 
 ただし、あくまで別名も使えるだけなのでオーバーロードには使えない。
 
+従来の `typedef int integer;` と同じ働きだが、`using`はテンプレートのエイリアスも作れる。
+
+```cpp
+template <typename T>
+using Vec = std::vector<T>;
+
+Vec<int> v; // std::vector<int>
+```
+
 ---
 
 ### 型特性
@@ -112,22 +155,26 @@ void foo(integer a){} // オーバーロードはできない
 
 |テンプレート|説明|
 |---|---|
-|std::in_integral<T>::value|Tが整数型ならtrue|
+|std::is_integral<T>::value|Tが整数型ならtrue|
 |std::is_floating_point<T>::value|Tが浮動小数点数型ならtrue|
 |std::is_class<T>::value|Tがクラス型ならtrue|
-|std::is_pointer<T>value|Tがポインタ型ならtrue|
-|std::is_lvalue_reference<T>value|Tが左辺値参照型ならtrue|
-|std::is_rvalue_reference<T>value|Tが右辺値参照型ならtrue|
-|std::is_const<T>value|Tがconst付きの型ならtrue|
+|std::is_pointer<T>::value|Tがポインタ型ならtrue|
+|std::is_lvalue_reference<T>::value|Tが左辺値参照型ならtrue|
+|std::is_rvalue_reference<T>::value|Tが右辺値参照型ならtrue|
+|std::is_const<T>::value|Tがconst付きの型ならtrue|
 |std::is_signed<T>::value|Tが符号を扱える型ならtrue|
 |std::is_unsigned<T>::value|Tが符号なしの数値型ならtrue|
+|std::is_same<T, U>::value|TとUが同じ型ならtrue|
+|std::is_base_of<B, D>::value|BがDの基底クラスならtrue|
+
+<span class="label">C++17以降</span> では `::value` を省略できる変数テンプレート版(`std::is_integral_v<T>` など)も使える。
 
 述語のテンプレートは <span class="code-like">static_assert</span> と組み合わせるのが、基本的な使い方で、static_assertは、コンパイル時に条件式がfalseになると強制的にコンパイルエラーとなる構文。
 
 <pre><code class="example">template &lt;typename T&gt;
 class Vector2d {
     static_assert(std::is_signed&lt;T&gt;::value,
-                  "Tは符号を扱える整数型である必要があります。");
+                  "Tは符号付きの算術型である必要があります。");
     T x;
     T y;
 };</code></pre>
@@ -143,12 +190,26 @@ class Vector2d {
 | コンテナ | 特徴 |
 | --- | --- |
 | array<br>vector | 配列を表すコンテナで、arrayは固定長、vectorは可変長。要素は連続したメモリ領域に格納される。vectorは要素を追加する際にメモリの再確保と要素の再配置が起こりうる。 |
-| list<br>forward_list | 連結リストを表すコンテナで、froward_listは先頭方向から末尾方向へのみ要素を辿れる単方向リストで、listは先頭方向から末尾方向、末尾方向から先頭方向へ要素を辿れる双方向リスト。 |
+| list<br>forward_list | 連結リストを表すコンテナで、forward_listは先頭方向から末尾方向へのみ要素を辿れる単方向リストで、listは先頭方向から末尾方向、末尾方向から先頭方向へ要素を辿れる双方向リスト。 |
 | deque | 双方向キューを表すコンテナで、vectorとほぼ同じだが、先頭への挿入削除も高速に行える。 |
 | queue<br>priority_queue<br>stack | それぞれキュー、優先順位付きキュー、スタックを表すコンテナ。キューは末尾に要素を追加して、先頭から要素を取り出せるFIFOのコンテナ。優先順位付きキューは、高い優先順位を持つ要素から順に取り出せるキューで、デフォルトでは値が大きい要素ほど高い優先順位が割り当てられる。スタックは、末尾に要素を追加し、末尾要素から処理していくLIFOのコンテナ。 |
 | set<br>multiset<br>unordered_set<br>unordered_multiset | 集合を表す連想コンテナ。setとmultisetはキーの比較関数(デフォルトでは`<`演算子)に基づいて要素の挿入、削除時に自動的にソートする。unorderedコンテナの場合は、キーのハッシュを使用して要素が管理されるため順序を持たない分、高速な検索ができる。setとunordered_setは等価の要素を複数格納できない。multisetとunordered_multisetは複数格納できる。 |
 | map<br>multimap<br>unordered_map<br>unordered_multimap | setは値自体をキーとしていることに対して、mapではキーと値のペアで保持するという連想コンテナ。辞書とも呼ばれる。 |
 | basic_string | 文字列を格納するコンテナとして扱うことができ、標準アルゴリズムを使用できる。 |
+
+### コンテナの選び方(計算量の目安)
+
+| コンテナ | 要素へのアクセス | 先頭への挿入・削除 | 末尾への追加・削除 | 途中への挿入・削除 | 検索 |
+| --- | --- | --- | --- | --- | --- |
+| array | O(1) | - | - | - | O(n) |
+| vector | O(1) | O(n) | 償却O(1) | O(n) | O(n) |
+| deque | O(1) | O(1) | O(1) | O(n) | O(n) |
+| list | - | O(1) | O(1) | O(1)※ | O(n) |
+| forward_list | - | O(1) | - | O(1)※ | O(n) |
+| set / map | - | - | - | O(log n) | O(log n) |
+| unordered_set / unordered_map | - | - | - | 平均O(1) | 平均O(1) |
+
+※位置(イテレータ)が分かっている場合。迷ったらまず`vector`を使い、必要に応じて他のコンテナを検討する。
 
 ### 各コンテナ共通のメソッド
 
@@ -164,7 +225,8 @@ class Vector2d {
     <tr><td>rbegin(), rend()</td><td>逆順イテレータを取得</td></tr>
     <tr><td>crbegin(), crend()</td><td>const版逆順イテレータを取得</td></tr>
 </table>
-※queue, stack, priority_queueはbegin/endを持たない。
+※queue, stack, priority_queueはbegin/end(とclear())を持たない。<br>
+※forward_listは`size()`を持たない。arrayは固定長なので`clear()`を持たない。
 
 ### シーケンスコンテナ共通メソッド
 
@@ -173,6 +235,7 @@ class Vector2d {
     <tr><th>メソッド</th><th>説明</th></tr>
     <tr><td>front()</td><td>先頭要素への参照</td></tr>
     <tr><td>back()</td><td>末尾要素への参照(forward_list除く)</td></tr>
+    <tr><td>operator[](i), at(i)</td><td>添字で要素にアクセス(vector, array, dequeのみ。listとforward_listは不可)。at()は範囲外で例外</td></tr>
     <tr><td>push_back(value)</td><td>末尾に追加</td></tr>
     <tr><td>pop_back()</td><td>末尾から削除(forward_list除く)</td></tr>
     <tr><td>insert(pos, value)</td><td>指定位置に挿入</td></tr>
@@ -182,14 +245,16 @@ class Vector2d {
     <tr><td>emplace(pos, args...)</td><td>位置に直接構築して挿入</td></tr>
     <tr><td>emplace_back(args...)</td><td>末尾に直接構築して挿入</td></tr>
 </table>
-※forward_listだけはpush_front系メソッドのみ(単方向リストのため)
+※forward_listは`push_back()`や`insert()`、`erase()`を持たず、代わりに`push_front()`、`insert_after()`、`erase_after()`を使う(単方向リストのため)。<br>
+※`push_front()`系は`list`と`deque`にもある。<br>
+※arrayは固定長なので、要素数を変える操作(push_back, insert, erase, resizeなど)は持たない。
 
 ### 連想コンテナ共通
 
 <table>
-    <caption>set, map, multiset, multimap</caption>
+    <caption>set, map, multiset, multimap と、そのunordered版</caption>
     <tr><th>メソッド</th><th>説明</th></tr>
-    <tr><td>insert(value)</td><td>要素を挿入(重複を自動処理)</td></tr>
+    <tr><td>insert(value)</td><td>要素を挿入(重複を自動処理)。set/mapの戻り値は<code>pair&lt;iterator, bool&gt;</code>(boolは挿入できたかどうか)</td></tr>
     <tr><td>emplace(args...)</td><td>直接構築して挿入</td></tr>
     <tr><td>erase(pos or key)</td><td>イテレータまたはキー指定で削除</td></tr>
     <tr><td>find(key)</td><td>要素を検索</td></tr>
@@ -198,17 +263,21 @@ class Vector2d {
     <tr><td>upper_bound(key)</td><td>keyより大きい最初の要素イテレータ</td></tr>
     <tr><td>equal_range(key)</td><td>lower_boundとupper_boundのペア</td></tr>
     <tr><td>key_comp()/value_comp()</td><td>比較関数取得</td></tr>
+    <tr><td>extract(key)</td><td>要素を抜き出して保持(C++17~)</td></tr>
+    <tr><td>contains(key)</td><td>キーの存在確認(C++20~)</td></tr>
 </table>
+※`lower_bound()`、`upper_bound()`、`key_comp()`、`value_comp()`は順序付きコンテナ(set, map系)のみ。unorderedコンテナにはない。
 
-### 連想コンテナ(map系)特有
+### 連想コンテナ(map, unordered_map)特有
 
 <table>
     <tr><th>メソッド</th><th>説明</th></tr>
     <tr><td>operator[](key)</td><td>指定キーの要素参照(存在しなければ作成)</td></tr>
     <tr><td>at(key)</td><td>指定キーの要素参照(存在しなければ例外)</td></tr>
-    <tr><td>extract(key)</td><td>要素を抜き出して保持(C++17~)</td></tr>
-    <tr><td>contains(key)</td><td>キーの存在確認(C++20~)</td></tr>
+    <tr><td>insert_or_assign(key, value)</td><td>キーが無ければ挿入、あれば値を上書き(C++17~)</td></tr>
+    <tr><td>try_emplace(key, args...)</td><td>キーが無い場合だけ構築して挿入、あれば何もしない(C++17~)</td></tr>
 </table>
+※multimap, unordered_multimapは同じキーが複数あり得るため、`operator[]`と`at()`を持たない。
 
 ### コンテナアダプタ
 
@@ -217,12 +286,12 @@ class Vector2d {
     <tr><th>メソッド</th><th>説明</th></tr>
     <tr><td>push(value)</td><td>要素を追加</td></tr>
     <tr><td>emplace(args...)</td><td>直接構築して追加</td></tr>
-    <tr><td>pop()</td><td>要素を取り出して削除</td></tr>
+    <tr><td>pop()</td><td>先頭(queue)または最上位(stack/priority_queue)の要素を削除する。値は返さない</td></tr>
     <tr><td>front()</td><td>先頭要素を参照(queue)</td></tr>
     <tr><td>back()</td><td>末尾要素を参照(queue)</td></tr>
     <tr><td>top()</td><td>最上位要素を参照(stack/priority_queue)</td></tr>
 </table>
-※これらは内部コンテナ(通常deque)をラップしているためbegin()やinsert()などは非公開
+※これらは内部コンテナをラップしているため(queue, stackは通常deque、priority_queueは通常vector)begin()やinsert()などは非公開
 
 ### イテレータ
 イテレータは反復子とも呼ばれ、コンテナ内の各要素を参照するためのポインタのようなもの。
@@ -247,36 +316,332 @@ class Vector2d {
 ---
 
 ### 固定長配列 <br> `<array>`
+要素数がコンパイル時に決まる固定長の配列。組み込みの配列と同等の性能を持ちつつ、`size()`やイテレータなどのコンテナの機能が使える。
+
+```cpp
+#include <array>
+
+std::array<int, 3> a{1, 2, 3};
+
+a[0] = 10;    // 範囲チェックなし
+a.at(1) = 20; // 範囲外ならstd::out_of_range
+std::cout << a.size() << std::endl; // 3
+a.fill(0);    // 全要素を0にする
+```
+
+- 動的確保をせず、要素はオブジェクト自身の中(スタック上など)に格納される。
+- 要素数が型の一部なので、`std::array<int, 3>`と`std::array<int, 4>`は別の型。
+- 組み込みの配列と違い、関数に渡してもポインタに変換されない(値渡しだとコピーされる)。
+- <span class="label">C++17以降</span> は `std::array a{1, 2, 3};` のように型引数を省略できる。
+
+---
 
 ### 可変長配列 <br> `<vector>`
+最もよく使われるコンテナで、要素は連続したメモリ領域に格納される。末尾への追加が高速で、ランダムアクセスもできる。
+
+```cpp
+#include <vector>
+
+std::vector<int> v{1, 2, 3};
+std::vector<int> v2(5, 0); // 0が5個
+
+v.push_back(4);              // 末尾に追加
+v.emplace_back(5);           // 末尾に直接構築
+v.pop_back();                // 末尾を削除
+v.insert(v.begin() + 1, 10); // 途中への挿入(後ろの要素が移動するので遅い)
+v.erase(v.begin());          // 先頭の削除(同様に遅い)
+
+for (int x : v) std::cout << x << ' ';
+```
+
+<pre><code class="caution"><span class="code-like">std::vector&lt;int&gt; v(5, 0)</span> は0が5個、<span class="code-like">std::vector&lt;int&gt; v{5, 0}</span> は5と0の2要素になる。{}は初期化子リストが優先される。</code></pre>
+
+<div class="subtitle">サイズと容量</div>
+
+`size()`は要素数、`capacity()`は再確保せずに格納できる要素数。要素数が分かっている場合は`reserve()`で先に確保しておくと、再確保の回数を減らせる。
+
+```cpp
+std::vector<int> v;
+v.reserve(100); // 100個分のメモリを先に確保(sizeは0のまま)
+std::cout << v.size() << ", " << v.capacity() << std::endl; // 0, 100以上
+v.shrink_to_fit(); // 余分な容量を手放すことを要求する
+```
+
+<pre><code class="caution">要素の追加などで再確保が起こると、それまでに取得していたイテレータ、ポインタ、参照が全て無効になる。</code></pre>
+
+<div class="subtitle">条件に合う要素の削除</div>
+
+```cpp
+// C++20以降
+std::erase_if(v, [](int x) { return x % 2 == 0; });
+
+// C++17以前(erase-removeイディオム)
+v.erase(std::remove_if(v.begin(), v.end(), [](int x) { return x % 2 == 0; }), v.end());
+```
+
+---
 
 ### 単方向連結リスト <br> `<forward_list>`
+先頭から末尾方向へのみ辿れる連結リスト。`list`より省メモリ。
+
+```cpp
+#include <forward_list>
+
+std::forward_list<int> fl{1, 2, 3};
+
+fl.push_front(0);        // 先頭に追加 {0, 1, 2, 3}
+auto it = fl.begin();
+fl.insert_after(it, 10); // itの「後ろ」に挿入 {0, 10, 1, 2, 3}
+fl.erase_after(it);      // itの「後ろ」を削除 {0, 1, 2, 3}
+```
+
+- 単方向なので、挿入・削除は「指定した位置の後ろ」に対して行う(`insert_after`、`erase_after`)。
+- `size()`、`push_back()`、`back()`は無い。要素数は`std::distance(fl.begin(), fl.end())`で数える。
+
+---
 
 ### 双方向連結リスト <br> `<list>`
+先頭・末尾の両方向に辿れる連結リスト。位置が分かっていれば、途中への挿入・削除がO(1)で行え、他の要素のイテレータも無効にならない。
+
+```cpp
+#include <list>
+
+std::list<int> l{3, 1, 2};
+
+l.push_front(0);
+l.push_back(4);
+
+auto it = std::next(l.begin(), 2); // 2つ進める
+l.insert(it, 10);                  // itの前に挿入
+
+l.sort();     // メンバ関数のsort
+l.unique();   // 連続する重複を削除
+l.remove(3);  // 値が3の要素を全て削除
+
+std::list<int> other{7, 8};
+l.splice(l.end(), other); // otherの要素を、コピーせずにlの末尾へ移動
+```
+
+- ランダムアクセスができないので`l[0]`は使えず、`std::sort`も使えない(代わりにメンバ関数`sort()`を使う)。
+- 要素ごとにメモリ確保が発生し、メモリ上で連続しないため、`vector`よりキャッシュ効率が悪い。
+
+---
 
 ### 両端キュー <br> `<deque>`
+先頭と末尾の両方への追加・削除がO(1)で行えて、ランダムアクセスもできるコンテナ。
+
+```cpp
+#include <deque>
+
+std::deque<int> d{2, 3};
+
+d.push_front(1); // {1, 2, 3}
+d.push_back(4);  // {1, 2, 3, 4}
+std::cout << d[2] << std::endl; // 3
+```
+
+- 要素は複数のメモリブロックに分割して格納されるので、`vector`と違い全体が連続しているとは限らない。
+- `queue`と`stack`の標準の内部コンテナ。
+
+---
 
 ### キュー <br> `<queue>`
+末尾に追加して、先頭から取り出すFIFOのコンテナアダプタ。
+
+```cpp
+#include <queue>
+
+std::queue<int> q;
+q.push(1);
+q.push(2);
+q.push(3);
+
+std::cout << q.front() << std::endl; // 1(先頭)
+std::cout << q.back() << std::endl;  // 3(末尾)
+q.pop();                              // 先頭を削除
+std::cout << q.size() << std::endl;  // 2
+```
+
+<pre><code class="caution"><span class="code-like">pop()</span> は要素を削除するだけで値を返さない。値が必要な場合は、先に <span class="code-like">front()</span> で取得してから <span class="code-like">pop()</span> を呼ぶ。</code></pre>
+
+---
 
 ### 優先順位付きキュー <br> `<priority_queue>`
+優先順位が最も高い要素から取り出せるコンテナアダプタ。内部は`vector`上のヒープで、`top()`はO(1)、`push()`/`pop()`はO(log n)。
+
+```cpp
+#include <queue>
+
+std::priority_queue<int> pq; // 大きい値ほど優先順位が高い(最大ヒープ)
+pq.push(3);
+pq.push(10);
+pq.push(1);
+
+std::cout << pq.top() << std::endl; // 10
+pq.pop();
+std::cout << pq.top() << std::endl; // 3
+
+// 小さい値から取り出したい場合
+std::priority_queue<int, std::vector<int>, std::greater<int>> min_pq;
+```
+
+<div class="subtitle">独自の比較</div>
+
+```cpp
+using P = std::pair<int, std::string>;
+auto cmp = [](const P& a, const P& b) { return a.first > b.first; }; // firstが小さいほど優先
+std::priority_queue<P, std::vector<P>, decltype(cmp)> pq(cmp);
+```
+
+---
 
 ### スタック <br> `<stack>`
+末尾に追加して、末尾から取り出すLIFOのコンテナアダプタ。
+
+```cpp
+#include <stack>
+
+std::stack<int> s;
+s.push(1);
+s.push(2);
+s.push(3);
+
+std::cout << s.top() << std::endl; // 3
+s.pop();                            // 3を削除(値は返さない)
+std::cout << s.top() << std::endl; // 2
+```
+
+---
 
 ### 順序付き集合(重複不可) <br> `<set>`
+要素が常にソートされ、重複する要素を持たない集合。内部は平衡二分探索木で、挿入・削除・検索がO(log n)。
+
+```cpp
+#include <set>
+
+std::set<int> s{3, 1, 4, 1, 5}; // {1, 3, 4, 5} 自動でソート・重複削除
+
+auto [it, inserted] = s.insert(4); // insertedはfalse(既にある) 構造化束縛 C++17
+
+if (s.contains(3)) {}              // C++20
+if (s.find(3) != s.end()) {}       // C++17以前
+
+auto lb = s.lower_bound(3);        // 3以上で最初の要素
+s.erase(1);
+
+for (int x : s) std::cout << x << ' '; // 昇順で列挙
+```
+
+- 要素はソートの整合性を保つため、直接書き換えられない(`const`として扱われる)。変更する場合は一度`erase`して`insert`し直す。
+- 比較関数は変更できる: `std::set<int, std::greater<int>>`(降順)。
+
+---
 
 ### 順序付き集合(重複可能) <br> `<multiset>`
+`set`と同じだが、同じ値の要素を複数持てる。
+
+```cpp
+std::multiset<int> ms{1, 2, 2, 3};
+
+std::cout << ms.count(2) << std::endl; // 2
+
+auto [first, last] = ms.equal_range(2); // 2の範囲
+for (auto it = first; it != last; ++it) {}
+
+ms.erase(2);           // 値が2の要素を全て削除
+ms.erase(ms.find(2));  // 値が2の要素を1つだけ削除
+```
+
+---
 
 ### 順序なし集合(重複不可) <br> `<unordered_set>`
+ハッシュテーブルで管理する集合。順序は不定だが、検索・挿入・削除が平均O(1)で行える。
+
+```cpp
+#include <unordered_set>
+
+std::unordered_set<std::string> us{"apple", "banana"};
+us.insert("cherry");
+
+if (us.count("apple")) {}
+if (us.contains("apple")) {} // C++20
+```
+
+- `lower_bound()`などの順序に関するメソッドは無い。
+- 自作のクラスを要素にするには、ハッシュ関数(`std::hash`の特殊化など)と等価比較が必要。
+
+---
 
 ### 順序なし集合(重複可能) <br> `<unordered_multiset>`
+`unordered_set`と同じだが、同じ値の要素を複数持てる。同じ値の要素は、`equal_range()`でまとめて取得できる。
+
+---
 
 ### 順序付き連想配列(キーの重複不可) <br> `<map>`
+キーと値のペアを、キーでソートして保持する。要素の型は`std::pair<const Key, T>`で、`first`がキー、`second`が値。
+
+```cpp
+#include <map>
+
+std::map<std::string, int> m;
+
+m["apple"] = 100;                  // 無ければ作成して代入
+m.insert({"banana", 200});
+m.emplace("cherry", 300);
+m.insert_or_assign("apple", 150);  // C++17: あれば上書き
+m.try_emplace("apple", 1);         // C++17: あれば何もしない
+
+std::cout << m.at("apple") << std::endl; // 150(無ければ例外)
+
+if (auto it = m.find("banana"); it != m.end()) {
+    std::cout << it->second << std::endl; // 200
+}
+
+for (const auto& [key, value] : m) {  // キーの昇順 C++17
+    std::cout << key << ": " << value << std::endl;
+}
+
+m.erase("apple");
+```
+
+<pre><code class="caution"><span class="code-like">m[key]</span> は、キーが存在しない場合に要素を新しく作ってしまう(値は<code>int</code>なら0)。読み取りだけのつもりでも要素が増えるので、存在確認には <span class="code-like">find()</span> や <span class="code-like">contains()</span> を使う。また、<code>const</code>な<code>map</code>には使えない。</code></pre>
+
+---
 
 ### 順序付き連想配列(キーの重複可能) <br> `<multimap>`
+`map`と同じだが、同じキーの要素を複数持てる。`operator[]`と`at()`は使えない。
+
+```cpp
+std::multimap<std::string, int> mm;
+mm.insert({"a", 1});
+mm.insert({"a", 2});
+
+auto range = mm.equal_range("a"); // キーが"a"の範囲
+for (auto it = range.first; it != range.second; ++it) {
+    std::cout << it->second << std::endl; // 1, 2
+}
+```
+
+---
 
 ### 順序なし連想配列(キーの重複不可) <br> `<unordered_map>`
+`map`とほぼ同じAPIを持つが、ハッシュテーブルで管理するため順序は不定で、検索・挿入・削除が平均O(1)。
+
+```cpp
+#include <unordered_map>
+
+std::unordered_map<std::string, int> count;
+
+for (const std::string& w : {"a", "b", "a"}) {
+    ++count[w]; // 無ければ0で作られるので、出現回数の集計に便利
+}
+// count["a"] == 2, count["b"] == 1
+```
+
+---
 
 ### 順序なし連想配列(キーの重複可能) <br> `<unordered_multimap>`
+`unordered_map`と同じだが、同じキーの要素を複数持てる。`operator[]`と`at()`は使えない。
 
 
 
@@ -290,6 +655,14 @@ int a = 10;
 int b(20);
 int c{30};
 int d = {40};
+```
+
+`{}`による初期化は縮小変換(情報が失われる変換)をエラーにしてくれる。
+
+```cpp
+int e = 3.14; // OK(小数部が切り捨てられる)
+int f{3.14};  // エラー: 縮小変換
+int g{};      // 0で初期化される
 ```
 
 ---
@@ -320,6 +693,8 @@ constexpr int square(int x) {
 一方`constexpr`関数(コンストラクタも同様)の場合は引数がコンパイル時定数であればコンパイル時に評価され、引数が実行時に決まる値の場合は通常の関数として実行時に評価される。<br>
 ただし`constexpr`関数はコンパイル時に実行できることが前提なので、副作用を伴う処理や動的確保や実行時にしか決まらない値を使う場合には使えず、コンパイルエラーとなる。またコンストラクタに使用する場合、メンバが`vector`のように動的にメモリ確保する型は`constexpr`のオブジェクトとして構築できない。
 
+これらの制限は <span class="label">C++20以降</span> で緩和され、`constexpr`関数内での`new`や`std::vector`・`std::string`の利用が可能になった(ただしコンパイル時に確保したメモリは、コンパイル時のうちに解放する必要がある)。
+
 ---
 
 ### 左辺値と右辺値
@@ -330,12 +705,15 @@ constexpr int square(int x) {
 - 値を代入することができ、式の評価後もオブジェクトが存在し続ける。
 - &でアドレスが取れる。
 - 代入式の左側に置ける(名前の由来であり、必ずしも左限定ではない)。
+- `const`が付いた左辺値は、左辺値ではあるが代入はできない。
 
 <div class="subtitle">右辺値(rvalue)</div>
 
 - 一時的な値で、式が終わると消える。
 - 通常はアドレスを取れない。
 - 関数の戻り値やリテラル、計算結果など。
+
+C++11以降、値は正確には lvalue、xvalue(`std::move(x)`の結果など、中身を移動してよい値)、prvalue(リテラルや関数の戻り値などの純粋な一時値)に分類され、xvalueとprvalueを合わせて右辺値と呼ぶ。
 
 ---
 
@@ -358,6 +736,13 @@ r = 20;      // OK: xの値を変更できる
 - 参照は宣言時に初期化する必要がある。
 - 後から参照先を変更することはできない。
 - <span class="code-like">const</span> を付けると参照先の値を書き換えられなくなる。
+- 参照には`nullptr`のような「何も指さない状態」がない。
+- `const`参照は右辺値(一時オブジェクト)にも束縛でき、一時オブジェクトの寿命が参照の寿命まで延長される。関数の引数に`const T&`を使うのはこのため。
+
+```cpp
+const int& r1 = 10; // OK
+int& r2 = 10;       // エラー: 非constの左辺値参照は右辺値に束縛できない
+```
 
 ---
 
@@ -407,6 +792,24 @@ if (int result = func(); result == 0)
 
 とすると配列の要素の型に自動で推論される。
 
+<div class="subtitle">コピーと参照</div>
+
+```cpp
+std::vector<std::string> v{"a", "b"};
+
+for (auto s : v) { s += "!"; }          // コピーなので元の要素は変わらない
+for (auto& s : v) { s += "!"; }         // 参照なので元の要素も書き換わる
+for (const auto& s : v) { std::cout << s; } // 読み取るだけならconst参照がコピーも無く効率的
+```
+
+<span class="label">C++17以降</span> では構造化束縛を使って`map`の要素などを分解して受け取れる。
+
+```cpp
+for (const auto& [key, value] : m) {
+    std::cout << key << ": " << value << std::endl;
+}
+```
+
 ---
 
 ### switch文
@@ -450,10 +853,13 @@ int sum(int a, int b = 0, int c = 0)
     return a + b + c;
 }
 
-sum(4, 6) // 実引数を左から順番に渡し、cはデフォルト値が使われる
+sum(4, 6); // 実引数を左から順番に渡し、cはデフォルト値が使われる
 
-sum(5) // bとcがデフォルト値
+sum(5); // bとcがデフォルト値
 ```
+
+- デフォルト引数は右側の引数から連続して指定する必要がある(`int f(int a = 0, int b)`はエラー)。
+- 宣言と定義を分ける場合、デフォルト値は宣言側(通常はヘッダ)にだけ書く。
 
 ---
 
@@ -513,12 +919,12 @@ int main()
 
 <div class="subtitle">デフォルトコピーキャプチャ</div>
 <span class="code-like">```auto func = [=]() {}```</span><br>
-ラムダ式を定義した時点のスコープの全ての変数をコピーキャプチャする。<br>
-ラムダ式内で使っている変数をコンパイラが自動でキャプチャしてくれるのでパフォーマンスには影響しない。
+ラムダ式を定義した時点のスコープにある変数のうち、ラムダ式内で使っているものを全てコピーキャプチャする。<br>
+実際に使われている変数だけがキャプチャされるので、使っていない変数の分のコストはかからない。
 
 <div class="subtitle">デフォルト参照キャプチャ</div>
 <span class="code-like">```auto func = [&]() {}```</span><br>
-ラムダ式を定義した時点のスコープの全ての変数を参照キャプチャする。
+ラムダ式を定義した時点のスコープにある変数のうち、ラムダ式内で使っているものを全て参照キャプチャする。
 
 <div class="subtitle">組み合わせ</div>
 
@@ -529,6 +935,17 @@ int main()
 
 []の中にはどれをどのようにキャプチャするか指定できる。
 デフォルトは先頭に、`&`か`=`のいずれかしか置けない。
+
+<div class="subtitle">初期化キャプチャ <span class="label">C++14以降</span></div>
+
+キャプチャ時に新しい名前で初期化できる。`unique_ptr`のようにコピーできない値は、これでムーブキャプチャする。
+
+```cpp
+auto p = std::make_unique<int>(42);
+auto f = [q = std::move(p)]() { std::cout << *q << std::endl; };
+```
+
+<pre><code class="caution">参照キャプチャしたラムダ式を、キャプチャした変数のスコープの外(関数の戻り値など)へ持ち出すと、ぶら下がり参照となり未定義動作になる。</code></pre>
 
 ---
 
@@ -558,8 +975,7 @@ int main()
 
 - スコープ内の変数をキャプチャできる
 
-    関数に引数として渡さなくても、ラムダ式の外側で定義された変数を直接使える。特に関数オブジェクトや関数ポ
-    インタでは難しい、ローカル変数の取り込みが可能。
+    関数に引数として渡さなくても、ラムダ式の外側で定義された変数を直接使える。特に関数オブジェクトや関数ポインタでは難しい、ローカル変数の取り込みが可能。
 
     ```cpp
     #include <iostream>
@@ -626,7 +1042,8 @@ inline int square(int x)
 }
 ```
 
-クラス内定義の関数やテンプレート関数は暗黙的にinline扱いとなる。
+クラス内で定義したメンバ関数や`constexpr`関数は暗黙的にinline扱いとなる。
+テンプレートは`inline`ではないが、同様に複数のファイルで定義が重複していてもよい(ODRの例外)。
 
 <span class="label">C++17以降</span> では
 
@@ -640,11 +1057,33 @@ inline const int MAX_USERS = 100; // 複数のcppでincludeしてもOK
 <span class="label">C++11/14</span> では
 
 ```cpp
-constexpr int MAX_USERS = 100;  // これも暗黙にinlineになる
+constexpr int MAX_USERS = 100;  // 名前空間スコープのconst/constexpr変数は内部リンケージなので多重定義エラーにならない
 ```
 
-<pre><code class="caution"><span class="code-like">#define</span> は型安全ではないので、C++では可能な限り型安全な <span class="code-like">inline</span> を使うべき。
+ただし内部リンケージなので、includeしたファイルごとに別々の実体が作られる。実体を1つにしたい場合はC++17以降の`inline constexpr`を使う。
+
+<pre><code class="caution"><span class="code-like">#define</span> は型安全ではなくスコープも無視するので、C++では可能な限り`constexpr`変数や <span class="code-like">inline</span> 関数を使うべき。
 </code></pre>
+
+---
+
+### 名前空間
+名前空間は、識別子の衝突を避けるために名前をグループ化する仕組み。
+
+```cpp
+namespace mylib {
+    int add(int a, int b) { return a + b; }
+}
+
+mylib::add(1, 2);       // 名前空間を指定して呼ぶ
+using mylib::add;       // using宣言: 特定の名前だけを使えるようにする
+using namespace mylib;  // using指令: 名前空間の全てを使えるようにする
+namespace ml = mylib;   // 別名
+
+namespace a::b::c {}    // C++17: ネストした名前空間をまとめて定義
+```
+
+<pre><code class="caution">ヘッダファイルに <span class="code-like">using namespace std;</span> を書くと、そのヘッダをincludeした全てのファイルに影響して名前衝突の原因となるので避ける。</code></pre>
 
 ---
 
@@ -658,17 +1097,50 @@ namespace
 }
 ```
 
-なおC言語では <span class="code-like">static int secret = 123;</span> とすると内部リンケージとなり、他のファイルからはアクセスできない。
+なお <span class="code-like">static int secret = 123;</span> でも内部リンケージとなり、他のファイルからはアクセスできない(C言語ではこちらを使う)。
+ただし`static`はクラスなどの型には使えないため、C++では無名名前空間が推奨される。
 
 ---
 
 ## クラス <a id="class" data-name="クラス"></a>
 
 ### メンバ変数
+クラスの内部に持つデータ。通常は`private`にして、メンバ関数を通してアクセスさせる。
+
+```cpp
+class Person {
+public:
+    std::string name; // 外部から直接アクセスできる
+private:
+    int m_age;        // クラス内部(とフレンド)からのみアクセスできる
+};
+```
+
+| アクセス修飾子 | アクセスできる範囲 |
+| --- | --- |
+| `public` | どこからでも |
+| `protected` | クラス自身と派生クラス |
+| `private` | クラス自身とフレンド |
+
+`class`のデフォルトは`private`、`struct`のデフォルトは`public`。
 
 ---
 
 ### メンバ関数
+クラスに紐づいた関数。クラス内に定義すると暗黙的に`inline`となる。クラス外に定義する場合は`クラス名::`を付ける。
+
+```cpp
+class Counter {
+    int m_count = 0;
+public:
+    void increment() { ++m_count; } // クラス内で定義
+    int get() const;                // 宣言のみ
+};
+
+int Counter::get() const { return m_count; } // クラス外で定義
+```
+
+メンバ関数の末尾に`const`を付けると、メンバ変数を書き換えないことを保証する`const`メンバ関数になる。`const`オブジェクトからは`const`メンバ関数しか呼べない。なお、`mutable`を付けたメンバ変数は`const`メンバ関数内でも書き換えられる。
 
 ---
 
@@ -702,8 +1174,10 @@ public:
 
 <div class="subtitle">デフォルトコンストラクタの自動生成ルール</div>
 
-- メンバ変数が組み込み型であれば自分で定義しなくても自動で生成される(この場合、値はゴミ)。
+- ユーザー定義のコンストラクタが1つも無ければ、自分で定義しなくても自動で生成される。
+- 組み込み型のメンバは、`T obj;`では初期化されず不定値(ゴミ)となるが、`T obj{};`ではゼロ初期化される。
 - ユーザー定義のコンストラクタがあれば自動生成されない。
+- デフォルトコンストラクタを持たないメンバや基底クラスがある場合、自動生成されたものはdelete扱いとなり使えない。
 - 強制的に作らせる場合は <span class="code-like"> = default</span> を使う。
 
     ```cpp
@@ -765,11 +1239,17 @@ struct Foo {
     Foo(int i) : i{i} {}
 };
 
-Foo a = 10;  // Foo{int} が暗黙的に呼ばれる
+Foo a = 10;  // Foo(int) が暗黙的に呼ばれる
 ```
 
 ```cpp
-explicit Foo(int) : i{i} {}
+explicit Foo(int i) : i{i} {}
+```
+
+```cpp
+Foo a = 10;  // エラー(暗黙の変換は禁止される)
+Foo b{10};   // OK
+Foo c(10);   // OK
 ```
 
 特に理由がなければ <span class="code-like">explicit</span> を指定するようにした方がいい。
@@ -822,7 +1302,7 @@ int main()
 ```
 
 <div class="subtitle">メンバ関数としての単項・二項演算子</div>
-メンバ関数として単項演算子をオーバーロードする場合は、引数をひとつ渡す必要があるが、メンバ関数となる演算子のオーバーロードが対象のクラスと紐づいているので、暗黙的に <span class="code-like">this</span> ポインタがその対象となるオブジェクトを指す。つまり引数なしでオーバーロードすることにより記述できる。<br>
+メンバ関数として単項演算子をオーバーロードする場合、オペランドは1つ必要だが、メンバ関数は対象のオブジェクトと紐づいていて、暗黙的に <span class="code-like">this</span> ポインタがそのオペランドを指す。そのため引数なしで定義する。<br>
 一方、二項演算子の場合は左辺オペランドがクラス自身で右辺オペランドが関数の引数となる。
 
 <div class="subtitle">非メンバ関数としての単項・二項演算子</div>
@@ -852,6 +1332,21 @@ int main()
     std::cout << c.x << ", " << c.y << std::endl; // 4, 6
 }
 ```
+
+<div class="subtitle">前置・後置インクリメント</div>
+
+後置は、前置と区別するためにダミーの`int`引数を取る。
+
+```cpp
+class Counter {
+    int m_n = 0;
+public:
+    Counter& operator++() { ++m_n; return *this; }                     // 前置 ++c
+    Counter operator++(int) { Counter old = *this; ++m_n; return old; } // 後置 c++
+};
+```
+
+後置は変更前の値のコピーを返すため、特に理由が無ければ前置を使う方が効率的。
 
 <div class="subtitle">非メンバ関数として定義</div>
 特に左辺オペランドが自作クラスではない場合や、 <span class="code-like">&gt;&gt;/&lt;&lt;</span> のようなストリーム演算子でよく使われる。
@@ -916,20 +1411,22 @@ int main()
 | ------------------ | ------------------------------------------- |
 | 算術演算子         | `a++ a-- ++a --a +a -a a+b a-b a*b a/b a%b` |
 | シフト演算子       | `>> <<`                                     |
-| 比較演算子         | `== != < <= > >=`                           |
-| ビット演算子       | `& ^ ~`                                     |
-| 論理演算子         | `&& \| !`                                   |
+| 比較演算子         | `== != < <= > >= <=>`(`<=>`はC++20)           |
+| ビット演算子       | `& \| ^ ~`                                  |
+| 論理演算子         | `&& \|\| !`                                  |
 | ポインタ関係       | `*a &a -> ->*`                              |
 | new/delete         | `new new[] delete delete[]`                 |
 | カンマ演算子       | `,`                                         |
-| 代入演算子         | `= += -= *= /= %= <<=  >>= &= ^= =`         |
+| 代入演算子         | `= += -= *= /= %= <<= >>= &= \|= ^=`        |
 | 関数呼び出し演算子 | `()`                                        |
 | 添字演算子         | `[]`                                        |
+
+オーバーロードできない演算子は、`.`、`.*`、`::`、`?:`、`sizeof`、`typeid`など。また、新しい演算子を作ったり、演算子の優先順位や項数を変えたりすることはできない。
 
 ---
 
 ### メンバ変数の初期化
-C++ではクラスのメンバ変数を初期化する方法は大別して3のパターンがある。
+C++ではクラスのメンバ変数を初期化する方法は大別して3つのパターンがある。
 
 <div class="subtitle">クラス内初期化子</div>
 
@@ -960,8 +1457,8 @@ public:
 - コンストラクタの本体で代入するのではなく、直接初期化する。
 - 特にconstメンバ、参照メンバ、重いオブジェクト(std::stringなど)は必須。
 - 実際には以下の順序で動く
-  1. メンバ変数が宣言順に初期化される。
-  2. 初期化リストで指定したコンストラクタが呼ばれる。
+  1. 基底クラス、続いてメンバ変数が宣言順に初期化される(初期化リストに指定があればその値、なければクラス内初期化子、それも無ければデフォルト初期化)。
+  2. コンストラクタの本体が実行される。
 
 <span class="code-like">Foo(int n) : x(n) {}</span>
 
@@ -1006,7 +1503,7 @@ struct Bar {
 ---
 
 ### staticメンバ変数
-staticメンバ変数はメンバ変数の一種だが、特定のインスタンスと紐づかずに、クラスと紐づく。つまりインスタンが無くてもアクセスができるということ。<br>
+staticメンバ変数はメンバ変数の一種だが、特定のインスタンスと紐づかずに、クラスと紐づく。つまりインスタンスが無くてもアクセスができるということ。<br>
 メンバ変数の宣言時に <span class="code-like">static</span> を付けることで宣言することができ、そのままではメモリの割り当てが行われないので、クラス外(通常関数の定義を行う場所)で定義する必要がある。
 
 ```cpp
@@ -1026,7 +1523,7 @@ A::A() : A(0) {}
 
 staticメンバ変数はアクセス修飾子の影響を受ける。
 
-<span class="label">C++17以降</span> では <span class="code-like">inline</span> を付けることでヘッダに書くことがでる。
+<span class="label">C++17以降</span> では <span class="code-like">inline</span> を付けることでヘッダに書くことができる。
 
 ```cpp
 class Foo {
@@ -1065,9 +1562,12 @@ int main()
     A a(10);
     a.printCount(); // インスタンスからも呼べる
     A b{};
-    a.printCount();
+    b.printCount();
 }
 ```
+
+- `this`ポインタを持たないので、非staticなメンバ変数・メンバ関数には直接アクセスできない。
+- `const`や`virtual`を付けることはできない。
 
 ---
 
@@ -1119,6 +1619,8 @@ int main() {
 }
 ```
 
+<pre><code class="caution">コピー省略(RVO)の最適化により、<span class="code-like">create_data()</span> の結果は「Moved」と表示されず、ムーブ自体が省略されることが多い(C++17以降は、戻り値が一時オブジェクトの場合のコピー省略は必須)。ムーブの動作を確認したい場合は <span class="code-like">MyData c = std::move(a);</span> のように明示する。</code></pre>
+
 <div class="subtitle">右辺値参照のオーバーロード</div>
 右辺値参照はオーバーロードすることができる。
 
@@ -1128,12 +1630,12 @@ using namespace std;
 
 void show(int &v)
 {
-    cout << "参照: " << i << endl;
+    cout << "参照: " << v << endl;
 }
 
 void show(int &&v)
 {
-    cout << "右辺値参照: " << i << endl;
+    cout << "右辺値参照: " << v << endl;
 }
 
 int main()
@@ -1174,7 +1676,8 @@ public:
     {
         other.m_land = nullptr; // ムーブ元のポインタを空にする
     }
-    int *land() con     st { return m_land; }
+    ~Home() { delete[] m_land; } // 解放(ムーブ元はnullptrなのでdeleteしても安全)
+    int *land() const { return m_land; }
 };
 
 int main()
@@ -1187,6 +1690,67 @@ int main()
     std::cout << "Bのアドレス: " << B.land() << std::endl;
     std::cout << "所有権が変わった後のAのアドレス: " << A.land() << std::endl;
 }
+```
+
+---
+
+### 特殊メンバ関数(Rule of 3/5/0)
+コンパイラが自動生成する場合のある、次の5つの関数を特殊メンバ関数と呼ぶ。
+
+| 関数 | 宣言 |
+| --- | --- |
+| コピーコンストラクタ | `T(const T&)` |
+| コピー代入演算子 | `T& operator=(const T&)` |
+| ムーブコンストラクタ | `T(T&&) noexcept` |
+| ムーブ代入演算子 | `T& operator=(T&&) noexcept` |
+| デストラクタ | `~T()` |
+
+- 動的確保したメモリなどのリソースを自分で管理するクラスでは、これらを全て自分で定義する(Rule of Three。C++11以降はムーブも含めて Rule of Five)。
+- 逆に、リソース管理を標準コンテナやスマートポインタに任せれば、どれも書かなくて済む(Rule of Zero)。可能な限りこちらを選ぶ。
+- ムーブコンストラクタを宣言するとコピーコンストラクタは暗黙にdeleteされ、デストラクタやコピー操作を宣言するとムーブ操作は自動生成されない。
+
+```cpp
+class Buffer {
+    int* m_data;
+    std::size_t m_size;
+
+public:
+    explicit Buffer(std::size_t n) : m_data{new int[n]{}}, m_size{n} {}
+    ~Buffer() { delete[] m_data; }
+
+    // コピー: 中身を複製する
+    Buffer(const Buffer& other) : m_data{new int[other.m_size]}, m_size{other.m_size}
+    {
+        std::copy(other.m_data, other.m_data + m_size, m_data);
+    }
+    Buffer& operator=(const Buffer& other)
+    {
+        if (this != &other) {
+            Buffer tmp{other}; // コピーを作って
+            std::swap(m_data, tmp.m_data); // 入れ替える(tmpのデストラクタが古い中身を解放)
+            std::swap(m_size, tmp.m_size);
+        }
+        return *this;
+    }
+
+    // ムーブ: 所有権を奪う
+    Buffer(Buffer&& other) noexcept : m_data{other.m_data}, m_size{other.m_size}
+    {
+        other.m_data = nullptr;
+        other.m_size = 0;
+    }
+    Buffer& operator=(Buffer&& other) noexcept
+    {
+        if (this != &other) {
+            delete[] m_data;
+            m_data = other.m_data;
+            m_size = other.m_size;
+            other.m_data = nullptr;
+            other.m_size = 0;
+        }
+        return *this;
+    }
+};
 ```
 
 ---
@@ -1215,7 +1779,9 @@ void A::set_i(int value)
 
 このように非const関数でthisポインタをキャプチャすると、メンバ変数を書き換えることができる。
 
-逆にメンバ変数の読み取りのみで、書き換えを禁止したい場合はメンバ関数自体にconst指定するか、 <span class="label">C++17以降</span> であれば <span class="code-like">*this</span> によりコピーキャプチャとなる。
+<pre><code class="caution"><span class="code-like">[=]</span> はC++17までthisも暗黙にキャプチャしていたが、C++20で非推奨となった。thisが必要な場合は <span class="code-like">[=, this]</span> のように明示する。</code></pre>
+
+逆にメンバ変数の読み取りのみで、書き換えを禁止したい場合はメンバ関数自体にconst指定するか、 <span class="label">C++17以降</span> であれば <span class="code-like">*this</span> によりコピーキャプチャとなる(`mutable`を付ければコピーを書き換えられるが、元のオブジェクトには影響しない)。
 
 ```cpp
 class A
@@ -1244,7 +1810,7 @@ void A::set_i(int value)
 <span class="label">C++14以前</span> で同様の事をしたい場合は、手動でコピーする。
 
 ```cpp
-void A::set_i(int value) const
+void A::set_i(int value)
 {
     auto copy = *this; // 手動でコピー
     [copy, value]() mutable
@@ -1314,6 +1880,8 @@ int main() {
     }
 }</code></pre>
 
+<pre><code class="caution">boolへの変換関数は、<span class="code-like">explicit operator bool() const</span> にするのが定石。explicitを付けると <span class="code-like">if (h)</span> のような条件式の文脈でだけ変換され、<span class="code-like">h + 1</span> や <span class="code-like">int n = h;</span> のような意図しない暗黙変換を防げる。なお、この例はコピーすると二重解放になるため、実用ではコピーの禁止などが必要。</code></pre>
+
 <span class="code-like">explicit</span> を指定しなかった場合、ここではこの型のオブジェクトが必要であるとコンパイラが判断した時に変換関数が呼ばれる。
 
 <pre><code class="example">class Vector4d {
@@ -1378,7 +1946,7 @@ template <typename T, typename T2, ...> // 定義
 
 ```cpp
 template <typename T>
-T multiply_add(T a, T b, T c) { // 戻り値の型にも仮引数似も使える
+T multiply_add(T a, T b, T c) { // 戻り値の型にもテンプレート仮引数を使える
     T r = a * b + c; // ローカル変数にも使える
     return r;
 }
@@ -1388,6 +1956,8 @@ int main() {
     std::cout << multiply_add(1.5, 2.1, 5.5) << std::endl; // <float>のように型を指定しない場合は型推論となる。
 }
 ```
+
+型を指定しない場合、引数の型が食い違う(例えば`multiply_add(1, 2.5, 3)`)と推論できずコンパイルエラーとなる。その場合は`multiply_add<double>(1, 2.5, 3)`のように型を明示する。
 
 <div class="subtitle">クラスに使う場合</div>
 
@@ -1430,6 +2000,38 @@ int main() {
 }
 ```
 
+<div class="subtitle">クラステンプレートの実引数推論 <span class="label">C++17以降</span></div>
+
+コンストラクタの引数からクラステンプレートの型引数を推論できる。
+
+```cpp
+std::pair p{1, 2.5};    // std::pair<int, double>
+std::vector v{1, 2, 3}; // std::vector<int>
+```
+
+<div class="subtitle">コンセプト <span class="label">C++20以降</span></div>
+
+テンプレート引数に制約を付ける機能。条件を満たさない型を渡すと、分かりやすいエラーメッセージで弾いてくれる。
+
+```cpp
+#include <concepts>
+
+template <std::integral T>
+T twice(T x) { return x * 2; }
+
+// requires節でも書ける
+template <typename T>
+    requires std::floating_point<T>
+T half(T x) { return x / 2; }
+
+// 独自のコンセプト
+template <typename T>
+concept Addable = requires(T a, T b) { a + b; };
+
+twice(3);   // OK
+twice(3.0); // エラー: doubleはstd::integralを満たさない
+```
+
 ---
 
 ## 修飾子 <a id="modifier" data-name="修飾子"></a>
@@ -1442,8 +2044,8 @@ int main() {
 | `volatile` | 最適化禁止(ハードウェアレジスタなど) | `volatile int flag;` |
 | `mutable` | constメンバ関数内でも変更可能にする | `mutable int cache;` |
 | `constexpr` | コンパイル時に評価可能 | `constexpr int square(int n){return n*n;}` |
-| `consteval` | 常にコンパイル時に評価 | `consteval int id(){return 42;}` |
-| `constinit` | 静的変数の初期化をコンパイル時に保証   | `constinit int x = 10;` |
+| `consteval` | 常にコンパイル時に評価(C++20) | `consteval int id(){return 42;}` |
+| `constinit` | 静的変数の初期化をコンパイル時に保証(C++20)   | `constinit int x = 10;` |
 
 ### 記憶領域・寿命
 
@@ -1463,7 +2065,7 @@ int main() {
 | `final`    | 継承/オーバーライド禁止     | `class A final {};`         |
 | `explicit` | 暗黙変換を禁止          | `explicit MyClass(int x);`  |
 | `friend`   | 外部関数/クラスからアクセス可能 | `friend void debug();`      |
-| `inline`   | 複数定義可(内部リンク対策)   | `inline int f(){return 1;}` |
+| `inline`   | 複数の翻訳単位に同一の定義があってもよい(ODR違反の回避)   | `inline int f(){return 1;}` |
 
 ### 関数(文法・例外・呼び出し)
 
@@ -1472,6 +2074,8 @@ int main() {
 | `noexcept`      | 例外を投げない     | `void f() noexcept;`        |
 | `[[nodiscard]]` | 戻り値を無視すると警告 | `[[nodiscard]] int calc();` |
 | `[[noreturn]]`  | 戻らない関数      | `[[noreturn]] void exit();` |
+| `[[maybe_unused]]` | 未使用でも警告しない(C++17) | `[[maybe_unused]] int x;` |
+| `[[deprecated]]` | 非推奨を警告する(C++14) | `[[deprecated("使わないで")]] void old();` |
 
 
 ### ポインタ・参照
@@ -1481,14 +2085,14 @@ int main() {
 | `*`                | ポインタ                            | `int *p;`        |
 | `&`                | 参照                              | `int &r = x;`    |
 | `&&`               | 右辺値参照                           | `int &&tmp = 3;` |
-| `const` の位置で意味が変わる | `const int*` と `int* const` は違う |                  |
+| `const` の位置 | `const int*`はポインタの指す先が定数、`int* const`はポインタ自体が定数 | `const int* p;` / `int* const q = &x;` |
 
 ### テンプレート・特殊化
 
 | 修飾子                    | 意味          | 例                                 |
 | :--------------------- | :---------- | :-------------------------------- |
 | `typename`             | 型名であることを明示  | `typename T::value_type`          |
-| `template`             | テンプレート名だと明示 | `template<typename U> void f();`  |
+| `template`             | テンプレートの宣言。また、メンバがテンプレートだと明示 | `template<typename U> void f();` / `obj.template foo<int>();` |
 | `concept` / `requires` | 制約付きテンプレート  | `template<Integral T> void f(T);` |
 
 ### その他
@@ -1499,7 +2103,6 @@ int main() {
 | `alignof`  | アラインメント取得 | `alignof(int)`       |
 | `decltype` | 型を推論      | `decltype(x+y) z;`   |
 | `auto`     | 型推論       | `auto i = 42;`       |
-| `register` | (今は意味なし)  | `register int i;`    |
 
 ---
 
@@ -1507,14 +2110,24 @@ int main() {
 あるクラスの異なる部分を追加、変更してクラスを再利用することを継承という。<br>
 継承すると基底クラスのメンバ変数とメンバ関数を全て引き継ぐ。
 
-<span class="subtitle">基本構文</span>
+<div class="subtitle">基本構文</div>
 
 ```cpp
 class 派生クラス名 : アクセス修飾子 基底クラス名
 {
     // クラス本体
-}
+};
 ```
+
+アクセス修飾子を省略した場合、`class`では`private`継承、`struct`では`public`継承となる。継承のアクセス修飾子によって、基底クラスのメンバが派生クラスでどのアクセス権になるかが決まる。
+
+| 継承方法 | 基底の`public` | 基底の`protected` |
+| --- | --- | --- |
+| `public` | `public` | `protected` |
+| `protected` | `protected` | `protected` |
+| `private` | `private` | `private` |
+
+基底クラスの`private`メンバは、どの継承方法でも派生クラスからアクセスできない。
 
 ---
 
@@ -1559,6 +2172,26 @@ class B : public A
 };
 ```
 
+<div class="subtitle">仮想デストラクタ</div>
+
+基底クラスのポインタ経由で派生クラスのオブジェクトを`delete`する場合、基底クラスのデストラクタが`virtual`でないと派生クラスのデストラクタが呼ばれず、未定義動作となる。継承して使うクラスのデストラクタは`virtual`にする。
+
+```cpp
+class Base {
+public:
+    virtual ~Base() = default; // 仮想デストラクタ
+};
+
+class Derived : public Base {
+    int* m_p = new int[10];
+public:
+    ~Derived() override { delete[] m_p; }
+};
+
+Base* p = new Derived;
+delete p; // Derived、Baseの順にデストラクタが呼ばれる
+```
+
 
 ---
 
@@ -1570,6 +2203,7 @@ virtual 戻り値の型 関数名([引数]) = 0; // 純粋仮想関数
 ```
 
 純粋仮想関数が宣言されたクラスは抽象クラスとなり、インスタンス化ができなくなる。
+純粋仮想関数だけを持つクラスは、他の言語のインターフェースのように使われる。なお、純粋仮想関数にも基底クラス側に定義を書くことができ、派生クラスから明示的に呼び出せる。
 
 ---
 
@@ -1649,6 +2283,20 @@ catch (...) {
 }
 ```
 
+- `catch`は上から順に判定されるので、派生クラスの例外を先に、基底クラス(`std::exception`など)を後に書く。
+- 例外は`const&`で受け取る(値で受け取るとスライシングが起きる)。
+- `catch`の中で`throw;`とすると、捕捉した例外をそのまま再送出できる。
+
+```cpp
+try {
+    throw MyError{"何かが起きた"};
+}
+catch (const MyError& e) {
+    std::cerr << e.what() << std::endl;
+    throw; // 再送出
+}
+```
+
 ### optional <br> `<optional>` <span class="label">C++17</span>
 `std::optional`はC++17で導入された、値が存在するかもしれないし、存在しないかもしれない状態を表現するためのテンプレートクラス。
 
@@ -1684,9 +2332,10 @@ int main() {
 | メソッド | 説明 |
 |---|---|
 | opt.has_value() | 値を持っているか確認 |
-| opt.value() | 値を取得なければ例外(std::bad_optional_access) |
+| opt.value() | 値を取得。なければ例外(std::bad_optional_access) |
 | opt.value_or(default) | 値があれば取得、なければデフォルトを返す |
 | reset() | 値をクリアする |
+| opt.emplace(args...) | 値を直接構築して格納する |
 
 <div class="subtitle">値へのアクセス</div>
 
@@ -1703,13 +2352,37 @@ int val2 = *opt;
 int val3 = opt.value_or(0);  // 値がなければ0
 ```
 
+### expected <br> `<expected>` <span class="label">C++23</span>
+`std::expected<T, E>`は、成功時の値(`T`)か、失敗時のエラー情報(`E`)のどちらかを持つ型。`optional`と違い、失敗の理由も返せる。
+
+```cpp
+#include <expected>
+#include <string>
+
+std::expected<int, std::string> parse_positive(int n) {
+    if (n <= 0) {
+        return std::unexpected("正の数ではありません"); // エラーを返す
+    }
+    return n; // 成功
+}
+
+int main() {
+    auto r = parse_positive(-1);
+    if (r) {
+        std::cout << *r << std::endl;
+    } else {
+        std::cout << r.error() << std::endl; // 正の数ではありません
+    }
+}
+```
+
 ## プリプロセッサ <a id="preprocessor" data-name="プリプロセッサ"></a>
 プリプロセッサディレクティブは、コンパイルの前段階でソースコードに対して特定の処理を行う仕組み。<br>
 プリプロセッサの仕様はCとC++でほぼ同じで、実装された時期に違いがある。
 
 |仕様|実装|
 |---|---|
-|#pragma once|Cでは実装依存。C++では一般的な構文|
+|#pragma once|C/C++とも標準規格外だが、主要なコンパイラが対応していて広く使われる|
 |可変引数マクロ|C++11以降|
 |`__func__`|C++11以降|
 
@@ -1744,14 +2417,18 @@ delete[] arr;             // 配列はdelete[]
 C++11以降は`RAII(Resource Acquisition Is Initialization)`を活用して、自動的に解放する方法が主流。
 
 <div class="subtitle">std::unique_ptr</div>
-単一所有権。コピー不可。スコープ終了時に自動解放。
+単一所有権。コピー不可(ムーブは可能)。スコープ終了時に自動解放。
 
 ```cpp
 #include <memory>
 
 auto p = std::make_unique<int>(42);     // 自動解放
 auto arr = std::make_unique<int[]>(10); // 配列もOK
+
+auto q = std::move(p); // 所有権の移動(以降pはnullptr)
 ```
+
+`std::make_unique`は <span class="label">C++14</span> で追加されたもので、C++11では `std::unique_ptr<int>(new int(42))` と書く。
 
 <div class="subtitle">std::shared_ptr</div>
 参照カウント方式で複数所有可能。最後の所有者が消えると解放。
@@ -1760,10 +2437,21 @@ auto arr = std::make_unique<int[]>(10); // 配列もOK
 #include <memory>
 
 auto p = std::make_shared<int>(42);
+auto p2 = p;                      // コピーすると所有者が増える
+std::cout << p.use_count() << std::endl; // 2(参照カウント)
 ```
 
 <div class="subtitle">std::weak_ptr</div>
 shared_ptrの弱参照(所有権なし、循環参照回避)
+
+```cpp
+auto sp = std::make_shared<int>(42);
+std::weak_ptr<int> wp = sp;
+
+if (auto locked = wp.lock()) { // まだ有効ならshared_ptr、解放済みならnullptr
+    std::cout << *locked << std::endl;
+}
+```
 
 ---
 
@@ -1784,7 +2472,7 @@ std::vector<int> v(10, 42); // 内部で動的確保
 ```cpp
 #include <new>
 
-char buf[sizeof(int)];
+alignas(int) char buf[sizeof(int)]; // アラインメントを揃える
 int* p = new(buf) int(42); // buf内にint構築
 p->~int();                 // 明示的にデストラクタ呼び出し
 ```
@@ -1797,9 +2485,32 @@ p->~int();                 // 明示的にデストラクタ呼び出し
 
 ## 標準入出力 <a id="iostream" data-name="標準入出力"></a> <br> `<iostream>`
 
+| オブジェクト | 説明 |
+| --- | --- |
+| std::cin | 標準入力 |
+| std::cout | 標準出力 |
+| std::cerr | 標準エラー出力(バッファリングされない) |
+| std::clog | 標準エラー出力(バッファリングされる) |
+
+```cpp
+int n;
+std::string s;
+std::cin >> n >> s; // 空白区切りで読み込む
+
+if (!std::cin) {
+    // 読み込みに失敗(型が合わない、EOFなど)
+}
+
+std::cout << "n=" << n << ", s=" << s << '\n';
+```
+
+`std::endl`は改行に加えて出力のフラッシュも行うので、頻繁に使うと遅くなる。フラッシュが不要なら`'\n'`を使う。
+
+<pre><code class="caution"><span class="code-like">&gt;&gt;</span> で読み込んだ後に <span class="code-like">getline</span> を使うと、直前の改行が残っていて空行が読み込まれる。<span class="code-like">std::cin.ignore(std::numeric_limits&lt;std::streamsize&gt;::max(), '\n');</span> で読み捨ててから <span class="code-like">getline</span> を呼ぶ。</code></pre>
+
 ### istreamから1行読み込む<br>`std::istream& getline(std::istream& input, std::string& str);`
 
-## ファイル入出力 <a id="fstream>" data-name="ファイル入出力"></a> <br> `<fstream>`
+## ファイル入出力 <a id="fstream" data-name="ファイル入出力"></a> <br> `<fstream>`
 
 ファイルをオープンするときは、基本は用途に応じてコンストラクタを使い分ける。
 
@@ -1903,7 +2614,7 @@ int main() {
     }<br>
     std::string line;
     while (std::getline(ifs, line)) {  // 行単位で読む
-        std::vector<std::string> fields;
+        std::vector&lt;std::string&gt; fields;
         std::stringstream ss(line);    // 行をストリームとして扱う
         std::string field;<br>
         while (std::getline(ss, field, ',')) {  // ',' 区切りで読む
@@ -1940,7 +2651,7 @@ fs::path p3(std::string("dir/file.txt")); // 文字列から生成</code></pre>
 
 p = "file.txt"; // operator= 文字列から
 p = std::string("file2.txt");
-p.assign("file3.txt") // 代入と同様</code></pre>
+p.assign("file3.txt"); // 代入と同様</code></pre>
 
 <div class="subtitle">連結</div>
 <pre><code>fs::path p1("dir");
@@ -1949,12 +2660,12 @@ p1 /= "file.txt"; // "dir/subdir/file.txt"
 // osの区切り文字を自動で使う
 
 fs::path p2("dir");
-p.append("subdir");  // "dir/subdir"
-p.append("file.txt"); // "dir/subdir/file.txt"
+p2.append("subdir");  // "dir/subdir"
+p2.append("file.txt"); // "dir/subdir/file.txt"
 // /=とほぼ同じ
 
 fs::path p3("file");
-p += ".txt"; // "file.txt"
+p3 += ".txt"; // "file.txt"
 // 単純な文字列の連結で、区切り文字は付加されない</code></pre>
 
 <div class="subtitle">置換</div>
@@ -2079,6 +2790,35 @@ for (auto &entry : fs::recursive_directory_iterator("/mnt/h", fs::directory_opti
 
 ---
 
+### ファイル・ディレクトリの操作
+
+| 関数 | 説明 |
+| --- | --- |
+| fs::create_directory(p) | ディレクトリを1つ作成する(親が無いと失敗) |
+| fs::create_directories(p) | 途中のディレクトリも含めて作成する |
+| fs::copy_file(from, to, options) | ファイルをコピーする(既存のファイルを上書きするには`fs::copy_options::overwrite_existing`が必要) |
+| fs::copy(from, to, options) | ファイルやディレクトリをコピーする(`fs::copy_options::recursive`で再帰的にコピー) |
+| fs::rename(old, new) | 名前の変更や移動をする |
+| fs::remove(p) | ファイルまたは空のディレクトリを削除する(削除したらtrueを返す) |
+| fs::remove_all(p) | ディレクトリを中身ごと削除する(削除した数を返す) |
+| fs::file_size(p) | ファイルサイズを返す |
+| fs::last_write_time(p) | 最終更新時刻を返す |
+| fs::current_path() | カレントディレクトリを返す(引数を渡すと変更する) |
+| fs::absolute(p) | 絶対パスを返す |
+| fs::canonical(p) | シンボリックリンクを解決した正規の絶対パスを返す(パスが存在する必要がある) |
+
+これらの関数は失敗すると`fs::filesystem_error`例外を送出する。最後の引数に`std::error_code`を渡すオーバーロードを使うと、例外を送出せずにエラーを受け取れる。
+
+```cpp
+std::error_code ec;
+fs::create_directories("a/b/c", ec);
+if (ec) {
+    std::cerr << ec.message() << std::endl;
+}
+```
+
+---
+
 ## 文字列 <a id="string" data-name="文字列"></a> <br> `<string>`
 
 ### 生成と結合
@@ -2088,7 +2828,9 @@ std::string s1;                // 空文字列
 std::string s2 = "Hello";      // 文字列リテラルから
 std::string s3(5, 'x');        // "xxxxx"
 s1 = "World";                  // 代入
+```
 
+```cpp
 std::string s1 = "Hello";
 std::string s2 = "World";
 std::string s3 = s1 + " " + s2;  // "Hello World"
@@ -2135,8 +2877,8 @@ for (char c : s) {
 <table>
     <caption>検索</caption>
     <tr><th>メソッド</th><th>説明</th></tr>
-    <tr><td>s.find("keyword")</td><td>キーワードが見つかれば整数で位置を返す<br>見つからなければstd::string::npoを返す</td></tr>
-    <tr><td>s.rfind("keyword")</td><td>後ろから検索して、後ろからの位置を返す<br>見つからなければstd::string::npoを返す</td></tr>
+    <tr><td>s.find("keyword")</td><td>キーワードが見つかれば整数で位置を返す<br>見つからなければstd::string::nposを返す</td></tr>
+    <tr><td>s.rfind("keyword")</td><td>後ろから検索して、最後に見つかった位置(先頭からのインデックス)を返す<br>見つからなければstd::string::nposを返す</td></tr>
     <tr><td>s.starts_with("keyword")</td><td>sの先頭がkeywordと一致したらtrueを返す</td></tr>
     <tr><td>s.ends_with("keyword")</td><td>sの末尾がkeywordと一致したらtrueを返す</td></tr>
 </table>
@@ -2174,10 +2916,12 @@ std::cout << s;  // "a_b_c_d"
     <tr><th>メソッド</th><th>説明</th></tr>
     <tr><td>std::stoi(s)</td><td>整数文字列をint型に変換して返す</td></tr>
     <tr><td>std::stod("3.14")</td><td>小数文字列をdouble型に変換して返す</td></tr>
-    <tr><td>std::to_string(num)</td><td>numを文字列に変換して返す</td></tr>
+    <tr><td>std::stol(s)<br>std::stoll(s)<br>std::stof(s)</td><td>それぞれlong、long long、float型に変換して返す</td></tr>
     <tr><td>std::to_string(num)</td><td>numを文字列に変換して返す</td></tr>
     <tr><td>s.c_str()</td><td>sをC互換文字列へ変換</td></tr>
 </table>
+
+`std::stoi()`などは、変換できない場合は`std::invalid_argument`、範囲外の場合は`std::out_of_range`を送出する。
 
 <table>
     <caption>その他</caption>
@@ -2185,6 +2929,8 @@ std::cout << s;  // "a_b_c_d"
     <tr><td>s.substr(i, n)</td><td>sのi番目からn文字取り出して返す</td></tr>
     <tr><td>s.compare("target")</td><td>sとtargetを辞書順で比較して、等しければ0、小さければ負数、大きければ正の整数を返す</td></tr>
 </table>
+
+`s.substr(i, n)`は、iが文字列のサイズより大きいと`std::out_of_range`を送出する。
 
 ### 小文字・大文字化
 `<cctype>`に`std::toupper`と`std::tolower`がある。<br>
@@ -2203,6 +2949,20 @@ std::string to_upper(const std::string& s) {
     return result;
 }
 ```
+
+### string_view <span class="label">C++17</span> <br> `<string_view>`
+文字列を所有せず、参照だけをする軽量なクラス。読み取り専用の引数に`const std::string&`の代わりに使うと、文字列リテラルを渡しても一時的な`std::string`の生成(コピー)が起きない。
+
+```cpp
+void print(std::string_view sv) {
+    std::cout << sv << std::endl;
+}
+
+print("hello");              // コピーなし
+print(std::string{"world"}); // std::stringもそのまま渡せる
+```
+
+<pre><code class="caution"><span class="code-like">string_view</span> は元の文字列の寿命に依存する。一時的な <span class="code-like">std::string</span> から作った <span class="code-like">string_view</span> を保持すると、ぶら下がり参照となる。また、終端が <span class="code-like">'\0'</span> とは限らないので <span class="code-like">c_str()</span> は無い。</code></pre>
 
 ---
 
@@ -2241,8 +3001,8 @@ int main() {
 
 ## 正規表現 <a id="regex" data-name="正規表現"></a> <br> `<regex>`
 
-<div class="subtitle">Row文字列</div>
-Row文字列を使うことにより、文字列が生(Row)の文字列となり、エスケープなしに正規表現として扱える。
+<div class="subtitle">Raw文字列</div>
+Raw文字列を使うことにより、文字列が生(Raw)の文字列となり、エスケープなしに正規表現として扱える。
 
 ```cpp
 // R"()"の中の\d+を表す
@@ -2275,6 +3035,8 @@ if (regex_match(s, result, re)) {
 文字列全体がマッチしたらtrueを返し、部分的にマッチした場合や、マッチしなければfalseが返る。<br>
 第2引数にはstd::smatchクラスのオブジェクトへの参照を渡す。マッチするとマッチ情報がこのオブジェクトにコンテナのような形で格納される。<br>
 
+<pre><code class="caution"><span class="code-like">smatch</span> は元の文字列へのイテレータを保持するので、一時的な <span class="code-like">std::string</span> を <span class="code-like">regex_match</span> や <span class="code-like">regex_search</span> に渡すとぶら下がりとなる。そのため一時オブジェクトを渡すとコンパイルエラーになる。</code></pre>
+
 ### 文字列が正規表現に部分的にマッチするか調べる<br>std::regex_search();
 文字列sが正規表現に部分的にマッチするか調べるにには、`std::regex_search()`を使う。
 
@@ -2295,10 +3057,22 @@ if (regex_search(s, result, re)) {
 
 文字列sが正規表現に部分的にマッチすればtrue、マッチしなければfalseが返る。
 
+### 全てのマッチを列挙する<br>std::sregex_iterator
+
+```cpp
+std::string s = "2021/04/01 と 2022/05/02";
+std::regex re{R"((\d{4})/(\d{2})/(\d{2}))"};
+
+for (std::sregex_iterator it{s.begin(), s.end(), re}, end; it != end; ++it) {
+    std::cout << (*it)[0] << std::endl;  // マッチ全体
+    std::cout << it->str(1) << std::endl; // 年グループ
+}
+```
+
 ### 正規表現で置換する<br>std::regex_replace();
 
 ```cpp
-std::string s "今日の日付は2021/04/01です";
+std::string s = "今日の日付は2021/04/01です";
 
 // 日付にマッチする正規表現
 std::regex re {"(\\d{4})/(\\d{2})/(\\d{2})"};
@@ -2326,6 +3100,20 @@ std::cout << std::format("答えは{}", 42) << std::endl; // 答えは42</code><
 
 書式指定文字列は、`{}`で囲まれた置換フィールドを第2引数に置き換える。<br>
 
+`{}`の中の`:`の後ろに書式を指定できる。
+
+```cpp
+std::format("{:>5}", 42);       // "   42" 右寄せ、幅5
+std::format("{:<5}|", 42);      // "42   |" 左寄せ
+std::format("{:05}", 42);       // "00042" 0埋め
+std::format("{:.2f}", 3.14159); // "3.14" 小数点以下2桁
+std::format("{:#x}", 255);      // "0xff" 16進数
+std::format("{:b}", 5);         // "101" 2進数
+std::format("{{}}");            // "{}" 波括弧自体は2つ重ねる
+```
+
+<span class="label">C++23</span> では、`std::format`と同じ書式で直接出力できる`std::print`も追加された。
+
 
 ## ユーティリティ <a id="utility" data-name="ユーティリティ"></a> <br> `<utility>`
 
@@ -2337,12 +3125,14 @@ std::pair<int, std::string> p{1, "hello"}; // 初期化
 
 p = std::make_pair(2, "world"); // まとめて値を指定
 
-auto p = std::make_pair(10, 3.14); // 型推論を利用して生成
+auto p2 = std::make_pair(10, 3.14); // 型推論を利用して生成
 
 std::cout << p.first << std::endl; // 1つ目の要素
 std::cout << p.second << std::endl; // 2つ目の要素
-std::cout << std::get<0> << std::endl; // 1つ目の要素
-std::cout << std::get<int> << std::endl; // int型の要素
+std::cout << std::get<0>(p) << std::endl; // 1つ目の要素
+std::cout << std::get<int>(p) << std::endl; // int型の要素
+
+auto [num, str] = p; // 構造化束縛 C++17
 
 ```
 
@@ -2352,20 +3142,26 @@ std::cout << std::get<int> << std::endl; // int型の要素
 ```cpp
 std::tuple<int, double, std::string, int> t = {11, 3.14, "hello", 22}; // 初期化
 
-t = std::make_tuple(3, 1.5, "wold", 11) // まとめて値を指定
+t = std::make_tuple(3, 1.5, "world", 11); // まとめて値を指定
 
 std::cout << std::get<1>(t) << std::endl; // 2つ目の要素
 std::cout << std::get<double>(t) << std::endl; // double型の要素
 // std::cout << std::get<int>(t) << std::endl; // int型が2つあるためエラー
+
+auto [a, b, c, d] = t; // 構造化束縛 C++17
+
+int x;
+double y;
+std::tie(x, y, std::ignore, std::ignore) = t; // 必要な要素だけ取り出す
 ```
 
 ### バリアント <span class="label">C++17</span> <br> `<variant>`
-variantは、C++17で導入された型安全な共有体(union)で、宣言された継承関係にない複数の型のうち1つだけ値を代入できる。
+variantは、C++17で導入された型安全な共用体(union)で、宣言した複数の型のうちいずれか1つの値だけを保持できる。どの型を保持しているかを常に把握しているので、unionと違い、保持していない型で取り出そうとすると例外となる。
 
 | 関数 | 説明 |
 | --- | --- |
 | std::holds_alternative<T>(v) | その型が入っているかを安全に判定。コンパイル時に型がきまるので高速<br>std::get()と一緒に使うのが最もスタンダード。例外・エラーが無くboolが返るだけで安全。 |
-| std::get_if<型のみ>(&v) | 保持している型が一致していればポインタで返し、違う型を保持してる場合はnullptrが返るので、戻り値を確認すれば安全。 |
+| std::get_if<型またはindex>(&v) | 保持している型が一致していればポインタで返し、違う型を保持してる場合はnullptrが返るので、戻り値を確認すれば安全。 |
 | std::get<型またはindex>(v) | 型またはindexが一致している場合のみ戻り値で取得でき、型が違うと例外or未定義動作。 |
 | v.index() | 保持している値の順番(index)を返す。std::get()はコンパイル時定数が必要なので組み合わせられない。<br>switch文やif文などで使う。 |
 | std::visit(visitor, variant) | 型ごとに処理を書くため安全。 |
@@ -2379,7 +3175,7 @@ std::variant&lt;int , double&gt; v2{};
 int n = std::get&lt;int&gt;(v); // intの値を取り出す
 
 v = "hello"; // 文字列を代入する
-std::string s = std::get&lt;string&gt;(v) // 文字列を取り出す
+std::string s = std::get&lt;std::string&gt;(v); // 文字列を取り出す
 
 // indexは格納されている値のindexを返す。
 if (v.index() == 2) {
@@ -2387,7 +3183,7 @@ if (v.index() == 2) {
 }
 
 // get_ifはポインタを返す。指定した型でなければnullptrが返る
-if (std::string *p  get_if&lt;std::string&gt;(&v)) {
+if (std::string *p = std::get_if&lt;std::string&gt;(&v)) {
     std::cout << "string: " << *p << std::endl;
 }
 
@@ -2430,6 +3226,21 @@ int main() {
 }
 ```
 
+型ごとに別々のラムダ式を渡したい場合は、複数のラムダ式を1つにまとめる`overloaded`というヘルパーがよく使われる。
+
+```cpp
+template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>; // 推定ガイド(C++20では不要)
+
+std::variant<int, double, std::string> v = 42;
+
+std::visit(overloaded{
+    [](int i)                { std::cout << "int: " << i << std::endl; },
+    [](double d)             { std::cout << "double: " << d << std::endl; },
+    [](const std::string& s) { std::cout << "string: " << s << std::endl; }
+}, v);
+```
+
 ## ランダム <a id="random" data-name="ランダム"></a> <br> `<random>`
 C++のランダム生成は、大別して生成・範囲・分布の3つの部品で構成されており、それらを組み合わせることにより柔軟に選択できる。
 
@@ -2444,9 +3255,24 @@ std::uniform_int_distribution<> dist(0, 9);  // 分布の定義：0〜9の整数
 int value = dist(gen);                       // 乱数の生成
 ```
 
+- `uniform_int_distribution<>(0, 9)`は両端(0と9)を含む。
+- 乱数生成器`gen`は、乱数を生成するたびに作らず、使い回す。
+- 実数の乱数や、コンテナのシャッフルもできる。
+
+```cpp
+std::uniform_real_distribution<double> real(0.0, 1.0); // 0.0以上1.0未満
+double r = real(gen);
+
+std::vector<int> v{1, 2, 3, 4, 5};
+std::shuffle(v.begin(), v.end(), gen); // <algorithm>
+```
+
+C言語由来の`std::rand()`は、品質やスレッド安全性の面から`<random>`の使用が推奨される。
+
 ## リンケージ <a id="linkage" data-name="リンケージ"></a>
 リンケージとは、識別子(変数または関数)が他のスコープから参照できるかどうかを表す。<br>
-リンケージを用いるとC++からCで書かれたプログラムを呼び出すことが出きる。
+リンケージを用いるとC++からCで書かれたプログラムを呼び出すことができる。<br>
+C++では関数名に引数の型などの情報を付加(名前マングリング)してオーバーロードを実現しているが、<span class="code-like">extern "C"</span> を指定した関数はCと同じ名前の付け方になるため、Cのコードとリンクできる。
 
 <div class="subtitle">リンケージの手順</div>
 
@@ -2463,7 +3289,7 @@ int value = dist(gen);                       // 乱数の生成
     ```
 
      ```cpp
-     // main.c
+     // main.cpp
      extern "C" void helloFromC(void); // extern "C"を書く
      
      int main()
@@ -2500,6 +3326,23 @@ int value = dist(gen);                       // 乱数の生成
      ```
      hello from C!!
      ```
+
+<div class="subtitle">CとC++の両方からincludeできるヘッダ</div>
+
+Cのヘッダ側に書いておくと、C++からincludeした時だけ`extern "C"`が有効になる。
+
+```c
+// hello.h
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void helloFromC(void);
+
+#ifdef __cplusplus
+}
+#endif
+```
 
 <pre><code class="caution">CからC++のプログラムを実行することも可能だが、クラス、継承、STL、例外処理などのC++の機能はCから直接扱うことができないため、CとのインターフェースをC++でラップして、C側には単純な戻り値、関数のみを公開する形にする必要がある。</code></pre>
 
