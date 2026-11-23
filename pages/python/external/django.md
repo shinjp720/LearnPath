@@ -97,7 +97,9 @@ reverse("myapp:detail", kwargs={"pk": 1})  # /articles/1/
 ```
 
 ```html
+{% raw %}
 <a href="{% url 'myapp:detail' pk=article.pk %}">詳細</a>
+{% endraw %}
 ```
 
 ---
@@ -175,6 +177,7 @@ HTML に Python のデータを埋め込むための仕組み。
 ### 変数とタグ
 
 ```html
+{% raw %}
 <!-- 変数 -->
 <h1>{{ article.title }}</h1>
 
@@ -193,6 +196,7 @@ HTML に Python のデータを埋め込むための仕組み。
 {% else %}
   <p>ログインしてください</p>
 {% endif %}
+{% endraw %}
 ```
 
 ### フィルター
@@ -200,10 +204,12 @@ HTML に Python のデータを埋め込むための仕組み。
 `|` で値を加工する。
 
 ```html
+{% raw %}
 {{ article.title|upper }}
 {{ article.body|truncatechars:50 }}
 {{ article.created_at|date:"Y/m/d H:i" }}
 {{ value|default:"なし" }}
+{% endraw %}
 ```
 
 ### テンプレートの継承
@@ -211,6 +217,7 @@ HTML に Python のデータを埋め込むための仕組み。
 共通部分を base.html にまとめる。
 
 ```html
+{% raw %}
 <!-- templates/base.html -->
 <!DOCTYPE html>
 <html lang="ja">
@@ -221,9 +228,11 @@ HTML に Python のデータを埋め込むための仕組み。
   {% block content %}{% endblock %}
 </body>
 </html>
+{% endraw %}
 ```
 
 ```html
+{% raw %}
 <!-- templates/myapp/index.html -->
 {% extends "base.html" %}
 
@@ -232,24 +241,29 @@ HTML に Python のデータを埋め込むための仕組み。
 {% block content %}
   <h1>Hello</h1>
 {% endblock %}
+{% endraw %}
 ```
 
 ### Static ファイルの読み込み
 
 ```html
+{% raw %}
 {% load static %}
 <link rel="stylesheet" href="{% static 'css/style.css' %}">
+{% endraw %}
 ```
 
 ### CSRF 対策
 
-POST するフォームには `{% csrf_token %}` が必須。
+POST するフォームには {% raw %}`{% csrf_token %}`{% endraw %} が必須。
 
 ```html
+{% raw %}
 <form method="post">
   {% csrf_token %}
   ...
 </form>
+{% endraw %}
 ```
 
 ---

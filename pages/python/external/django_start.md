@@ -3,18 +3,18 @@ title: Django プロジェクトの立ち上げ手順と settings.py
 layout: default
 ---
 
-# Django プロジェクトの立ち上げ手順と settings.py
+# Django プロジェクトの立ち上げ手順と settings.py <a id="top" data-name="TOP"></a>
 
-Djangoでは、**「プロジェクトを作る → アプリを作る → settings.py を設定する → URLをつなぐ」** という流れが基本になります。
-Webアプリ開発では毎回ほぼ同じ手順を踏むので、テンプレートとして覚えてしまうのがおすすめです。
+Djangoでは、**「プロジェクトを作る → アプリを作る → settings.py を設定する → URLをつなぐ」** という流れが基本になる。
+Webアプリ開発では毎回ほぼ同じ手順を踏むので、テンプレートとして覚えてしまうのがおすすめ。
 
-`settings.py` は **Djangoプロジェクト全体の設定ファイル** です。設定項目は非常に多いですが、普段の開発で触るのは20個程度なので、**立ち上げ手順の各ステップで必要になるタイミングに合わせて** 説明します。
+`settings.py` は **Djangoプロジェクト全体の設定ファイル** である。設定項目は非常に多いが、普段の開発で触るのは20個程度なので、**立ち上げ手順の各ステップで必要になるタイミングに合わせて** 説明する。
 
-仮想環境の作成と Django のインストールは、Django のノートの「導入」を参照してください。
+仮想環境の作成と Django のインストールは、Django のノートの「導入」を参照。
 
 ---
 
-## 全体の流れ
+## 全体の流れ <a id="flow" data-name="全体の流れ"></a>
 
 ```text
 ① プロジェクト作成
@@ -40,7 +40,7 @@ Webアプリ開発では毎回ほぼ同じ手順を踏むので、テンプレ�
 
 ---
 
-### ① プロジェクト作成
+## ① プロジェクト作成 <a id="create-project" data-name="① プロジェクト作成"></a>
 
 ```bash
 django-admin startproject config .
@@ -61,9 +61,9 @@ myproject/
 │   └── wsgi.py
 ```
 
-この時点では**プロジェクトだけ**あります。
+この時点では**プロジェクトだけ**ある。
 
-#### 生成されるファイル
+### 生成されるファイル
 
 | --- | --- |
 | manage.py | Django の各種コマンドを実行するためのスクリプト |
@@ -73,13 +73,13 @@ myproject/
 | wsgi.py | WSGIサーバー用のエントリーポイント |
 | asgi.py | ASGIサーバー用のエントリーポイント |
 
-#### 生成される settings.py の設定
+### 生成される settings.py の設定
 
-生成される `settings.py` に、まず次の4つが入っています。
+生成される `settings.py` に、まず次の4つが入っている。
 
 #### BASE_DIR
 
-プロジェクトのルートディレクトリです。
+プロジェクトのルートディレクトリ。
 
 ```python
 from pathlib import Path
@@ -87,29 +87,29 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 ```
 
-上の構成なら `BASE_DIR` は `myproject/` になります。
-`BASE_DIR / "db.sqlite3"` のように、パスの組み立てに使います。
+上の構成なら `BASE_DIR` は `myproject/` になる。
+`BASE_DIR / "db.sqlite3"` のように、パスの組み立てに使う。
 
 #### SECRET_KEY
 
-暗号化に使われる秘密鍵です。
+暗号化に使われる秘密鍵。
 
 ```python
 SECRET_KEY = "xxxxxxxxxxxxxxxx"
 ```
 
-次のような処理で使われます。
+次のような処理で使われる。
 
 - セッション
 - CSRF
 - パスワードリセット
 - Cookie署名
 
-**公開してはいけません。** 本番では環境変数から読み込むのが一般的です。
+**公開してはいけない。** 本番では環境変数から読み込むのが一般的。
 
 #### DEBUG
 
-開発モードかどうかを切り替えます。
+開発モードかどうかを切り替える。
 
 ```python
 DEBUG = True   # 開発
@@ -122,11 +122,11 @@ DEBUG = False  # 本番
 - Staticファイルの扱いが変わる
 - セキュリティ関連の設定が有効になる
 
-といった変化があります。
+といった変化がある。
 
 #### ALLOWED_HOSTS
 
-アクセスを許可するホスト名です。
+アクセスを許可するホスト名。
 
 ```python
 ALLOWED_HOSTS = [
@@ -135,13 +135,13 @@ ALLOWED_HOSTS = [
 ]
 ```
 
-開発中は `ALLOWED_HOSTS = []` でも `DEBUG = True` なら動きます。本番公開時に必須になります。
+開発中は `ALLOWED_HOSTS = []` でも `DEBUG = True` なら動く。本番公開時に必須になる。
 
 ---
 
-### ② アプリ作成
+## ② アプリ作成 <a id="create-app" data-name="② アプリ作成"></a>
 
-manage.py があるディレクトリ内で次のコマンドを入力します。
+manage.py があるディレクトリ内で次のコマンドを入力する。
 
 ```bash
 python manage.py startapp blog
@@ -171,9 +171,9 @@ blog/
 
 ---
 
-### ③ settings.py に登録（INSTALLED_APPS）
+## ③ settings.py に登録（INSTALLED_APPS） <a id="installed-apps" data-name="③ INSTALLED_APPS"></a>
 
-**一番忘れやすい作業です。**
+**一番忘れやすい作業。**
 
 ```python
 INSTALLED_APPS = [
@@ -191,18 +191,19 @@ INSTALLED_APPS = [
 - テンプレート
 - static
 
-などに参加します。登録しないと認識されません。**自作アプリは必ず追加します。**
+などに参加する。登録しないと認識されない。**自作アプリは必ず追加する。**
 
 ---
 
-### ④ URLを接続（ROOT_URLCONF）
-`settings.py` の `ROOT_URLCONF` が、最初に読み込まれるURLファイルを指しています。
+## ④ URLを接続（ROOT_URLCONF） <a id="root-urlconf" data-name="④ ROOT_URLCONF"></a>
+
+`settings.py` の `ROOT_URLCONF` が、最初に読み込まれるURLファイルを指している。
 
 ```python
 ROOT_URLCONF = "config.urls"
 ```
 
-まずプロジェクト側で、アプリのURLを `include()` します。
+まずプロジェクト側で、アプリのURLを `include()` する。
 
 ```python
 # config/urls.py
@@ -216,7 +217,7 @@ urlpatterns = [
 ]
 ```
 
-次にアプリ側に `blog/urls.py` を作ります。
+次にアプリ側に `blog/urls.py` を作る。
 
 ```python
 # blog/urls.py
@@ -231,7 +232,7 @@ urlpatterns = [
 
 ---
 
-### ⑤ Model作成（＋ DATABASES）
+## ⑤ Model作成（＋ DATABASES） <a id="model" data-name="⑤ Model作成"></a>
 
 ```python
 # blog/models.py
@@ -247,9 +248,9 @@ class Article(models.Model):
 
 <pre><code class="tips">__str__() を定義しておくと、管理画面やシェルでオブジェクトがタイトルなどで表示される。</code></pre>
 
-#### DATABASES
+### DATABASES
 
-データベース接続の設定です。デフォルトはSQLiteで、そのまま使えます。
+データベース接続の設定。デフォルトはSQLiteで、そのまま使える。
 
 ```python
 DATABASES = {
@@ -260,7 +261,7 @@ DATABASES = {
 }
 ```
 
-MySQLなど他のDBを使う場合は書き換えます。
+MySQLなど他のDBを使う場合は書き換える。
 
 ```python
 DATABASES = {
@@ -273,19 +274,19 @@ DATABASES = {
 }
 ```
 
-PostgreSQL の場合は `ENGINE` を `django.db.backends.postgresql` にし、`pip install psycopg` でドライバーを入れます。`HOST` や `PORT` も必要に応じて指定します。
+PostgreSQL の場合は `ENGINE` を `django.db.backends.postgresql` にし、`pip install psycopg` でドライバーを入れる。`HOST` や `PORT` も必要に応じて指定する。
 
-#### DEFAULT_AUTO_FIELD
+### DEFAULT_AUTO_FIELD
 
-自動生成される主キー（`id`）の型です。
+自動生成される主キー（`id`）の型。
 
 ```python
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 ```
 
-これにより `id` は64bit整数になります。
+これにより `id` は64bit整数になる。
 
-#### カスタムユーザーモデルへの切り替え
+### カスタムユーザーモデルへの切り替え
 
 プロジェクトを作成した時に設定しておきたい (後から変更が大変になる) 。
 Django では標準で User モデルが用意されているが、将来的にログインIDをユーザー名ではなくメールアドレスにしたい、プロフィール画像や電話番号の項目を追加したいとなった時、標準のままだとマイグレーションで衝突が起きる。
@@ -308,41 +309,41 @@ settings.AUTH_USER_MODEL (ForeignKey などの定義時) や get_user_model() (�
 
 ---
 
-### ⑥ Migration作成
+## ⑥ Migration作成 <a id="makemigrations" data-name="⑥ Migration作成"></a>
 
 ```bash
 python manage.py makemigrations
 ```
 
-Migrationファイル (blog/migrations/0001_initial.py など) が生成されます。
+Migrationファイル (blog/migrations/0001_initial.py など) が生成される。
 
 ---
 
-### ⑦ DBへ反映
+## ⑦ DBへ反映 <a id="migrate" data-name="⑦ DBへ反映"></a>
 
 ```bash
 python manage.py migrate
 ```
 
-ここでDBにテーブルが作られます。<br>
-Django 標準の認証や管理画面用のテーブルも、この時にまとめて作成されます。
+ここでDBにテーブルが作られる。<br>
+Django 標準の認証や管理画面用のテーブルも、この時にまとめて作成される。
 
-#### スーパーユーザーの作成
+### スーパーユーザーの作成
 
-管理画面にログインするためのユーザーです。テーブルが必要なので `migrate` の後に行います。
+管理画面にログインするためのユーザー。テーブルが必要なので `migrate` の後に行う。
 
 ```bash
 python manage.py createsuperuser
 ```
 
-ユーザー名、メールアドレス、パスワードの入力が求められます。<br>
-作成後、`runserver` を起動して `http://127.0.0.1:8000/admin/` にアクセスするとログインできます。
+ユーザー名、メールアドレス、パスワードの入力が求められる。<br>
+作成後、`runserver` を起動して `http://127.0.0.1:8000/admin/` にアクセスするとログインできる。
 
 ---
 
-### ⑧ View作成 <a id="view" data-name="⑧ View作成"></a>
+## ⑧ View作成 <a id="view" data-name="⑧ View作成"></a>
 
-まずは動作確認用に、文字列を返すだけのViewを作ります。
+まずは動作確認用に、文字列を返すだけのViewを作る。
 
 ```python
 # blog/views.py
@@ -353,13 +354,13 @@ def index(request):
     return HttpResponse("Hello")
 ```
 
-ここでURLと処理がつながります。
+ここでURLと処理がつながる。
 
 ---
 
-### ⑨ Template作成（TEMPLATES）
+## ⑨ Template作成（TEMPLATES） <a id="template" data-name="⑨ Template作成"></a>
 
-一般的には次の構成でテンプレートを置きます。
+一般的には次の構成でテンプレートを置く。
 
 ```text
 blog/
@@ -370,7 +371,7 @@ blog/
 
 <pre><code class="tips">templates/ の下にさらにアプリ名のディレクトリを挟むのは、別のアプリに同名のテンプレート (index.html など) があっても衝突しないようにするため。</code></pre>
 
-Viewを `render` に変更します。
+Viewを `render` に変更する。
 
 ```python
 from django.shortcuts import render
@@ -379,9 +380,9 @@ def index(request):
     return render(request, "blog/index.html")
 ```
 
-#### TEMPLATES
+### TEMPLATES
 
-`settings.py` の `TEMPLATES` は、テンプレートを探す場所などを設定する項目です。
+`settings.py` の `TEMPLATES` は、テンプレートを探す場所などを設定する項目。
 
 ```python
 TEMPLATES = [
@@ -391,46 +392,46 @@ TEMPLATES = [
 ]
 ```
 
-アプリ内の `templates/` を使うだけなら、デフォルトのままで動きます（`APP_DIRS: True`）。プロジェクト直下の `templates/` も使いたい場合は `DIRS` に `BASE_DIR / "templates"` を追加します。
+アプリ内の `templates/` を使うだけなら、デフォルトのままで動く（`APP_DIRS: True`）。プロジェクト直下の `templates/` も使いたい場合は `DIRS` に `BASE_DIR / "templates"` を追加する。
 
 ---
 
-### ⑩ 開発サーバー起動 <a id="runserver" data-name="⑩ 開発サーバー起動"></a>
+## ⑩ 開発サーバー起動 <a id="runserver" data-name="⑩ 開発サーバー起動"></a>
 
 ```bash
 python manage.py runserver
 ```
 
-ブラウザで `http://127.0.0.1:8000/` にアクセスすると、`Hello` または `index.html` の内容が表示されます。
+ブラウザで `http://127.0.0.1:8000/` にアクセスすると、`Hello` または `index.html` の内容が表示される。
 
 <pre><code class="tips">プロジェクトを作成した直後 (④ より前) に runserver すると、ロケットのイラストの画面が表示される。
 その時は「マイグレーションが未適用」という警告が出るが、⑦ の migrate で解消される。</code></pre>
 
 ---
 
-### よく一緒に設定するもの
+## よく一緒に設定するもの <a id="common-settings" data-name="よく一緒に設定するもの"></a>
 
-#### 言語とタイムゾーン
+### 言語とタイムゾーン
 
 ```python
 LANGUAGE_CODE = "ja"           # 例: "ja", "en-us"
 TIME_ZONE = "Asia/Tokyo"
 ```
 
-関連する設定として、次の2つがあります。
+関連する設定として、次の2つがある。
 
 ```python
 USE_I18N = True   # 国際化（翻訳機能）を使う
 USE_TZ = True     # タイムゾーン対応。通常は True（DBにはUTCで保存される）
 ```
 
-#### Staticファイル（CSS・JS・画像）
+### Staticファイル（CSS・JS・画像）
 
 ```python
 STATIC_URL = "static/"
 ```
 
-プロジェクト共通のstaticディレクトリを追加するなら、開発ではよく次を使います。
+プロジェクト共通のstaticディレクトリを追加するなら、開発ではよく次を使う。
 
 ```python
 STATICFILES_DIRS = [
@@ -438,31 +439,31 @@ STATICFILES_DIRS = [
 ]
 ```
 
-本番では `collectstatic` の出力先として `STATIC_ROOT` を設定します。
+本番では `collectstatic` の出力先として `STATIC_ROOT` を設定する。
 
 ```python
 STATIC_ROOT = BASE_DIR / "staticfiles"
 ```
 
-#### Mediaファイル（ユーザーのアップロード）
+### Mediaファイル（ユーザーのアップロード）
 
-ユーザー画像などのアップロードを扱う場合に設定します。
+ユーザー画像などのアップロードを扱う場合に設定する。
 
 ```python
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 ```
 
-`MEDIA_URL` がURLのパス、`MEDIA_ROOT` が保存先です。
+`MEDIA_URL` がURLのパス、`MEDIA_ROOT` が保存先。
 
 <pre><code class="tips">開発サーバーで Media ファイルを配信するには、プロジェクトの urls.py に以下を追記する (DEBUG = True の時のみ有効)。
 from django.conf import settings
 from django.conf.urls.static import static
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)</code></pre>
 
-#### 開発から本番へ
+### 開発から本番へ
 
-本番では最低限、次を変更します。
+本番では最低限、次を変更する。
 
 ```python
 DEBUG = False
@@ -472,9 +473,9 @@ ALLOWED_HOSTS = ["example.com"]
 
 ---
 
-### DRF（Django REST Framework）を使う場合の追加設定
+## DRF（Django REST Framework）を使う場合の追加設定 <a id="drf" data-name="DRF を使う場合"></a>
 
-APIバックエンドとして使う場合は、初期設定で次の2つを行うことが多いです。
+APIバックエンドとして使う場合は、初期設定で次の2つを行うことが多い。
 
 1. パッケージをインストール
    ```bash
@@ -490,17 +491,17 @@ APIバックエンドとして使う場合は、初期設定で次の2つを行�
    ]
    ```
 
-その後、必要に応じて `REST_FRAMEWORK` 設定（認証方式、ページネーションなど）を追加します。
+その後、必要に応じて `REST_FRAMEWORK` 設定（認証方式、ページネーションなど）を追加する。
 
 ---
 
-### 普段あまり触らない設定
+## 普段あまり触らない設定 <a id="rarely-settings" data-name="普段あまり触らない設定"></a>
 
-プロジェクト作成時に自動で入っていて、通常はそのままで問題ない設定です。
+プロジェクト作成時に自動で入っていて、通常はそのままで問題ない設定。
 
-#### MIDDLEWARE
+### MIDDLEWARE
 
-リクエスト・レスポンスの途中で実行される処理です。セッション、認証、CSRF、共通処理などがここで動きます。
+リクエスト・レスポンスの途中で実行される処理。セッション、認証、CSRF、共通処理などがここで動く。
 
 ```python
 MIDDLEWARE = [
@@ -520,20 +521,20 @@ Middleware
 Response
 ```
 
-#### WSGI_APPLICATION / ASGI_APPLICATION
+### WSGI_APPLICATION / ASGI_APPLICATION
 
-デプロイ時に使うサーバー向けの設定です。
+デプロイ時に使うサーバー向けの設定。
 
 ```python
 WSGI_APPLICATION = "config.wsgi.application"
 ```
 
-- **WSGI**：Gunicornなど、従来型の同期サーバーで利用。普段は触りません。
-- **ASGI**：WebSocketや非同期通信で利用。`config/asgi.py` が用意されています。なお、`ASGI_APPLICATION` という設定項目は、WebSocketを扱う Channels などを導入するときに自分で追加するのが一般的です。
+- **WSGI**：Gunicornなど、従来型の同期サーバーで利用。普段は触らない。
+- **ASGI**：WebSocketや非同期通信で利用。`config/asgi.py` が用意されている。なお、`ASGI_APPLICATION` という設定項目は、WebSocketを扱う Channels などを導入するときに自分で追加するのが一般的。
 
-#### AUTH_PASSWORD_VALIDATORS
+### AUTH_PASSWORD_VALIDATORS
 
-パスワード強度のチェックです（長さ、数字のみ禁止、よくあるパスワード禁止など）。
+パスワード強度のチェック（長さ、数字のみ禁止、よくあるパスワード禁止など）。
 
 ```python
 AUTH_PASSWORD_VALIDATORS = [
@@ -543,7 +544,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 ---
 
-### 開発でよく変更する設定
+## 開発でよく変更する設定 <a id="frequent-settings" data-name="開発でよく変更する設定"></a>
 
 | 設定 | 用途 | 触る頻度 |
 | --- | --- | --- |
@@ -558,13 +559,13 @@ AUTH_PASSWORD_VALIDATORS = [
 | `SECRET_KEY` | 秘密鍵 | ★★★★☆ |
 | `ASGI_APPLICATION` | WebSocket対応 | ★★★☆☆ |
 
-Djangoに慣れてくると、これらに加えて `LOGGING`（ログ出力）、`CACHES`（キャッシュ）、`EMAIL_BACKEND`（メール送信）、`AUTH_USER_MODEL`（カスタムユーザーモデル）、`REST_FRAMEWORK`（DRFの設定）などもよく扱うようになります。
+Djangoに慣れてくると、これらに加えて `LOGGING`（ログ出力）、`CACHES`（キャッシュ）、`EMAIL_BACKEND`（メール送信）、`AUTH_USER_MODEL`（カスタムユーザーモデル）、`REST_FRAMEWORK`（DRFの設定）などもよく扱うようになる。
 
 ---
 
-### 毎回のチェックリスト
+## 毎回のチェックリスト <a id="checklist" data-name="毎回のチェックリスト"></a>
 
-開発を始めるたびに、この順番で確認するとスムーズです。
+開発を始めるたびに、この順番で確認するとスムーズ。
 
 | 手順 | 内容 | 必須 |
 | --- | --- | :---: |
@@ -579,6 +580,6 @@ Djangoに慣れてくると、これらに加えて `LOGGING`（ログ出力）�
 | ⑨ | `migrate` | モデル変更時 |
 | ⑩ | テンプレートやAPIを実装し、`runserver` で動作確認 | ✅ |
 
-この流れは、テンプレートを返す従来型のDjangoアプリでも、Vue.jsなどと組み合わせたAPIバックエンドとしてのDjangoでも共通です。
+この流れは、テンプレートを返す従来型のDjangoアプリでも、Vue.jsなどと組み合わせたAPIバックエンドとしてのDjangoでも共通。
 
 ---
