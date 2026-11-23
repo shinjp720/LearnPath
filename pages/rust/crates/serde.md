@@ -1,9 +1,9 @@
 ---
-title: serde
+title: Serde
 layout: default
 ---
 
-# serde <a id="top" data-name="TOP"></a>
+# Serde <a id="top" data-name="TOP"></a>
 
 serde は構造体とデータフォーマットの変換をほぼ自動化してくれる、デファクトスタンダードのライブラリ。
 
