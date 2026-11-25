@@ -9,7 +9,7 @@ layout: default
 
 多くの原則は、1970年代の構造化設計から、1990年代のオブジェクト指向設計、2000年代のアジャイル開発にかけて、少しずつ整理されてきた。原則どうしは、同じ方向を向くものも、ぶつかるものもある。**原則は、守ること自体が目的ではなく、変更のコストを下げるための手段**である。
 
-このドキュメントでは、24 の原則を、目的ごとに 8 つの章にまとめる。各原則に、定義、歴史的な背景、悪い例と良い例、注意点を、書く。
+このドキュメントでは、24 の原則と、責任の割り当ての指針である GRASP を、目的ごとに 8 つの章にまとめる。各原則に、定義、歴史的な背景、悪い例と良い例、注意点を、書く。デザインパターンは、「デザインパターン」のドキュメントで扱う。
 
 | 章 | 原則 |
 | --- | --- |
@@ -18,12 +18,25 @@ layout: default
 | <a href="#modularity">モジュール設計</a> | <a href="#cohesion">高凝集</a>、<a href="#coupling">低結合</a>、<a href="#information-hiding">情報隠蔽</a>、<a href="#encapsulation">カプセル化</a>、<a href="#soc">関心の分離</a> |
 | <a href="#collaboration">オブジェクトの協調</a> | <a href="#demeter">デメテルの法則</a>、<a href="#tell-dont-ask">Tell, Don't Ask</a> |
 | <a href="#solid">SOLID</a> | <a href="#srp">SRP</a>、<a href="#ocp">OCP</a>、<a href="#lsp">LSP</a>、<a href="#isp">ISP</a>、<a href="#dip">DIP</a> |
+| <a href="#grasp">GRASP</a> | 疎結合、高凝集、間接化、情報エキスパート、生成者、純粋人工物、コントローラ、多態性、変動からの保護 |
 | <a href="#package">パッケージ設計</a> | <a href="#sdp">安定依存の原則</a> |
 | <a href="#quality">変更と品質</a> | <a href="#testability">テスト容易性</a>、<a href="#crap">CRAP</a>、<a href="#trade-off">トレードオフ</a> |
 
 ---
 
 ## 概要 <a id="overview" data-name="概要"></a>
+
+<pre><code class="tips">コード例は、主に Java で書いている。SOLID、GRASP、コマンド・クエリ分離の一部の例は、Python で書いている。原則そのものは、言語に依存しない。</code></pre>
+
+### 変化に強いソフトウェア
+
+変化に強いソフトウェアは、次の 3つの特性を持つ。設計原則は、これらを実現するための指針である。
+
+| 特性 | 内容 |
+| --- | --- |
+| 保守性が高い | 修正箇所が局所化され、他の部分に影響を与えない |
+| 再利用性が高い | ソフトウェアが部品化され、それを再利用することができる |
+| 拡張性が高い | ソフトウェアを構成する要素同士を疎結合にすることで、ソフトウェアを様々な実装で拡張することができる |
 
 ### 原則の読み方
 
@@ -42,7 +55,7 @@ layout: default
 | 単位 | 主な原則 |
 | --- | --- |
 | 変数・関数 | 命名、単一抽象レベル、ガード節、コマンド・クエリ分離 |
-| クラス・オブジェクト | SRP、OCP、LSP、ISP、カプセル化、デメテルの法則、Tell, Don't Ask |
+| クラス・オブジェクト | SRP、OCP、LSP、ISP、カプセル化、デメテルの法則、Tell, Don't Ask、GRASP |
 | モジュール | 高凝集、低結合、情報隠蔽、関心の分離、DIP |
 | パッケージ | 安定依存の原則 |
 | 設計全体 | KISS、YAGNI、DRY、最小驚きの原則、テスト容易性、トレードオフ |
@@ -308,10 +321,12 @@ class TaxPolicy {
 
 オブジェクトの操作を、状態を変更する「コマンド」と、情報を返す「クエリ」に分ける。クエリは状態を変更せず、コマンドは結果の問い合わせを兼ねない。CQS は、Command-Query Separation の略である。
 
+プログラミングにおける副作用を最小限に抑えることで、保守性と再利用性を確保するための設計原則である。
+
 | 項目 | 内容 |
 | --- | --- |
 | 背景 | メソッドが値を返すと同時に内部状態を変更すると、呼び出し側が、副作用を予測しにくくなる |
-| 文献 | Bertrand Meyer が、『Object-Oriented Software Construction』(1988年) で、体系的に説明した |
+| 文献 | Bertrand Meyer が、Eiffel 言語の設計の中で考案し、『Object-Oriented Software Construction』(1988年) で、体系的に説明した |
 | 効果 | クエリを、何度呼んでも安全になる。テストや、デバッグが楽になる |
 
 ```javascript
@@ -331,7 +346,98 @@ function chargeFee() {
 }
 ```
 
-<pre><code class="caution">スタックの pop や、アトミックな compareAndSet のように、取得と変更を、分けられない操作もある。CQS は、原則であり、例外を認めた上で使う。CQRS は、CQS の考え方を、アーキテクチャの単位に広げたものである。</code></pre>
+#### 副作用
+
+式の評価による作用には、主たる作用と、それ以外の副作用とがある。
+
+- 式は、評価値を得ること (関数では「引数を受け取り値を返す」) が主たる作用とされる。
+- それ以外の、コンピューターの論理状態 (ローカル環境以外の状態変数の値) を変化させる作用を、副作用という。
+
+副作用は、予期せぬエラーを発生させるリスクとなる。リスクを下げるために、次のようなコストを発生させ、結果的に、ソフトウェアの保守性を下げることになる。
+
+- 副作用によって、どこに影響があるか調査しなければならない。
+- その影響によって、動作に支障が出ないようにしなければならない。
+
+また、副作用が起こるクラスなどのソフトウェアの構成要素は、常に同じ結果を提供するわけではないので、ソフトウェアの再利用性を下げる。
+
+#### 参照透過性
+
+次の性質を持つメソッドや関数の性質を、**参照透過性**という。
+
+- 同じ条件を与えれば、必ず同じ結果が得られる。
+- 他のいかなる機能の結果にも影響を与えない。
+
+参照透過性を持つ関数は、**純粋関数**とも呼ばれる。式を、その値に置き換えても、プログラムの動作が変わらない。
+
+```python
+def add(a, b):  # 純粋関数: 同じ引数なら、必ず同じ結果
+    return a + b
+
+
+total = 0
+
+
+def add_to_total(x):  # 副作用がある: 呼ぶたびに、結果が変わる
+    global total
+    total += x
+    return total
+
+
+print(add(1, 2), add(1, 2))                # 3 3
+print(add_to_total(1), add_to_total(1))    # 1 2
+```
+
+#### コマンドとクエリ
+
+| 種類 | 条件 | 戻り値 |
+| --- | --- | --- |
+| コマンド | あるメソッドが、スコープ外のオブジェクトの状態を変更する | 値を戻してはならない |
+| クエリ | あるメソッドが、何らかの値を戻す | オブジェクトの状態を変えてはならない |
+
+クラスの属性を参照する (変更を行わない) 場合は、クエリとして成立する。
+
+上記のように、コマンドとクエリを分離させることにより、保守性の高いコードとなる。
+
+```python
+class BadCounter:  # 悪い例: 値を返しつつ、状態も変える
+    def __init__(self):
+        self._value = 0
+
+    def next(self):
+        self._value += 1
+        return self._value
+
+
+class Counter:  # 良い例: コマンドとクエリを分ける
+    def __init__(self):
+        self._value = 0
+
+    def increment(self) -> None:  # コマンド: 状態を変え、値は返さない
+        self._value += 1
+
+    @property
+    def value(self) -> int:  # クエリ: 値を返し、状態は変えない
+        return self._value
+
+
+bad = BadCounter()
+print(bad.next(), bad.next())  # 1 2 (呼ぶたびに、結果が変わる)
+
+counter = Counter()
+counter.increment()
+print(counter.value, counter.value)  # 1 1 (何度読んでも、同じ結果)
+```
+
+#### 設計の指針
+
+- 単に引数を加工して結果を返すだけのロジックは、できる限り副作用のないクエリとして実装し、実際に状態を変化させるコマンドを、最小限に留めるようにする。
+- 状態を変更するメソッドとしないメソッドを明確に分けることで、様々な状況において、自信をもって問い合わせを行うことができる。
+- オブジェクトを分析するときは、同一性を持ち、同一のものが状態を変えるオブジェクトなのか、同一性を持つ必要のないオブジェクトなのかを、よく検討する必要がある。
+- 同一性を持つ必要がないのであれば、状態を更新するコマンドとして実装する必要がなく、副作用を減らすことができる。
+
+<pre><code class="caution">CQS には、例外がある。スタックの pop は、要素を取り出して (クエリ)、スタックを変える (コマンド) 操作で、分離すると、かえって使いにくい。アトミックな compareAndSet のように、取得と変更を、分けられない操作もある。Martin Fowler は、できる限り従い、必要な場合は、破ってよい、という立場を取っている。</code></pre>
+
+<pre><code class="tips">CQS を、システム全体の構成に広げた考え方を、CQRS (Command Query Responsibility Segregation) という。CQS はメソッドの設計の原則で、CQRS は、アーキテクチャの設計の考え方である。</code></pre>
 
 ### 最小驚きの原則 (PoLA) <a id="pola"></a>
 
@@ -415,6 +521,8 @@ class Pricing {
 
 <pre><code class="tips">Utils や Helper という名前のクラスが肥大化していたら、凝集度が低いサインである。名前から、責務が説明できるかを確認する。</code></pre>
 
+GRASP でも、責任を割り当てるときの基本原則として、扱われる。詳しくは、<a href="#grasp">GRASP</a> を参照。
+
 ### 低結合 (Low Coupling) <a id="coupling"></a>
 
 モジュール間の依存関係を、必要最小限に抑え、相手の内部構造や実装の詳細を知らなくても、協調できるようにする。
@@ -468,6 +576,8 @@ class OrderService {
 | データ結合 | 必要なデータだけを、引数で渡す |
 
 <pre><code class="tips">高凝集と低結合は、セットで考える。凝集度の高いモジュールに分ければ、モジュール間でやり取りするものが、減りやすい。</code></pre>
+
+GRASP でも、責任を割り当てるときの基本原則として、扱われる。詳しくは、<a href="#grasp">GRASP</a> を参照。
 
 ### 情報隠蔽 (Information Hiding) <a id="information-hiding"></a>
 
@@ -723,19 +833,32 @@ class OrderService {
 
 ## SOLID <a id="solid" data-name="SOLID"></a>
 
-SOLID は、オブジェクト指向設計の 5 つの原則の頭文字である。Robert C. Martin (Uncle Bob) がまとめた原則に、Michael Feathers が、この頭文字の名前を付けたとされる。Martin の『Agile Software Development, Principles, Patterns, and Practices』(2002年) で、広く知られた。
+SOLID は、オブジェクト指向設計の 5 つの原則の頭文字である。Robert C. Martin (Uncle Bob) が、2000年の論文で、まとめて紹介した。Michael Feathers が、この頭文字の名前を付けたとされる。Martin の『Agile Software Development, Principles, Patterns, and Practices』(2002年) で、広く知られた。
 
-| 頭文字 | 原則 | 一言で |
-| --- | --- | --- |
-| S | <a href="#srp">単一責任原則 (SRP)</a> | 変更する理由を、1 つにする |
-| O | <a href="#ocp">開放閉鎖の原則 (OCP)</a> | 拡張に開き、変更に閉じる |
-| L | <a href="#lsp">リスコフの置換原則 (LSP)</a> | サブタイプで、置き換えても壊れない |
-| I | <a href="#isp">インターフェース分離の原則 (ISP)</a> | 使わないメソッドに、依存させない |
-| D | <a href="#dip">依存性逆転の原則 (DIP)</a> | 抽象に依存する |
+| 略称 | 原則 | 英語名 | 一言で |
+| --- | --- | --- | --- |
+| S | <a href="#srp">単一責任原則 (SRP)</a> | Single Responsibility Principle | 変更する理由を、1 つにする |
+| O | <a href="#ocp">開放閉鎖の原則 (OCP)</a> | Open-Closed Principle | 拡張に開き、変更に閉じる |
+| L | <a href="#lsp">リスコフの置換原則 (LSP)</a> | Liskov Substitution Principle | サブタイプで、置き換えても壊れない |
+| I | <a href="#isp">インターフェース分離の原則 (ISP)</a> | Interface Segregation Principle | 使わないメソッドに、依存させない |
+| D | <a href="#dip">依存性逆転の原則 (DIP)</a> | Dependency Inversion Principle | 抽象に依存する |
 
 ### 単一責任原則 (SRP) <a id="srp"></a>
 
 モジュールは、ただ一つのアクター (変更を要求する人や組織のまとまり) に対して、責任を持つ。異なる理由で変更される処理を、一つにまとめない。SRP は、Single Responsibility Principle の略である。
+
+1つのソフトウェア構成要素 (サブシステムやモジュール、クラス、関数など) に、変更する理由が2つ以上あるようではいけない。
+
+#### 変更のコスト
+
+大前提として、コードの修正にはコストがかかる。
+
+- そのコードを修正することで、どこに影響があるか調査しなければならない。
+- 修正の影響で、動作に支障が出ないか確認しなければならない。
+
+変更による影響を最小限に抑えるようにソフトウェアを設計する必要がある。
+
+単一責任の原則を適用することにより、ソフトウェア構成要素が持つ単一の責務が変更された時のみ、それが変更されるようにすることで、変更による影響を最小限に抑えることができる。
 
 | 項目 | 内容 |
 | --- | --- |
@@ -762,9 +885,58 @@ class EmployeeRepository  { void save(Employee e) { } }
 
 <pre><code class="caution">SRP は、「メソッドを 1 つしか持たない」という意味ではない。細かく分けすぎると、関連する処理が散らばり、読みにくくなる。変更の理由が同じものは、同じ場所に置く。</code></pre>
 
+#### Python の例
+
+次の例では、`Report` が、集計の仕様と、保存の方法という、2つの変更理由を持っている。保存の方法を、別のクラスに分けると、それぞれの変更理由が、1つになる。
+
+```python
+# 悪い例: 集計の仕様と、保存の方法が、1つのクラスにある
+class Report:
+    def __init__(self, items):
+        self.items = items
+
+    def total(self):
+        return sum(price for _, price in self.items)
+
+    def save(self, path):
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(str(self.total()))
+```
+
+```python
+import os
+import tempfile
+
+# 良い例: 責務ごとにクラスを分ける
+class Report:
+    def __init__(self, items):
+        self.items = items
+
+    def total(self):
+        return sum(price for _, price in self.items)
+
+
+class ReportWriter:
+    def save(self, report, path):
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(str(report.total()))
+
+
+report = Report([("pen", 100), ("note", 250)])
+path = os.path.join(tempfile.mkdtemp(), "report.txt")
+ReportWriter().save(report, path)
+print(open(path, encoding="utf-8").read())  # 350
+```
+
 ### 開放閉鎖の原則 (OCP) <a id="ocp"></a>
 
 既存のコードを変更せずに、新しい振る舞いを追加できるように設計する。ソフトウェアは、拡張に対して開き、変更に対して閉じているべきである。OCP は、Open/Closed Principle の略である。
+
+ソフトウェアの構成要素は、拡張のために開かれていて、修正のために閉じられていなければならない。
+
+ソフトウェアの構成要素に機能拡張が発生した場合、既存のコードには修正を加えずに (閉じている) 新しくコードを追加するだけで対応できる (開いている) ようにするということ。
+
+既存のコードは、バグがあった場合のみ修正する。
 
 | 項目 | 内容 |
 | --- | --- |
@@ -817,9 +989,60 @@ class DiscountCalculator {
 
 OCP は、「なんでも拡張できるようにすること」ではない。変更の可能性が高い部分を見極めて、適切に拡張できるようにすることが、重要である。
 
+#### Python の例
+
+```python
+# 悪い例: 図形が増えるたびに、既存の関数を修正する
+def area(shape):
+    if shape["type"] == "circle":
+        return 3.14 * shape["r"] ** 2
+    elif shape["type"] == "rectangle":
+        return shape["w"] * shape["h"]
+    raise ValueError(shape["type"])
+
+
+print(area({"type": "circle", "r": 1}))  # 3.14
+```
+
+```python
+from abc import ABC, abstractmethod
+
+# 良い例: 図形が増えても、新しいクラスを追加するだけで済む
+class Shape(ABC):
+    @abstractmethod
+    def area(self) -> float: ...
+
+
+class Circle(Shape):
+    def __init__(self, r):
+        self.r = r
+
+    def area(self):
+        return 3.14 * self.r ** 2
+
+
+class Rectangle(Shape):
+    def __init__(self, w, h):
+        self.w, self.h = w, h
+
+    def area(self):
+        return self.w * self.h
+
+
+def total_area(shapes):
+    return sum(s.area() for s in shapes)
+
+
+print(total_area([Circle(1), Rectangle(2, 3)]))  # 9.14
+```
+
 ### リスコフの置換原則 (LSP) <a id="lsp"></a>
 
 ある型のオブジェクトを、そのサブタイプで置き換えても、プログラムの正しさが保たれることを保証する。LSP は、Liskov Substitution Principle の略である。
+
+もし、S が T の派生型であれば、プログラム内で T 型のオブジェクトが使われている箇所は、全て S 型のオブジェクトで置換可能にする。
+
+多態性を利用して、利用者に対するインターフェースを統一し、置換可能にすることで、拡張性を上げることができる。
 
 | 項目 | 内容 |
 | --- | --- |
@@ -852,13 +1075,6 @@ class Square extends Rectangle {
     @Override void setWidth(int w)  { super.setWidth(w); super.setHeight(w); }   // 高さも変わってしまう
     @Override void setHeight(int h) { super.setWidth(h); super.setHeight(h); }   // 幅も変わってしまう
 }
-
-// Rectangle として扱うコードが、Square で壊れる
-static void resize(Rectangle r) {
-    r.setWidth(5);
-    r.setHeight(4);
-    assert r.area() == 20;    // Square を渡すと、16 になり、失敗する
-}
 ```
 
 ```java
@@ -890,9 +1106,43 @@ class Square implements Shape {
 
 <pre><code class="tips">継承は、「現実の世界での is-a」ではなく、「振る舞いの契約を満たすか」で判断する。サブクラスで、メソッドを例外にしたり、何もしない実装にしたくなったときは、LSP の違反を疑う。</code></pre>
 
+#### Python の例
+
+次の例では、`Square` が `Rect` の約束 (幅を変えても、高さは変わらない) を、破っている。`Rect` を前提にした関数に、`Square` を渡すと、結果が変わる。
+
+```python
+class Rect:
+    def __init__(self, w, h):
+        self.w, self.h = w, h
+
+    def set_width(self, w):
+        self.w = w
+
+    def area(self):
+        return self.w * self.h
+
+
+class Square(Rect):  # 悪い例: 幅を変えると、高さも変わってしまう
+    def set_width(self, w):
+        self.w = self.h = w
+
+
+def widen(r):
+    r.set_width(5)  # 幅だけを 5 にする
+    return r.area()
+
+
+print(widen(Rect(2, 3)))    # 15 (5 x 3)
+print(widen(Square(3, 3)))  # 25 (期待は 15)
+```
+
 ### インターフェース分離の原則 (ISP) <a id="isp"></a>
 
 クライアントにとって不要なメソッドを持たない、小さく特化したインターフェースに分離する。ISP は、Interface Segregation Principle の略である。
+
+利用者にとって不要なインターフェースに依存させてはならない。
+
+インターフェースとは、要素を利用する側に提供される仕様で、メソッドでいうと、メソッド名、パラメータ、戻り値の型などの、メソッドのシグネチャ部分のことをいう。
 
 | 項目 | 内容 |
 | --- | --- |
@@ -934,9 +1184,54 @@ class SimplePrinter implements Printer {
 
 <pre><code class="caution">実装できないメソッドを、UnsupportedOperationException で埋めている場合は、ISP と LSP の、両方の違反である。一方で、インターフェースを 1 メソッドずつに分けすぎると、数が増えて、管理が大変になる。クライアントの視点で、まとまりを決める。</code></pre>
 
+#### Python の例
+
+```python
+from typing import Protocol
+
+
+class Printer(Protocol):
+    def print_doc(self, doc: str) -> None: ...
+
+
+class Scanner(Protocol):
+    def scan(self) -> str: ...
+
+
+class SimplePrinter:  # 印刷だけできる
+    def print_doc(self, doc):
+        print("print:", doc)
+
+
+class MultiFunction:  # 印刷もスキャンもできる
+    def print_doc(self, doc):
+        print("print:", doc)
+
+    def scan(self):
+        return "scanned"
+
+
+def print_all(printer: Printer, docs):  # 印刷の機能にだけ依存する
+    for d in docs:
+        printer.print_doc(d)
+
+
+print_all(SimplePrinter(), ["a"])
+print_all(MultiFunction(), ["b"])
+```
+
 ### 依存性逆転の原則 (DIP) <a id="dip"></a>
 
 上位のモジュールが、下位のモジュールに、直接依存しない。どちらも抽象に依存することで、実装の変更の影響を小さくする。DIP は、Dependency Inversion Principle の略である。
+
+抽象 (上位要素) は、詳細 (下位要素) に依存してはならない。
+
+Robert C. Martin は、この原則を、次の 2つで表している。
+
+| 内容 |
+| --- |
+| 上位のモジュールは、下位のモジュールに依存してはならない。どちらも、抽象に依存すべきである |
+| 抽象は、詳細に依存してはならない。詳細が、抽象に依存すべきである |
 
 | 項目 | 内容 |
 | --- | --- |
@@ -976,6 +1271,138 @@ DIP は「何を目指すか」の原則であり、DI は、そのための具�
 <pre><code class="tips">抽象 (インターフェース) は、利用する側のモジュールに置く。そうすると、下位のモジュールが、上位の定義した抽象に合わせる形になり、依存の向きが、逆転する。</code></pre>
 
 <pre><code class="caution">DI コンテナやフレームワークは、DIP に必須ではない。コンストラクタで渡すだけでも、DIP は実現できる。すべてのクラスに、インターフェースを作ると、KISS と YAGNI に反する。変更や差し替えが、現実に起こる境界だけに、抽象を置く。</code></pre>
+
+#### Python の例
+
+次の例では、コンストラクタで `notifier` を受け取る形が、DI である。テストでは、別の詳細 (`FakeNotifier`) に、差し替えている。
+
+```python
+from typing import Protocol
+
+
+class Notifier(Protocol):  # 抽象
+    def send(self, message: str) -> None: ...
+
+
+class EmailNotifier:  # 詳細 (下位)
+    def send(self, message):
+        print("mail:", message)
+
+
+class FakeNotifier:  # テスト用の、別の詳細
+    def __init__(self):
+        self.sent = []
+
+    def send(self, message):
+        self.sent.append(message)
+
+
+class OrderService:  # 上位。Notifier (抽象) にだけ依存する
+    def __init__(self, notifier: Notifier):
+        self._notifier = notifier
+
+    def place(self, item):
+        self._notifier.send(f"注文を受け付けた: {item}")
+
+
+OrderService(EmailNotifier()).place("本")
+fake = FakeNotifier()
+OrderService(fake).place("ペン")
+print(fake.sent)  # ['注文を受け付けた: ペン']
+```
+
+---
+
+## GRASP (General Responsibility Assignment Software Patterns) <a id="grasp" data-name="GRASP"></a>
+
+GRASP は、Craig Larman が、著書 Applying UML and Patterns で示した、9つの原則。クラスにどの責任を割り当てるかを、判断するための指針である。Principles (原則) の頭文字とも書く。
+
+| 原則 | 英語名 | 内容 |
+| --- | --- | --- |
+| 疎結合 | Low Coupling | 結合度が低くなるように、責任を配置する |
+| 高凝集 | High Cohesion | 凝集度が高くなるように、責任を配置する |
+| 間接化 | Indirection | 2つのクラスの間に、仲介する要素を置く |
+| 情報エキスパート | Information Expert | 必要な情報を持つクラスに、責務を割り当てる |
+| 生成者 | Creator | そのクラスを使うクラスに、生成の責務を割り当てる |
+| 純粋人工物 | Pure Fabrication | 問題の領域にない、人工的なクラスを導入する |
+| コントローラ | Controller | システムイベントを制御する、専用のクラスを置く |
+| 多態性 | Polymorphism | 変動する振る舞いを、下位クラスに実装させる |
+| 変動からの保護 | Protected Variations | 変動する部分を、別のクラスに切り出す |
+
+### 依存度を下げるための原則
+
+- 疎結合
+  - 結合度 (他の要素との結び付きの強さ) が低くなるように、責任を配置するという基本原則。
+- 高凝集
+  - 凝集度 (構成要素に含まれる機能性のまとまり) が高くなるように、責任を配置するという基本原則。
+- 間接化
+  - 2つのクラスの中間に要素を設け、両者の仲介を行う責務を割り当てることで、2つのクラスの疎結合を促進するという原則。
+
+### 役割分担に関する原則
+
+- 情報エキスパート
+  - 責務を遂行するために必要な情報を全て保持しているクラスに対して、責務を割り当てるべきという原則。情報エキスパートの原則を適用することにより、責務を遂行するために必要な情報を全て保持しているクラスに対して、責務が集中するので、ソフトウェアの凝集度が高くなる。
+- 生成者
+  - クラスを生成する責務は、そのクラスを集約するクラスのように、そのクラスを直接使用し、そのクラスを初期化するために必要な情報を持っているクラスに割り当てるべきという原則。
+  - 生成者の原則を適用することにより、クラス間の結合度が低くなり、理解のしやすさ、カプセル化が促進され、オブジェクトの再利用性を高くすることができる。
+- 純粋人工物
+  - 疎結合や高凝集、それらから得られる再利用性が、情報エキスパートで実現できない場合、それを実現するためのクラスを導入すべきだという原則。純粋人工物の原則を適用することにより、情報エキスパートの高凝集を確保するとともに、情報エキスパートに対する疎結合が促進され、その再利用性が高くなる。
+- コントローラ
+  - システム全体を表すクラスや、ユースケースシナリオを表現する、ユーザーインタフェースでないクラスに、システムイベントをコントロールする責務を割り当てるという原則。コントローラの原則を適用することにより、ユーザーインタフェースや他システムに対する結合度が下がり、ソフトウェアの再利用性を高くすることができる。
+
+次の例では、注文の合計を求める責務を、必要な情報を持つ `Order` (情報エキスパート) に割り当てている。また、`OrderItem` の生成は、それを集約する `Order` (生成者) が行う。
+
+```python
+class OrderItem:
+    def __init__(self, price, quantity):
+        self.price = price
+        self.quantity = quantity
+
+    def subtotal(self):
+        return self.price * self.quantity
+
+
+class Order:
+    def __init__(self):
+        self.items = []
+
+    def add_item(self, price, quantity):  # 生成者: Order が OrderItem を作る
+        self.items.append(OrderItem(price, quantity))
+
+    def total(self):  # 情報エキスパート: 明細を持つ Order が合計を求める
+        return sum(item.subtotal() for item in self.items)
+
+
+order = Order()
+order.add_item(100, 2)
+order.add_item(250, 1)
+print(order.total())  # 450
+```
+
+### 変動をカプセル化するための原則
+
+- 多態性
+  - クラスの機能のうち、変動する部分の仕様を下位クラスに継承させ、下位クラスで具体的なふるまい (実装) を定義することで、再利用性や拡張性を上げるという原則。多態性の原則を適用することにより、そのクラスを利用する側に対する結合度を下げ、クラスの再利用性や拡張性を上げることができる。
+- 変動からの保護
+  - クラスの機能のうち、変動する不安定な部分を、別のクラスとして切り出して、それを合成することで、変動しない部分を保護するとともに、変動部分の拡張性を上げるという原則。変動からの保護の原則を適用して、変動部分を切り出すことで、それを高凝集にし、交換可能性を高くすることで、変動部分の拡張性を上げることになる。
+
+### GRASP と、他の原則の対応
+
+GRASP の原則は、このドキュメントの、他の原則と重なる部分が多い。
+
+| GRASP の原則 | 関連する原則 (目安) |
+| --- | --- |
+| 疎結合 | <a href="#coupling">低結合</a> |
+| 高凝集 | <a href="#cohesion">高凝集</a> |
+| 間接化 | <a href="#coupling">低結合</a>。Adapter、Bridge、Mediator などのパターンで実現する |
+| 情報エキスパート | <a href="#cohesion">高凝集</a>、<a href="#tell-dont-ask">Tell, Don't Ask</a> |
+| 生成者 | <a href="#coupling">低結合</a>、<a href="#encapsulation">カプセル化</a> |
+| 純粋人工物 | <a href="#cohesion">高凝集</a>、<a href="#coupling">低結合</a> |
+| コントローラ | <a href="#soc">関心の分離</a>、<a href="#coupling">低結合</a> |
+| 多態性 | <a href="#ocp">OCP</a>、<a href="#lsp">LSP</a> |
+| 変動からの保護 | <a href="#information-hiding">情報隠蔽</a>、<a href="#ocp">OCP</a> |
+
+<pre><code class="tips">GRASP は、責任の割り当ての、一般的な指針である。SOLID は、クラスの設計の原則で、どちらも、変更に強い設計を目指す。パターンとの関係は、「デザインパターン」のドキュメントの、原則とパターンの関係を参照。</code></pre>
 
 ---
 
@@ -1224,6 +1651,8 @@ CRAP を使った改善の流れを、表にまとめる。
 | クラスが、大きくなりすぎた | <a href="#srp">SRP</a>、<a href="#cohesion">高凝集</a>、<a href="#soc">関心の分離</a> |
 | 条件分岐が、増え続ける | <a href="#ocp">OCP</a>、<a href="#lsp">LSP</a> |
 | 呼び出した結果が、予想と違う | <a href="#cqs">コマンド・クエリ分離</a>、<a href="#pola">最小驚きの原則</a> |
+| 責任を、どのクラスに置くか迷う | <a href="#grasp">GRASP</a> (情報エキスパート、生成者)、<a href="#cohesion">高凝集</a> |
+| 副作用で、動作が予測しにくい | <a href="#cqs">コマンド・クエリ分離</a> |
 | テストが書きにくい | <a href="#testability">テスト容易性</a>、<a href="#dip">DIP</a>、<a href="#isp">ISP</a> |
 | 内部の状態が、外から壊される | <a href="#encapsulation">カプセル化</a>、<a href="#information-hiding">情報隠蔽</a>、<a href="#tell-dont-ask">Tell, Don't Ask</a> |
 | 設計が、複雑になりすぎた | <a href="#kiss">KISS</a>、<a href="#yagni">YAGNI</a> |
@@ -1245,6 +1674,8 @@ CRAP を使った改善の流れを、表にまとめる。
 | 情報隠蔽 と カプセル化 | 隠す考え方と、まとめる手段である |
 | デメテルの法則 と Tell, Don't Ask | 連鎖した取得は、判断が外に出ているサインである |
 | DIP と テスト容易性 | 抽象に依存すると、テストで、差し替えられる |
+| GRASP の疎結合、高凝集 と 低結合、高凝集 | 同じ考え方を、責任の割り当ての場面で、使う |
+| GRASP の変動からの保護 と 情報隠蔽、OCP | 変わりやすい部分を、切り出して隠す |
 
 ### ぶつかりやすい原則
 
@@ -1274,7 +1705,8 @@ CRAP を使った改善の流れを、表にまとめる。
 | 1996年ごろ | Martin が、DIP、ISP、パッケージの原則 (SDP など) を、記事にまとめる。Beck が、ガード節を紹介する |
 | 1997年 | Sharp が、『Smalltalk by Example』で、手続き型とオブジェクト指向の違いを指摘する (Tell, Don't Ask の元) |
 | 1999年 | Fowler の『Refactoring』、Hunt と Thomas の『The Pragmatic Programmer』(DRY)、Beck の『Extreme Programming Explained』(YAGNI) が出版される |
-| 2002年 | Martin が、『Agile Software Development, Principles, Patterns, and Practices』で、SOLID をまとめる |
+| 2000年 | Martin が、論文で、SOLID の原則を、まとめて紹介する |
+| 2002年 | Martin が、『Agile Software Development, Principles, Patterns, and Practices』で、SOLID を、書籍としてまとめる |
 | 2007年 | Savoia と Evans が、CRAP 指標を公開する |
 | 2011年 | ISO/IEC 25010 が、策定される |
 | 2017年 | Martin が、『Clean Architecture』で、SRP をアクターの観点から説明する |
@@ -1292,10 +1724,13 @@ CRAP を使った改善の流れを、表にまとめる。
 | getter と setter だらけで、不正な状態になる | カプセル化を、アクセサの有無だけで考えている | 不正な状態を防ぐ操作を、オブジェクトに持たせる |
 | 委譲メソッドが、大量に増える | デメテルの法則を、機械的に守っている | 責務の置き場所を、見直す |
 | 何もしない中継の層が、増える | 関心の分離を、層の数で考えている | 各層が、固有の関心を持つかを確認する |
-| サブクラスで、例外を投げたり、何もしなかったりする | 継承を、is-a で判断した | 継承をやめ、共通の抽象に、揃える |
+| サブクラスで、例外を投げたり、何もしなかったりする。親の代わりに使うと、結果が変わる | 子が、親の約束を破っている (LSP 違反)。継承を、is-a で判断した | 継承をやめて、委譲にする。または、共通の抽象に揃える。親の約束を、見直す |
+| 使わないメソッドを、実装させられる | 1 つのインターフェースが、大きすぎる (ISP 違反) | 利用者ごとに、小さなインターフェースに分ける |
+| 値を取得するメソッドが、状態を変える | クエリのつもりのメソッドが、副作用を持つ (CQS 違反) | 取得と更新を、別のメソッドに分ける。スタックの pop のような、慣習がある操作は例外 |
+| CQS と CQRS を、混同する | 名前が似ている | CQS はメソッド単位の原則、CQRS は、システムの構成の考え方と、区別する |
 | クラスが、細かく分かれすぎて、全体を追えない | SRP を、「1 メソッド 1 クラス」と誤解している | 変更の理由が同じものは、まとめる |
 | `Utils` や `Helper` が肥大化する | 置き場所に迷い、とりあえず入れている | 目的ごとのクラスに、分ける |
-| DI コンテナの設定が複雑になる | DIP と DI を、混同している | コンストラクタでの注入から始める |
+| DI コンテナの設定が複雑になる | DIP と DI を、混同している。原則と、実現する手法を、同じものとして覚えている | DIP は設計の原則、DI は、依存を外から渡す手法と、区別する。コンストラクタでの注入から始める |
 | 使われない拡張点が、残っている | 将来を予測して、先に作った | YAGNI に従い、必要になってから作る |
 | カバレッジは高いが、バグが見つかる | assert のないテストで、数値だけを上げた | 結果を検証するテストを、書く |
 | 早期リターンで、リソースの解放が漏れる | ガード節を、解放処理の前に置いた | 言語の機能で、解放を保証する |
@@ -1309,10 +1744,13 @@ CRAP を使った改善の流れを、表にまとめる。
 | --- | --- |
 | 『Clean Code』 | 命名、関数、コメントなど、コードの書き方の実践 |
 | 『Agile Software Development, Principles, Patterns, and Practices』 | SOLID とパッケージの原則 |
-| 『Clean Architecture』 | 依存の向き、コンポーネントの原則、SRP の現在の定義 |
+| 『Clean Architecture』 | SOLID と、依存関係の向き (DIP) の解説。コンポーネントの原則、SRP の現在の定義 |
 | 『Refactoring』 | ガード節など、コードを改善する手法の一覧 |
 | 『The Pragmatic Programmer』 | DRY、Tell, Don't Ask などの実践 |
-| 『Object-Oriented Software Construction』 | CQS、OCP の原典 |
+| 『Object-Oriented Software Construction』 | OCP と CQS の出典 |
+| 『Applying UML and Patterns』 (Craig Larman) | GRASP の出典 |
+| [Martin Fowler: CommandQuerySeparation](https://www.martinfowler.com/bliki/CommandQuerySeparation.html) | CQS の解説と、例外の考え方 |
 | 『Working Effectively with Legacy Code』 | テストのない既存コードを、変更する方法 |
 | 「Rustのテスト」のドキュメント | Rust での、単体テスト、結合テストの書き方 |
-| 「プログラミング全般」のノート | プログラミング全般の基本事項 |
+| 「デザインパターン」のドキュメント | GoF の 23 パターンと、原則とパターンの関係 |
+| 「プログラミング全般」のノート | 命名規則 (スネークケースなど)、比較演算子、基本用語 |
