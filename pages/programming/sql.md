@@ -232,6 +232,44 @@ SQLite では、CEIL や FLOOR、MOD などの数学関数が、ビルドの設�
 MySQL では、文字列の連結に、CONCAT(a, b) を使う (標準の || は、MySQL では OR の意味になる)。
 SQLite には、CHAR_LENGTH()、OCTET_LENGTH()、POSITION() がなく、SUBSTRING(str FROM start FOR len) の形も使えない。LENGTH()、instr(str, 部分文字列)、substr(str, start, len) を使う。</code></pre>
 
+#### NULL を扱う関数
+
+| 関数 | 説明 |
+| --- | --- |
+| `COALESCE(a, b, ...)` | 左から順に見て、最初の `NULL` でない値を返す |
+| `NULLIF(a, b)` | a と b が等しければ `NULL`、違えば a を返す |
+
+<pre><code class="example">-- NULL を、別の値に置き換えて表示
+SELECT name, COALESCE(phone, '未登録') AS phone
+FROM users;
+
+-- 0 で割るエラーを避ける (NULLIF で、0 を NULL に変える)
+SELECT total / NULLIF(item_count, 0) AS average
+FROM stats;
+
+-- NULL を 0 として、平均を求める
+SELECT AVG(COALESCE(score, 0)) AS avg_score
+FROM exams;</code></pre>
+
+<pre><code class="tips">COALESCE は標準 SQL の関数で、MySQL と SQLite でも使える。IFNULL(a, b) は、MySQL と SQLite の独自の関数 (引数は2つだけ) なので、COALESCE を使う方が移植しやすい。
+AVG(score) は NULL の行を除いて平均するが、AVG(COALESCE(score, 0)) は、NULL を 0 点として含めて平均する。どちらが目的に合うかを、考えて選ぶ。</code></pre>
+
+#### 型の変換 (CAST)
+
+```sql
+CAST(式 AS データ型)
+```
+
+<pre><code class="example">-- 整数同士の割り算を、小数で行う
+SELECT CAST(5 AS DECIMAL(10, 2)) / 2;
+-- 2.50
+
+-- 文字列を、日付に変換
+SELECT CAST('2026-11-26' AS DATE);</code></pre>
+
+<pre><code class="caution">MySQL の CAST では、整数への変換を SIGNED (または UNSIGNED)、文字列への変換を CHAR と書く (CAST(x AS INTEGER) や CAST(x AS VARCHAR) は使えない)。
+SQLite は、型親和性により、CAST の結果の型が、標準 SQL とは違うことがある。</code></pre>
+
 #### DISTINCT
 
 重複を取り除いて取得する。
@@ -267,6 +305,33 @@ FROM employees
 WHERE id IN (SELECT employee_id FROM orders);
 ```
 
+**EXISTS**
+
+`EXISTS (サブクエリ)` は、サブクエリが1行でも返せば真になる。外側の行の値を使うサブクエリ (相関サブクエリ) と組み合わせて、「関連する行があるか」を調べるときに使う。
+
+```sql
+-- 注文のある社員だけ
+SELECT e.name
+FROM employees AS e
+WHERE EXISTS (
+    SELECT 1
+    FROM orders AS o
+    WHERE o.employee_id = e.id
+);
+
+-- 注文のない社員だけ
+SELECT e.name
+FROM employees AS e
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM orders AS o
+    WHERE o.employee_id = e.id
+);
+```
+
+<pre><code class="caution">NOT IN (サブクエリ) は、サブクエリの結果に NULL が1件でも含まれると、1行も返らなくなる (比較の結果が UNKNOWN になるため)。
+「ないものを探す」ときは、NOT EXISTS を使うと、NULL の影響を受けない。</code></pre>
+
 #### CASE式
 
 条件に応じて、返す値を切り替える。
@@ -283,6 +348,28 @@ FROM employees;
 ```
 
 <pre><code class="tips">CASE は、上の WHEN から順に評価されて、最初に当てはまった値が返る。どれにも当てはまらず、ELSE もないときは、NULL になる。</code></pre>
+
+#### 集合演算
+
+複数の `SELECT` の結果を、1つにまとめたり、比べたりする。
+
+| 演算 | 内容 |
+| --- | --- |
+| `UNION` | 和集合。重複した行を取り除く |
+| `UNION ALL` | 和集合。重複した行も残す (重複を調べない分、速い) |
+| `INTERSECT` | 積集合。両方の結果にある行 |
+| `EXCEPT` | 差集合。前の結果にあって、後ろの結果にない行 |
+
+```sql
+SELECT name FROM customers
+UNION
+SELECT name FROM suppliers
+ORDER BY name;
+```
+
+<pre><code class="caution">それぞれの SELECT で、列の数と、対応する列の型を合わせる。列名は、最初の SELECT のものが使われる。
+ORDER BY は、全体の最後に1回だけ書く。
+MySQL は、INTERSECT と EXCEPT に 8.0.31 から対応した。それより前のバージョンでは、JOIN や NOT EXISTS で書き換える。</code></pre>
 
 ---
 
@@ -376,7 +463,7 @@ MySQL と SQLite では、真偽値は実際には整数で、`TRUE`、`FALSE` �
 | `%` | 剰余 (多くの DBMS で使えるが、標準ではない) |
 | `DIV` | 除算 (整数)。MySQL のみ |
 
-<pre><code class="caution">整数同士の `/` の結果は、DBMS によって違う。5 / 2 は、MySQL では 2.5 になり、SQLite では 2 になる (標準 SQL では、処理系によって決まる)。小数の結果がほしいときは、CAST で型を変えるか、小数で書く。</code></pre>
+<pre><code class="caution">整数同士の / の結果は、DBMS によって違う。5 / 2 は、MySQL では 2.5 になり、SQLite では 2 になる (標準 SQL では、処理系によって決まる)。小数の結果がほしいときは、CAST で型を変えるか、小数で書く。</code></pre>
 
 #### 複数の条件で検索する
 
@@ -523,7 +610,7 @@ ORDER BY department ASC, salary DESC;</code></pre>
 2. 同じ部署で、給料 (salary) が高い順に並び替え。
 
 <pre><code class="tips">標準 SQL では、NULL を先頭と末尾のどちらに並べるかは、DBMS によって決まる。MySQL と SQLite では、NULL は最小の値として扱われ、昇順では、先頭に並ぶ。
-NULLS FIRST / NULLS LAST で指定できる DBMS もあるが、MySQL は対応していない。</code></pre>
+NULLS FIRST / NULLS LAST で指定できる DBMS もある (SQLite は 3.30.0 以降)。MySQL は対応していないので、ORDER BY 列名 IS NULL, 列名 のように書いて、NULL を末尾に回す。</code></pre>
 
 ---
 
@@ -578,6 +665,7 @@ OFFSET、FETCH FIRST、LIMIT は、ORDER BY とセットで使う。並び順を
 | 2 | 構造を変える、削除する | `ALTER TABLE`、`DROP TABLE` |
 | 3 | データを入れる、変える、消す | `INSERT`、`UPDATE`、`DELETE` |
 | 4 | 操作をひとまとまりにする | `START TRANSACTION`、`COMMIT`、`ROLLBACK` |
+| 5 | 検索を速くする、検索に名前を付ける | `CREATE INDEX`、`CREATE VIEW` |
 
 ### テーブルの作成
 
@@ -601,7 +689,7 @@ CREATE TABLE users (
 );
 ```
 
-<pre><code class="caution">標準の GENERATED ALWAYS AS IDENTITY は、MySQL と SQLite では使えない。MySQL では `id INT AUTO_INCREMENT PRIMARY KEY`、SQLite では `id INTEGER PRIMARY KEY` と書く。</code></pre>
+<pre><code class="caution">標準の GENERATED ALWAYS AS IDENTITY は、MySQL と SQLite では使えない。MySQL では id INT AUTO_INCREMENT PRIMARY KEY、SQLite では id INTEGER PRIMARY KEY と書く。</code></pre>
 
 | 制約 | 内容 |
 | --- | --- |
@@ -738,7 +826,7 @@ WHERE table_name = 'products';
 | `BOOLEAN` | 真偽値 (`TRUE`、`FALSE`、`UNKNOWN`) |
 | `BLOB` | 画像などの、バイナリデータ |
 
-<pre><code class="tips">`TEXT` (長い文字列) と `DATETIME` は、標準 SQL にない型だが、MySQL と SQLite で使える。</code></pre>
+<pre><code class="tips">TEXT (長い文字列) と DATETIME は、標準 SQL にない型だが、MySQL と SQLite で使える。</code></pre>
 
 <pre><code class="tips">SQLite は、型の指定が緩く、列に宣言した型と違う型の値も、そのまま保存できる (型親和性)。VARCHAR(n) の n も、強制されない。MySQL と同じ感覚で、型の違反が、エラーになると期待しない。</code></pre>
 
@@ -755,7 +843,7 @@ WHERE table_name = 'products';
 | 既定値の設定 | `ALTER TABLE t ALTER COLUMN 列 SET DEFAULT 値;` | SQLite は非対応 |
 | 型の変更 | `ALTER TABLE t ALTER COLUMN 列 SET DATA TYPE 型;` | MySQL は `MODIFY COLUMN 列 型`。SQLite は非対応 |
 | 制約の追加 | `ALTER TABLE t ADD CONSTRAINT 名前 制約;` | SQLite は非対応 |
-| 制約の削除 | `ALTER TABLE t DROP CONSTRAINT 名前;` | MySQL の外部キーは `DROP FOREIGN KEY` (<a href="#foreign-key">外部キー制約</a>)。SQLite は非対応 |
+| 制約の削除 | `ALTER TABLE t DROP CONSTRAINT 名前;` | MySQL は 8.0.19 以降で対応。それ以前の外部キーは `DROP FOREIGN KEY` (<a href="#foreign-key">外部キー制約</a>)。SQLite は非対応 |
 | 列名の変更 | `ALTER TABLE t RENAME COLUMN 旧 TO 新;` | 標準の文ではないが、多くの DBMS で使える。MySQL は 8.0 以降、SQLite は 3.25.0 以降 |
 | テーブル名の変更 | `ALTER TABLE t RENAME TO 新;` | 標準の文ではないが、多くの DBMS で使える |
 
@@ -932,6 +1020,15 @@ COMMIT;
 | `COMMIT` | これまでの操作を確定する |
 | `ROLLBACK` | これまでの操作を取り消して、開始前に戻す |
 
+トランザクションが満たすべき性質は、頭文字をとって **ACID** と呼ばれる。
+
+| 性質 | 内容 |
+| --- | --- |
+| 原子性 (Atomicity) | まとまりの中の操作は、すべて成功するか、すべて取り消される |
+| 一貫性 (Consistency) | 制約を満たす状態から、制約を満たす状態へ移る |
+| 独立性 (Isolation) | 同時に実行しても、互いの途中経過が見えない (どこまで隠すかは、分離レベルで決まる) |
+| 永続性 (Durability) | 確定した結果は、障害が起きても失われない |
+
 <pre><code class="tips">まとめて変更するときは、トランザクションを開始して、UPDATE や DELETE を実行し、対象の件数や内容を確認してから、COMMIT する。想定と違っていたら、ROLLBACK する。</code></pre>
 
 <pre><code class="caution">多くの DBMS では、トランザクションを開始しないと、1文ごとに自動で確定される (自動コミット)。
@@ -948,6 +1045,88 @@ MySQL では、CREATE、ALTER、DROP、TRUNCATE などのテーブル定義の�
 | SQLite | `INSERT ... ON CONFLICT (列) DO UPDATE SET ...` (3.24.0 以降。`MERGE` は非対応) |
 
 <pre><code class="tips">UPSERT の書き方は、DBMS ごとの違いが大きい。MERGE の細かい仕様も、DBMS によって異なるので、使う DBMS のドキュメントで確認する。</code></pre>
+
+`users` の `email` に `UNIQUE` が付いているとき、同じ `email` があれば `name` を更新し、なければ挿入する例。
+
+**標準 SQL (MERGE)**
+
+```sql
+MERGE INTO users AS u
+USING (VALUES ('alice@example.com', 'Alice')) AS s (email, name)
+    ON u.email = s.email
+WHEN MATCHED THEN
+    UPDATE SET name = s.name
+WHEN NOT MATCHED THEN
+    INSERT (email, name) VALUES (s.email, s.name);
+```
+
+**MySQL**
+
+```sql
+INSERT INTO users (email, name)
+VALUES ('alice@example.com', 'Alice') AS new
+ON DUPLICATE KEY UPDATE name = new.name;
+```
+
+**SQLite**
+
+```sql
+INSERT INTO users (email, name)
+VALUES ('alice@example.com', 'Alice')
+ON CONFLICT (email) DO UPDATE SET name = excluded.name;
+
+-- 重複したときは、何もしない
+INSERT INTO users (email, name)
+VALUES ('alice@example.com', 'Alice')
+ON CONFLICT (email) DO NOTHING;
+```
+
+<pre><code class="tips">MySQL の VALUES AS new の形 (行のエイリアス) は、8.0.19 以降で使える。古い書き方の name = VALUES(name) は、8.0.20 以降では、非推奨になっている。</code></pre>
+
+### インデックス (索引)
+
+検索を速くするための、別の構造。本の索引のように、値から行の場所を、すぐに見つけられる。
+
+```sql
+-- 作成
+CREATE INDEX idx_products_category ON products (category_id);
+
+-- 重複を許さないインデックス
+CREATE UNIQUE INDEX uq_users_email ON users (email);
+
+-- 削除
+DROP INDEX idx_products_category;
+```
+
+<pre><code class="caution">CREATE INDEX は標準 SQL にはないが、ほとんどの DBMS で同じ書き方ができる。
+MySQL の DROP INDEX は、テーブル名も必要になる (DROP INDEX idx_products_category ON products;)。</code></pre>
+
+- `PRIMARY KEY` と `UNIQUE` を付けた列には、インデックスが自動で作られる。MySQL (InnoDB) では、外部キーの列にも作られる。
+- `WHERE`、`JOIN`、`ORDER BY` でよく使う列に作ると、効果が出やすい。
+- インデックスは、`INSERT`、`UPDATE`、`DELETE` のたびに更新されるため、作りすぎると、書き込みが遅くなり、容量も増える。
+- 複数の列のインデックス (`(a, b)`) は、先頭の列 (`a`) から順に使われる。`b` だけの条件では、効きにくい。
+
+<pre><code class="tips">インデックスが使われているかは、MySQL では EXPLAIN SELECT ...、SQLite では EXPLAIN QUERY PLAN SELECT ... で確認できる。</code></pre>
+
+### ビュー
+
+保存した `SELECT` に、名前を付けたもの。テーブルのように `SELECT` できるが、データそのものは持たず、参照するたびに、元の `SELECT` が実行される。
+
+```sql
+CREATE VIEW in_stock_products AS
+SELECT id, name, price
+FROM products
+WHERE stock > 0;
+
+SELECT * FROM in_stock_products;
+
+DROP VIEW in_stock_products;
+```
+
+複雑な `JOIN` を使い回したいときや、見せたくない列を隠したいときに使う。
+
+<pre><code class="caution">CREATE OR REPLACE VIEW は、標準 SQL にはない (MySQL は対応、SQLite は非対応)。SQLite では、DROP VIEW してから、作り直す。
+ビューの元になっているテーブルや列を変更、削除すると、ビューが使えなくなることがある。</code></pre>
 
 ---
 
@@ -994,7 +1173,7 @@ FOREIGN KEY (parent_id) REFERENCES parent_table(id);</code></pre>
 
 複数の外部キーがある場合に、管理しやすくなる。
 
-<pre><code class="tips">MySQL では、古くからある DROP FOREIGN KEY fk_parent の形が、確実である。MySQL 8.0.19 以降では、標準の DROP CONSTRAINT でも削除できると考えられる (記憶に基づくため、公式のドキュメントで確認する)。
+<pre><code class="tips">MySQL では、8.0.19 以降なら、標準の DROP CONSTRAINT fk_parent で、外部キー制約も削除できる (制約の種類は、名前から判断される)。それより前のバージョンでは、DROP FOREIGN KEY fk_parent と書く。
 SQLite は、ALTER TABLE で、制約を削除できない。</code></pre>
 
 ### データの操作方法
@@ -1030,7 +1209,7 @@ JOIN
 | `ON UPDATE CASCADE` | 親テーブルのデータが更新されたときに、それを参照している子テーブルのデータが、自動的に更新される |
 | `ON DELETE SET DEFAULT` | 親テーブルの行が削除されると、子テーブルの外部キーが、列の既定値 (`DEFAULT`) になる。MySQL (InnoDB) は対応していない |
 | `RESTRICT` | 子テーブルに参照する行があるとき、親テーブルの削除や更新を拒否する |
-| `NO ACTION` | 何も指定しないときの既定。制約に違反する削除や更新を拒否する |
+| `NO ACTION` | 何も指定しないときの既定。制約に違反する削除や更新を拒否する。`RESTRICT` との違いは、検査のタイミング (標準 SQL では、`NO ACTION` は文の終わりに検査する)。MySQL (InnoDB) では、同じ動作になる |
 
 ```sql
 CREATE TABLE child_table (
@@ -1170,7 +1349,8 @@ mysql -u [ユーザー名] -p -e "CREATE DATABASE [データベース名];"
 mysql -u [ユーザー名] -p [データベース名] < backup.sql
 ```
 
-<pre><code class="tips">InnoDB のテーブルを、書き込みを止めずにバックアップするときは、mysqldump に --single-transaction を付ける (記憶に基づくため、公式のドキュメントで確認する)。</code></pre>
+<pre><code class="tips">InnoDB のテーブルを、書き込みを止めずにバックアップするときは、mysqldump に --single-transaction を付ける。トランザクションを開始した時点の、一貫した状態をダンプできる。
+一貫性が保たれるのは InnoDB のテーブルだけで、MyISAM などには効かない。ダンプ中に、他の接続から ALTER TABLE や DROP TABLE、TRUNCATE TABLE を実行すると、正しいダンプにならないことがある。</code></pre>
 
 <div class="subtitle">SQLite</div>
 
@@ -1359,6 +1539,41 @@ mysql --version
 sudo mysql -e "SELECT VERSION()"
 ```
 
+### 基本の操作 <a id="mysql-basics" data-name="基本の操作"></a>
+
+#### 接続
+
+```bash
+# 管理者として接続 (Ubuntu では、sudo で接続できる)
+sudo mysql
+
+# ユーザーを指定して、データベースを選んで接続
+mysql -u [ユーザー名] -p [データベース名]
+```
+
+#### データベースとユーザーの作成
+
+```sql
+CREATE DATABASE mydb CHARACTER SET utf8mb4;
+
+CREATE USER 'appuser'@'localhost' IDENTIFIED BY 'パスワード';
+GRANT ALL PRIVILEGES ON mydb.* TO 'appuser'@'localhost';
+```
+
+#### よく使う命令
+
+| 命令 | 内容 |
+| --- | --- |
+| `SHOW DATABASES;` | データベースの一覧を表示する |
+| `USE データベース名;` | 操作するデータベースを選ぶ |
+| `SHOW TABLES;` | テーブルの一覧を表示する |
+| `DESCRIBE テーブル名;` | 列の定義を表示する |
+| `SHOW CREATE TABLE テーブル名;` | テーブルを作る `CREATE TABLE` 文を表示する |
+| `exit` | 終了する |
+
+<pre><code class="tips">MySQL の CREATE DATABASE は、標準 SQL の CREATE SCHEMA にあたる。MySQL では、データベースとスキーマは、同じ意味で使われる。
+アプリケーションには、管理者ではなく、必要な権限だけを与えた、専用のユーザーを使う。</code></pre>
+
 ---
 
 ## SQLite <a id="sqlite" data-name="SQLite"></a>
@@ -1397,6 +1612,14 @@ PRAGMA foreign_keys = ON;
 ```bash
 sudo apt update
 sudo apt install sqlite3
+```
+
+```bash
+# バージョンの確認
+sqlite3 --version
+
+# example.db を開く (ファイルがなければ、新規作成される)
+sqlite3 example.db
 ```
 
 ---
@@ -1468,6 +1691,10 @@ SQLite のインタラクティブシェルで使用する、`.〇〇` 形式の
 | SQLite で、外部キー制約が効かない | 既定で無効になっている | 接続のたびに `PRAGMA foreign_keys = ON;` を実行する |
 | SQLAlchemy で、`execute()` がエラーになる | 2.0 では、文字列を直接渡せない | `text()` で包む |
 | SQLAlchemy で、`MySQLdb` が見つからない | `mysql://` は、mysqlclient を使う書き方 | `mysql+mysqlconnector://` にする。または、mysqlclient を入れる |
+| `NOT IN (サブクエリ)` で、1行も返らない | サブクエリの結果に `NULL` が含まれると、比較が `UNKNOWN` になる | `NOT EXISTS` を使う。または、サブクエリに `IS NOT NULL` を付ける |
+| `Every derived table must have its own alias` | `FROM` の中のサブクエリに、エイリアスがない | サブクエリの後ろに、`AS 名前` を付ける |
+| インデックスを作ったのに、検索が速くならない | `LIKE '%文字'` や、列に関数を使った条件では、インデックスが使われにくい | 前方一致にする。または、列そのものを比較する条件に書き換える |
+| `ALTER TABLE ... DROP CONSTRAINT` で構文エラーになる (MySQL) | 8.0.19 より前のバージョンは、非対応 | 外部キーは `DROP FOREIGN KEY` を使う |
 
 ---
 
