@@ -7,17 +7,35 @@ layout: default
 
 SQL は、データベースを操作するための言語。データの検索、追加、更新、削除と、テーブルの定義を、同じ書き方で行える。
 
-SQL の文は、役割によって、次のように分けられる。このドキュメントでは、MySQL と SQLite を中心に扱う。
+SQL の文は、役割によって、次のように分けられる。このドキュメントでは、標準 SQL を基準に説明し、MySQL と SQLite は、標準と違いのある部分を中心に補足する。
 
 | 分類 | 内容 | 主な文 |
 | --- | --- | --- |
 | DQL (データ問い合わせ) | データを検索する | `SELECT` |
 | DML (データ操作) | データを追加、更新、削除する | `INSERT`、`UPDATE`、`DELETE` |
 | DDL (データ定義) | テーブルなどの構造を定義する | `CREATE`、`ALTER`、`DROP` |
-| TCL (トランザクション制御) | 処理のまとまりを確定、取り消しする | `COMMIT`、`ROLLBACK` |
+| TCL (トランザクション制御) | 処理のまとまりを確定、取り消しする | `START TRANSACTION`、`COMMIT`、`ROLLBACK` |
 
-<pre><code class="caution">SQL は標準化されているが、データベースごとに、関数や構文が異なる。
-このドキュメントの例は、特に断りがない限り、MySQL を前提にしている。SQLite では、動かない関数や構文がある。</code></pre>
+<pre><code class="caution">SQL は標準化されている (ISO/IEC 9075) が、データベースごとに、対応している範囲や、独自の関数、構文が異なる。
+このドキュメントの例は、特に断りがない限り、標準 SQL の書き方にしている。MySQL や SQLite では、そのままでは動かない書き方もあるため、違いは、各所の補足と、下の表で確認する。</code></pre>
+
+---
+
+## 標準 SQL と主な DBMS の違い <a id="dialects" data-name="標準SQLとの違い"></a>
+
+標準 SQL に沿った書き方と、MySQL、SQLite の書き方の、主な違いをまとめる。詳しくは、各項目で説明する。
+
+| 項目 | 標準 SQL | MySQL | SQLite |
+| --- | --- | --- | --- |
+| 件数の制限 | `FETCH FIRST n ROWS ONLY` | `LIMIT n` | `LIMIT n` |
+| 連番の列 | `GENERATED ALWAYS AS IDENTITY` | `AUTO_INCREMENT` | `INTEGER PRIMARY KEY` |
+| 文字列の連結 | <code>&#124;&#124;</code> | `CONCAT()` | <code>&#124;&#124;</code> |
+| 文字数 | `CHAR_LENGTH()` | `CHAR_LENGTH()` | `LENGTH()` |
+| 現在の日時 | `CURRENT_TIMESTAMP` | `NOW()` (`CURRENT_TIMESTAMP` も可) | `CURRENT_TIMESTAMP` (`datetime('now')` も可) |
+| 年の取り出し | `EXTRACT(YEAR FROM d)` | `EXTRACT(YEAR FROM d)`、`YEAR(d)` | `strftime('%Y', d)` |
+| `FULL JOIN` | 対応 | 非対応 | 3.39.0 以降は対応 |
+| 識別子の引用符 | `"名前"` (二重引用符) | `` `名前` `` (バッククォート) | `"名前"` (バッククォートも可) |
+| 型の扱い | 宣言した型に従う | 宣言した型に従う | 型親和性 (宣言と違う型も保存できる) |
 
 ---
 
@@ -39,7 +57,7 @@ SQL の `SELECT` 文は、データベースからデータを抽出 (検索) �
 | 4 | `GROUP BY` |
 | 5 | `HAVING` |
 | 6 | `ORDER BY` |
-| 7 | `LIMIT` |
+| 7 | `OFFSET` / `FETCH FIRST` (多くの DBMS では `LIMIT`) |
 
 #### 実行順
 
@@ -51,7 +69,7 @@ SQL の `SELECT` 文は、データベースからデータを抽出 (検索) �
 | 4 | `HAVING` | グループ化後の条件 (集計結果に対して絞り込む) |
 | 5 | `SELECT` | どの列、計算結果を取り出すかを決定 |
 | 6 | `ORDER BY` | 並び替えを行う |
-| 7 | `LIMIT` | 取得する件数を制限 |
+| 7 | `OFFSET` / `FETCH FIRST` | 取得する件数を制限 (多くの DBMS では `LIMIT`) |
 
 <pre><code class="tips">WHERE は SELECT より先に実行されるため、SELECT で付けた別名 (AS) を、WHERE の中では使えない。
 別名を使えるのは、SELECT より後に実行される ORDER BY などである。</code></pre>
@@ -104,7 +122,7 @@ FROM (
 ) AS sub
 WHERE sub.avg_salary &gt; 50000;</code></pre>
 
-<pre><code class="caution">FROM の中のサブクエリ (派生テーブル) には、必ずエイリアスが必要になる。付けないと、MySQL ではエラーになる。</code></pre>
+<pre><code class="caution">FROM の中のサブクエリ (派生テーブル) には、標準 SQL では、必ずエイリアスが必要になる。付けないと、MySQL などではエラーになる。</code></pre>
 
 #### 集計関数
 
@@ -121,21 +139,40 @@ COUNT(*) とすると、NULL も含めてカウントする。</code></pre>
 
 #### 日付関数
 
-以下は MySQL の関数。SQLite には、`NOW()` などがなく、`datetime('now')` のような別の関数を使う。
+標準 SQL の、日付と時刻に関する書き方。
 
-| 関数 | 説明 |
+| 書き方 | 説明 |
 | --- | --- |
-| `NOW()` または `CURRENT_TIMESTAMP()` | 現在の日時を取得 |
-| `CURDATE()` または `CURRENT_DATE()` | 現在の日付を取得 |
-| `CURTIME()` または `CURRENT_TIME()` | 現在の時刻を取得 |
-| `YEAR(date)` | date から年を抽出 |
-| `MONTH(date)` | date から月を抽出 |
-| `DAY(date)` | date から日を抽出 |
-| `DATEDIFF(date1, date2)` | 日数の差を計算 |
-| `DATE_FORMAT(date, format)` | 日付を、指定した書式の文字列に変換する |
-| `DATE_ADD(date, INTERVAL 期間)` | date に対して期間を加える。INTERVAL には、`YEAR`、`MONTH`、`DAY`、`HOUR`、`MINUTE`、`SECOND` がある |
+| `CURRENT_TIMESTAMP` | 現在の日時を取得 (括弧を付けない) |
+| `CURRENT_DATE` | 現在の日付を取得 |
+| `CURRENT_TIME` | 現在の時刻を取得 |
+| `EXTRACT(YEAR FROM date)` | date から年を抽出。`YEAR` の代わりに、`MONTH`、`DAY`、`HOUR`、`MINUTE`、`SECOND` も指定できる |
+| `date + INTERVAL '10' DAY` | date に期間を加える。引くときは `-` を使う |
+| `CAST(文字列 AS DATE)` | 文字列を日付に変換する |
 
-`DATE_FORMAT` の書式には、次の指定子を使う。
+<pre><code class="example">SELECT EXTRACT(YEAR FROM rental_date) AS rental_year
+FROM rental;</code></pre>
+
+<pre><code class="caution">日数の差を求める方法や、日付を書式付きの文字列にする方法は、DBMS ごとの関数に頼ることになる (標準 SQL には、書式変換の関数がない)。
+SQLite には、EXTRACT がなく、INTERVAL も使えない。</code></pre>
+
+**MySQL と SQLite の関数**
+
+| 内容 | MySQL | SQLite |
+| --- | --- | --- |
+| 現在の日時 | `NOW()` | `datetime('now')` (UTC) |
+| 現在の日付 | `CURDATE()` | `date('now')` |
+| 現在の時刻 | `CURTIME()` | `time('now')` |
+| 年、月、日 | `YEAR(d)`、`MONTH(d)`、`DAY(d)` | `strftime('%Y', d)`、`strftime('%m', d)`、`strftime('%d', d)` |
+| 日数の差 | `DATEDIFF(d1, d2)` | `julianday(d1) - julianday(d2)` |
+| 書式変換 | `DATE_FORMAT(d, 書式)` | `strftime(書式, d)` |
+| 期間を加える | `DATE_ADD(d, INTERVAL 10 DAY)` | `date(d, '+10 days')` |
+
+MySQL の `DATE_ADD` の INTERVAL には、`YEAR`、`MONTH`、`DAY`、`HOUR`、`MINUTE`、`SECOND` がある。
+
+**MySQL の `DATE_FORMAT` の書式**
+
+次の指定子を使う。
 
 | 指定子 | 内容 |
 | --- | --- |
@@ -159,30 +196,41 @@ COUNT(*) とすると、NULL も含めてカウントする。</code></pre>
 
 <pre><code class="example">SELECT DATE_ADD(now(), INTERVAL -10 DAY)</code></pre>
 
+<pre><code class="tips">SQLite の strftime の指定子は、MySQL と一部違う (分は %M、秒は %S)。</code></pre>
+
 #### 数値関数
 
 | 関数 | 説明 |
 | --- | --- |
 | `ROUND(x)` | x を四捨五入する |
 | `ROUND(x, n)` | x を四捨五入して、n で表示する小数点以下の桁数を指定 |
-| `CEIL(x)` | x を切り上げる |
+| `CEIL(x)` または `CEILING(x)` | x を切り上げる |
 | `FLOOR(x)` | x を切り捨てる |
 | `ABS(x)` | x の絶対値 |
+| `MOD(x, y)` | x を y で割った余り |
+| `POWER(x, y)` | x の y 乗 |
+| `SQRT(x)` | x の平方根 |
+
+<pre><code class="caution">ROUND() は、標準 SQL の定義にはないが、ほとんどの DBMS で使える。
+SQLite では、CEIL や FLOOR、MOD などの数学関数が、ビルドの設定によっては、使えないことがある。</code></pre>
 
 #### 文字列操作関数
 
 | 関数 | 説明 |
 | --- | --- |
-| `CONCAT(a, b)` | 文字列を結合 |
+| <code>a &#124;&#124; b</code> | 文字列を結合 |
 | `UPPER(str)` | 小文字を大文字に変換 |
 | `LOWER(str)` | 大文字を小文字に変換 |
-| `SUBSTRING(str, start, len)` | str の start から len 文字取り出す (1オリジン) |
-| `SUBSTRING(str, start)` | start から後ろを取り出す (1オリジン) |
+| `SUBSTRING(str FROM start FOR len)` | str の start から len 文字取り出す (1オリジン) |
+| `SUBSTRING(str FROM start)` | start から後ろを取り出す (1オリジン) |
 | `CHAR_LENGTH(str)` | 文字数 |
-| `LENGTH(str)` | バイト数 (MySQL では、UTF-8 の日本語は、1文字が3バイトになる) |
+| `OCTET_LENGTH(str)` | バイト数 |
+| `TRIM(str)` | 前後の空白を取り除く |
+| `POSITION(部分文字列 IN str)` | 部分文字列の位置 (1オリジン)。見つからなければ 0 |
 
-<pre><code class="caution">MySQL の LENGTH() は、文字数ではなく、バイト数を返す。日本語の文字数を数えるときは、CHAR_LENGTH() を使う。
-SQLite の LENGTH() は、文字列に対して、文字数を返す。</code></pre>
+<pre><code class="caution">LENGTH() は、標準 SQL にない関数で、DBMS によって結果が違う。MySQL の LENGTH() は、文字数ではなく、バイト数を返す (UTF-8 の日本語は、1文字が3バイト)。SQLite の LENGTH() は、文字列に対して、文字数を返す。
+MySQL では、文字列の連結に、CONCAT(a, b) を使う (標準の || は、MySQL では OR の意味になる)。
+SQLite には、CHAR_LENGTH()、OCTET_LENGTH()、POSITION() がなく、SUBSTRING(str FROM start FOR len) の形も使えない。LENGTH()、instr(str, 部分文字列)、substr(str, start, len) を使う。</code></pre>
 
 #### DISTINCT
 
@@ -257,9 +305,9 @@ JOIN の種類
 | 種類 | 説明 |
 | --- | --- |
 | `INNER JOIN` (内部結合) | 両方のテーブルで一致するデータのみを取得。`JOIN` のみの場合は、デフォルトで `INNER JOIN` となる |
-| `LEFT JOIN` (左外部結合) | 左側のテーブルのデータはすべて取得し、一致するデータが右側になければ `NULL` が入る |
-| `RIGHT JOIN` (右外部結合) | 右側のテーブルのデータはすべて取得し、一致するデータが左側になければ `NULL` が入る |
-| `FULL JOIN` (完全外部結合) | 両方のテーブルのすべてのデータを取得し、一致しない部分には `NULL` が入る |
+| `LEFT JOIN` (左外部結合。`LEFT OUTER JOIN` と同じ) | 左側のテーブルのデータはすべて取得し、一致するデータが右側になければ `NULL` が入る |
+| `RIGHT JOIN` (右外部結合。`RIGHT OUTER JOIN` と同じ) | 右側のテーブルのデータはすべて取得し、一致するデータが左側になければ `NULL` が入る |
+| `FULL JOIN` (完全外部結合。`FULL OUTER JOIN` と同じ) | 両方のテーブルのすべてのデータを取得し、一致しない部分には `NULL` が入る |
 | `CROSS JOIN` (直積) | テーブルのすべての組み合わせを取得する。条件がないと、全件 × 全件の結果が返される |
 
 <pre><code class="caution">MySQL は、FULL JOIN に対応していない。LEFT JOIN と RIGHT JOIN を UNION でつないで、同じ結果を得る。
@@ -307,14 +355,14 @@ WHERE 条件式
 | 演算子 | 意味 |
 | --- | --- |
 | `=` | 等しい |
-| `!=` または `<>` | 等しくない |
+| `<>` | 等しくない (標準)。`!=` も、多くの DBMS で使える |
 | `>` | 左辺は右辺より大きい |
 | `>=` | 左辺は右辺以上 |
 | `<` | 左辺は右辺より小さい |
 | `<=` | 左辺は右辺以下 |
 
-比較演算子は、数値と文字列に対して利用でき、比較結果として `TRUE`、`FALSE`、`NULL` の値を返す。<br>
-`TRUE`、`FALSE` には、それぞれ定数 1 と 0 が割り当てられている。
+比較演算子は、数値と文字列に対して利用でき、比較結果として `TRUE`、`FALSE`、`UNKNOWN` (`NULL` が絡む比較) のいずれかを返す。<br>
+MySQL と SQLite では、真偽値は実際には整数で、`TRUE`、`FALSE` は、それぞれ 1 と 0 になる。
 
 #### 四則演算
 
@@ -324,17 +372,19 @@ WHERE 条件式
 | `-` | 減算 |
 | `*` | 乗算 |
 | `/` | 除算 |
-| `DIV` | 除算 (整数) |
-| `%` または `MOD` | 剰余 |
+| `MOD(x, y)` | 剰余 (標準) |
+| `%` | 剰余 (多くの DBMS で使えるが、標準ではない) |
+| `DIV` | 除算 (整数)。MySQL のみ |
+
+<pre><code class="caution">整数同士の `/` の結果は、DBMS によって違う。5 / 2 は、MySQL では 2.5 になり、SQLite では 2 になる (標準 SQL では、処理系によって決まる)。小数の結果がほしいときは、CAST で型を変えるか、小数で書く。</code></pre>
 
 #### 複数の条件で検索する
 
 | 演算子 | 意味 |
 | --- | --- |
-| `&&` または `AND` | いずれも真 |
-| <code>&#124;&#124;</code> または `OR` | いずれかが真 |
-| `!` または `NOT` | 否定 |
-| `条件1 XOR 条件2` | 条件の一方のみが真の場合真 |
+| `AND` | いずれも真 |
+| `OR` | いずれかが真 |
+| `NOT` | 否定 |
 
 <pre><code class="example">SELECT * 
 FROM city
@@ -344,7 +394,7 @@ AND Population &gt; 2000000;</code></pre>
 CountryCode が 'JPN' かつ Population が 200万より大きい。
 
 <pre><code class="caution">AND は OR より先に評価される。両方を混ぜるときは、丸括弧で、評価の順序を明示する。
-|| は、MySQL では OR の意味になるが、標準 SQL と SQLite では、文字列の連結になる。移植性のために、AND、OR、NOT を使う方が安全である。</code></pre>
+&&、||、!、XOR は、MySQL の独自の書き方で、標準 SQL にはない。特に || は、MySQL では OR の意味になるが、標準 SQL と SQLite では、文字列の連結になる。AND、OR、NOT を使う方が安全である。</code></pre>
 
 #### あいまい検索
 
@@ -407,16 +457,20 @@ GROUP BY continent</code></pre>
 
 大陸ごとの人口の平均。
 
-<pre><code class="caution">GROUP BY を使う際は、SELECT 句には GROUP BY に含まれる列か、集計関数しか書けない。
-MySQL 5.7 以降の既定では、この規則に違反すると、エラーになる (sql_mode の ONLY_FULL_GROUP_BY が有効なため)。</code></pre>
+<pre><code class="caution">GROUP BY を使う際は、SELECT 句には GROUP BY に含まれる列か、集計関数しか書けない (標準 SQL の規則)。
+MySQL 5.7 以降の既定では、この規則に違反すると、エラーになる (sql_mode の ONLY_FULL_GROUP_BY が有効なため)。SQLite は、違反してもエラーにならず、どの行の値が返るかが決まっていないので、注意する。</code></pre>
 
 #### 複数列のグループ化
 
-<pre><code class="example">SELECT YEAR(order_date) AS year, MONTH(order_date) AS month, SUM(amount) AS total
+<pre><code class="example">SELECT EXTRACT(YEAR FROM order_date) AS order_year,
+       EXTRACT(MONTH FROM order_date) AS order_month,
+       SUM(amount) AS total
 FROM sales
-GROUP BY YEAR(order_date), MONTH(order_date);</code></pre>
+GROUP BY EXTRACT(YEAR FROM order_date), EXTRACT(MONTH FROM order_date);</code></pre>
 
 〇年〇月ごとに合計を抽出。
+
+<pre><code class="tips">SQLite には EXTRACT がないので、strftime('%Y', order_date) のように書く。MySQL では、YEAR(order_date) も使える。</code></pre>
 
 ---
 
@@ -468,13 +522,36 @@ ORDER BY department ASC, salary DESC;</code></pre>
 1. 部署ごとに昇順で並び替え。
 2. 同じ部署で、給料 (salary) が高い順に並び替え。
 
-<pre><code class="tips">MySQL と SQLite では、NULL は最小の値として扱われる。昇順では、NULL が先頭に並ぶ。</code></pre>
+<pre><code class="tips">標準 SQL では、NULL を先頭と末尾のどちらに並べるかは、DBMS によって決まる。MySQL と SQLite では、NULL は最小の値として扱われ、昇順では、先頭に並ぶ。
+NULLS FIRST / NULLS LAST で指定できる DBMS もあるが、MySQL は対応していない。</code></pre>
 
 ---
 
-### LIMIT句 <a id="limit" data-name="LIMIT句"></a>
+### FETCH FIRST句とLIMIT句 <a id="limit" data-name="FETCH FIRST句・LIMIT句"></a>
 
-取得上限数を指定する。
+取得する件数を制限する。標準 SQL (SQL:2008 以降) では、`OFFSET` と `FETCH FIRST` を使う。
+
+```sql
+-- 基本構文
+OFFSET 開始位置 ROWS
+FETCH FIRST 件数 ROWS ONLY;
+```
+
+| 書き方 | 内容 |
+| --- | --- |
+| `FETCH FIRST 5 ROWS ONLY` | 先頭から 5件を取得 |
+| `OFFSET 10 ROWS FETCH FIRST 5 ROWS ONLY` | 先頭の 10件を飛ばして、5件を取得 |
+
+<pre><code class="example">SELECT name, salary
+FROM employees
+ORDER BY salary DESC
+FETCH FIRST 5 ROWS ONLY;</code></pre>
+
+給料の高い順に、上位 5件を取得する。
+
+**LIMIT句**
+
+MySQL と SQLite (ほかに PostgreSQL など) では、標準ではない `LIMIT` で、同じことを書く。
 
 ```sql
 LIMIT [開始位置,] 件数;
@@ -486,22 +563,45 @@ LIMIT [開始位置,] 件数;
 | `LIMIT 10, 5` | 開始位置 10 (0 から数える) から 5件を取得 |
 | `LIMIT 5 OFFSET 10` | 上と同じ。件数と開始位置を、名前付きで書く |
 
-<pre><code class="caution">LIMIT は、ORDER BY とセットで使う。並び順を指定しないと、どの行が先頭になるかは、保証されない。</code></pre>
+<pre><code class="caution">MySQL と SQLite は、FETCH FIRST に対応していないので、LIMIT を使う。
+OFFSET、FETCH FIRST、LIMIT は、ORDER BY とセットで使う。並び順を指定しないと、どの行が先頭になるかは、保証されない。</code></pre>
 
 ---
 
 ## テーブルの作成とデータの操作 <a id="table-data" data-name="テーブルとデータ操作"></a>
 
+この章では、テーブルの定義 (DDL) と、テーブルの中のデータの操作 (DML)、そして、操作をひとまとまりにするトランザクションを扱う。次の順に進める。
+
+| 順 | 内容 | 主な文 |
+| --- | --- | --- |
+| 1 | テーブルを作る | `CREATE TABLE` |
+| 2 | 構造を変える、削除する | `ALTER TABLE`、`DROP TABLE` |
+| 3 | データを入れる、変える、消す | `INSERT`、`UPDATE`、`DELETE` |
+| 4 | 操作をひとまとまりにする | `START TRANSACTION`、`COMMIT`、`ROLLBACK` |
+
 ### テーブルの作成
+
+#### 基本構文
+
+```sql
+CREATE TABLE テーブル名 (
+    列名1 データ型 [列制約],
+    列名2 データ型 [列制約],
+    ...
+    [テーブル制約]
+);
+```
 
 ```sql
 CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     email VARCHAR(100) UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
+
+<pre><code class="caution">標準の GENERATED ALWAYS AS IDENTITY は、MySQL と SQLite では使えない。MySQL では `id INT AUTO_INCREMENT PRIMARY KEY`、SQLite では `id INTEGER PRIMARY KEY` と書く。</code></pre>
 
 | 制約 | 内容 |
 | --- | --- |
@@ -509,36 +609,345 @@ CREATE TABLE users (
 | `NOT NULL` | `NULL` を許さない |
 | `UNIQUE` | 値の重複を許さない |
 | `DEFAULT` | 値を省略したときの、既定値 |
-| `AUTO_INCREMENT` | 値を省略すると、連番を自動で入れる (MySQL。SQLite では `AUTOINCREMENT`) |
+| `GENERATED ALWAYS AS IDENTITY` | 値を省略すると、連番を自動で入れる (標準)。MySQL では `AUTO_INCREMENT`、SQLite では `INTEGER PRIMARY KEY` |
+| `CHECK` | 値が満たすべき条件を指定する |
 | `FOREIGN KEY` | 別のテーブルの列を参照する (<a href="#foreign-key">外部キー制約</a>) |
+
+#### 列制約とテーブル制約
+
+制約の書き方は、2つある。
+
+| 書き方 | 内容 |
+| --- | --- |
+| 列制約 | 列の定義の後ろに書く。その列だけに対する制約 |
+| テーブル制約 | 列の定義とは別に、1行として書く。複数の列にまたがる制約は、こちらでしか書けない |
+
+`CONSTRAINT 名前` を付けると、制約に名前を付けられる。
+
+<pre><code class="example">CREATE TABLE categories (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE products (
+    id INTEGER GENERATED ALWAYS AS IDENTITY,
+    name VARCHAR(100) NOT NULL,
+    price DECIMAL(10, 2) NOT NULL DEFAULT 0,
+    stock INTEGER NOT NULL DEFAULT 0,
+    category_id INTEGER,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_products PRIMARY KEY (id),
+    CONSTRAINT ck_products_price CHECK (price &gt;= 0),
+    CONSTRAINT fk_products_category FOREIGN KEY (category_id) REFERENCES categories (id)
+);</code></pre>
+
+外部キーで参照される側の `categories` を、先に作る。名前を付けておくと、制約に違反したときのエラーで、どの制約かがわかり、`ALTER TABLE` で削除するときにも指定できる。
+
+#### 複合主キー
+
+複数の列の組み合わせで、行を一意に識別するときは、テーブル制約で書く。
+
+<pre><code class="example">CREATE TABLE order_items (
+    order_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
+    quantity INTEGER NOT NULL CHECK (quantity &gt; 0),
+    PRIMARY KEY (order_id, product_id)
+);</code></pre>
+
+同じ `order_id` と `product_id` の組み合わせは、2回入れられない。
+
+#### NULL と DEFAULT
+
+`NULL` は、値がない (または、不明) ことを表す特別な値で、0 や空文字とは違う。
+
+- `NOT NULL` を付けない列は、`NULL` を入れられる。
+- `INSERT` で列を省略すると、`DEFAULT` があればその値が、なければ `NULL` が入る。`NOT NULL` で `DEFAULT` もない列を省略すると、エラーになる。
+- `DEFAULT` には、固定の値のほか、`CURRENT_TIMESTAMP` のような、日時の関数も指定できる。
+- `UNIQUE` を付けた列には、`NULL` を複数入れられる DBMS が多い (`NULL` 同士は、等しいとは見なされないため)。
+
+#### IF NOT EXISTS
+
+```sql
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name VARCHAR(50) NOT NULL
+);
+```
+
+テーブルがすでにあれば、作成せず、エラーにもしない。
+
+<pre><code class="caution">IF NOT EXISTS は、標準 SQL にはないが、MySQL、SQLite、PostgreSQL などで使える。すでにあるテーブルの定義が、書いた内容と違っていても、何も起きない (定義は更新されない)。</code></pre>
+
+#### テーブルの確認
+
+標準 SQL では、`information_schema` というビューで、テーブルや列の情報を調べられる。
+
+```sql
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_name = 'products';
+```
+
+| DBMS | テーブルの一覧 | 列の定義 |
+| --- | --- | --- |
+| 標準 SQL | `SELECT table_name FROM information_schema.tables;` | `information_schema.columns` |
+| MySQL | `SHOW TABLES;` | `DESCRIBE テーブル名;` |
+| SQLite | `.tables` | `.schema テーブル名` |
+
+<pre><code class="tips">MySQL の information_schema には、すべてのデータベースの情報が入っている。table_schema でデータベース名も絞り込む。SQLite には、information_schema がなく、.tables や .schema は、メタコマンド (SQL ではない) である。</code></pre>
 
 ### 主なデータ型
 
+#### 数値
+
 | 型 | 内容 |
 | --- | --- |
-| `INT` | 整数 |
-| `DECIMAL(p, s)` | 小数 (金額など、誤差を出したくない値) |
-| `VARCHAR(n)` | 最大 n 文字の可変長の文字列 |
-| `TEXT` | 長い文字列 |
-| `DATE` / `DATETIME` / `TIMESTAMP` | 日付、日時 |
+| `SMALLINT` / `INTEGER` / `BIGINT` | 整数 (扱える範囲が、小さい順)。`INTEGER` は `INT` とも書ける |
+| `DECIMAL(p, s)` / `NUMERIC(p, s)` | 固定小数点。全体で p 桁、そのうち小数部が s 桁。金額など、誤差を出したくない値 |
+| `REAL` / `DOUBLE PRECISION` | 浮動小数点。扱える範囲は広いが、誤差が出る |
 
-<pre><code class="tips">SQLite は、型の指定が緩く、列に宣言した型と違う型の値も、そのまま保存できる (型親和性)。MySQL と同じ感覚で、型の違反が、エラーになると期待しない。</code></pre>
+`DECIMAL(10, 2)` なら、整数部が 8桁、小数部が 2桁で、99999999.99 まで入る。
 
-### データの挿入、更新、削除
+<pre><code class="caution">金額に、REAL や DOUBLE PRECISION を使わない。浮動小数点は、0.1 + 0.2 が 0.3 にならないような、誤差を含む。金額には、DECIMAL を使う。</code></pre>
+
+#### 文字列
+
+| 型 | 内容 |
+| --- | --- |
+| `CHAR(n)` | n 文字の固定長。短い値は、空白で埋められる |
+| `VARCHAR(n)` | 最大 n 文字の可変長 |
+| `CLOB` | 非常に長い文字列。MySQL と SQLite では `TEXT` と書く |
+
+<pre><code class="tips">郵便番号のように、長さが決まっている値は CHAR、名前やメールアドレスのように、長さが変わる値は VARCHAR が向いている。</code></pre>
+
+#### 日付と時刻
+
+| 型 | 内容 |
+| --- | --- |
+| `DATE` | 日付 (例: `'2026-11-26'`) |
+| `TIME` | 時刻 (例: `'09:30:00'`) |
+| `TIMESTAMP` | 日付と時刻 (例: `'2026-11-26 09:30:00'`) |
+| `INTERVAL` | 期間。MySQL と SQLite には、この型がない |
+
+値は、`'年-月-日'` の形 (ISO 8601 の形式) の文字列で書く。
+
+#### その他
+
+| 型 | 内容 |
+| --- | --- |
+| `BOOLEAN` | 真偽値 (`TRUE`、`FALSE`、`UNKNOWN`) |
+| `BLOB` | 画像などの、バイナリデータ |
+
+<pre><code class="tips">`TEXT` (長い文字列) と `DATETIME` は、標準 SQL にない型だが、MySQL と SQLite で使える。</code></pre>
+
+<pre><code class="tips">SQLite は、型の指定が緩く、列に宣言した型と違う型の値も、そのまま保存できる (型親和性)。VARCHAR(n) の n も、強制されない。MySQL と同じ感覚で、型の違反が、エラーになると期待しない。</code></pre>
+
+### テーブルの変更と削除
+
+#### ALTER TABLE
+
+作成済みのテーブルの構造を、変更する。
+
+| 操作 | 標準 SQL の書き方 | MySQL、SQLite の違い |
+| --- | --- | --- |
+| 列の追加 | `ALTER TABLE t ADD COLUMN 列 型;` | 同じ |
+| 列の削除 | `ALTER TABLE t DROP COLUMN 列;` | SQLite は 3.35.0 以降 |
+| 既定値の設定 | `ALTER TABLE t ALTER COLUMN 列 SET DEFAULT 値;` | SQLite は非対応 |
+| 型の変更 | `ALTER TABLE t ALTER COLUMN 列 SET DATA TYPE 型;` | MySQL は `MODIFY COLUMN 列 型`。SQLite は非対応 |
+| 制約の追加 | `ALTER TABLE t ADD CONSTRAINT 名前 制約;` | SQLite は非対応 |
+| 制約の削除 | `ALTER TABLE t DROP CONSTRAINT 名前;` | MySQL の外部キーは `DROP FOREIGN KEY` (<a href="#foreign-key">外部キー制約</a>)。SQLite は非対応 |
+| 列名の変更 | `ALTER TABLE t RENAME COLUMN 旧 TO 新;` | 標準の文ではないが、多くの DBMS で使える。MySQL は 8.0 以降、SQLite は 3.25.0 以降 |
+| テーブル名の変更 | `ALTER TABLE t RENAME TO 新;` | 標準の文ではないが、多くの DBMS で使える |
+
+<pre><code class="example">-- 列の追加
+ALTER TABLE products ADD COLUMN description VARCHAR(255);
+
+-- 既定値の設定
+ALTER TABLE products ALTER COLUMN stock SET DEFAULT 1;
+
+-- 列の削除
+ALTER TABLE products DROP COLUMN description;</code></pre>
+
+<pre><code class="caution">データの入っているテーブルに、NOT NULL の列を追加するときは、既存の行に入れる値が必要になるので、DEFAULT も指定する。
+列の削除は、その列のデータごと消えて、元に戻せない。実行する前に、バックアップを取る。</code></pre>
+
+<pre><code class="tips">SQLite は、ALTER TABLE でできることが少ない。型や制約を変えたいときは、新しい定義でテーブルを作り直して、データを INSERT ... SELECT で移し、元のテーブルを DROP して、名前を変更する。</code></pre>
+
+#### DROP TABLE
+
+テーブルを、データごと削除する。
 
 ```sql
--- 挿入
-INSERT INTO users (name, email) VALUES ('Alice', 'alice@example.com');
+DROP TABLE products;
 
--- 更新
-UPDATE users SET name = 'Alice Smith' WHERE id = 1;
-
--- 削除
-DELETE FROM users WHERE id = 1;
+-- なくてもエラーにしない
+DROP TABLE IF EXISTS products;
 ```
 
-<pre><code class="caution">UPDATE と DELETE で WHERE を書き忘れると、全行が対象になる。実行する前に、同じ WHERE で SELECT して、対象の行を確認する。
-まとめて変更するときは、トランザクション (START TRANSACTION と COMMIT / ROLLBACK) の中で実行すると、取り消せる。</code></pre>
+<pre><code class="caution">DROP TABLE は、元に戻せない。外部キーで参照されているテーブルは、削除できない (先に、参照している子テーブルを削除する)。
+IF EXISTS は、IF NOT EXISTS と同じく、標準 SQL にはないが、MySQL、SQLite、PostgreSQL などで使える。</code></pre>
+
+### データの挿入 (INSERT)
+
+#### 基本構文
+
+```sql
+INSERT INTO テーブル名 (列名1, 列名2, ...) VALUES (値1, 値2, ...);
+```
+
+<pre><code class="example">INSERT INTO categories (name) VALUES ('Book');
+
+INSERT INTO products (name, price, stock, category_id)
+VALUES ('SQL入門', 2800.00, 10, 1);</code></pre>
+
+列名の並びと、値の並びは、順番と数を合わせる。書かなかった列には、`DEFAULT` の値 (なければ `NULL`) が入る。
+
+<pre><code class="caution">列名のリストを省略した INSERT INTO products VALUES (...) は、全列の値を、テーブルの定義順に書く必要がある。後から列を追加すると、壊れる。列名は、必ず書く。</code></pre>
+
+<pre><code class="tips">GENERATED ALWAYS AS IDENTITY の列には、INSERT で値を指定できない (標準 SQL では、OVERRIDING SYSTEM VALUE を付ければ指定できる)。値を指定したいときは、GENERATED BY DEFAULT AS IDENTITY で定義する。
+すべての列を既定値にするときは、INSERT INTO テーブル名 DEFAULT VALUES; と書ける。MySQL は非対応で、INSERT INTO テーブル名 () VALUES (); と書く。</code></pre>
+
+#### 値の書き方
+
+| 値 | 書き方 |
+| --- | --- |
+| 数値 | そのまま書く (例: `2800`、`19.5`) |
+| 文字列 | 単引用符 `'` で囲む。文字列の中の単引用符は、2つ重ねる (例: `'O''Brien'`) |
+| 日付、日時 | 文字列の形で書く (例: `'2026-11-26'`) |
+| `NULL` | 引用符を付けずに、`NULL` と書く |
+
+<pre><code class="caution">標準 SQL では、二重引用符 " で囲んだものは、文字列ではなく、列名やテーブル名 (識別子) になる。文字列は、必ず単引用符で囲む。MySQL は、既定では、二重引用符でも文字列として扱うが、移植性がなくなる。</code></pre>
+
+#### 複数行をまとめて挿入
+
+`VALUES` に、丸括弧のリストを、カンマで区切って並べる。
+
+<pre><code class="example">INSERT INTO products (name, price, stock, category_id)
+VALUES
+    ('データベース設計', 3200.00, 5, 1),
+    ('ネットワーク入門', 2600.00, 8, 1),
+    ('USBケーブル', 800.00, 50, NULL);</code></pre>
+
+1文でまとめて挿入する方が、1行ずつ挿入するより、速いことが多い。
+
+#### SELECT の結果を挿入
+
+`VALUES` の代わりに、`SELECT` を書くと、検索した結果を、そのまま挿入できる。
+
+<pre><code class="example">-- 同じ構造の discontinued_products テーブルが、すでにある場合
+INSERT INTO discontinued_products (name, price)
+SELECT name, price
+FROM products
+WHERE stock = 0;</code></pre>
+
+### データの更新 (UPDATE)
+
+#### 基本構文
+
+```sql
+UPDATE テーブル名
+SET 列名1 = 値1, 列名2 = 値2
+WHERE 条件;
+```
+
+<pre><code class="example">-- 複数の列を、同時に更新
+UPDATE users SET name = 'Alice Smith', email = 'alice.smith@example.com' WHERE id = 1;
+
+-- 現在の値を使った計算
+UPDATE products SET stock = stock - 1 WHERE id = 10;
+
+-- 条件に、サブクエリを使う
+UPDATE products
+SET price = price * 0.9
+WHERE category_id IN (SELECT id FROM categories WHERE name = 'Book');</code></pre>
+
+`SET` の右辺には、定数のほか、その行の現在の値を使った式も書ける。
+
+#### 別のテーブルの値で更新
+
+標準 SQL では、`SET` の右辺に、サブクエリを書く。
+
+<pre><code class="example">-- 価格の更新表 price_updates (product_id, new_price) の値で、価格を更新
+UPDATE products
+SET price = (
+    SELECT new_price
+    FROM price_updates
+    WHERE price_updates.product_id = products.id
+)
+WHERE id IN (SELECT product_id FROM price_updates);</code></pre>
+
+<pre><code class="caution">この例の WHERE がないと、更新表にない商品の price が、NULL になってしまう。
+UPDATE ... JOIN (MySQL) や UPDATE ... FROM (PostgreSQL、SQLite) の書き方は、標準 SQL にはない。</code></pre>
+
+<pre><code class="caution">UPDATE で WHERE を書き忘れると、全行が対象になる。実行する前に、同じ WHERE で SELECT して、対象の行を確認する。</code></pre>
+
+### データの削除 (DELETE)
+
+#### 基本構文
+
+```sql
+DELETE FROM テーブル名
+WHERE 条件;
+```
+
+<pre><code class="example">-- 1行を削除
+DELETE FROM users WHERE id = 1;
+
+-- 条件に合う行を、まとめて削除
+DELETE FROM products WHERE stock = 0 AND created_at &lt; '2025-01-01';</code></pre>
+
+<pre><code class="caution">DELETE で WHERE を書き忘れると、全行が削除される。UPDATE と同じく、先に SELECT で確認する。
+他のテーブルの外部キーから参照されている行は、そのままでは削除できない (<a href="#foreign-key">外部キー制約</a>)。</code></pre>
+
+#### DELETE、TRUNCATE、DROP の違い
+
+データを消す方法は、3つある。
+
+| 文 | 消すもの | WHERE | 取り消し |
+| --- | --- | --- | --- |
+| `DELETE FROM t` | 行 (条件で選べる) | 使える | トランザクションの中なら、`ROLLBACK` で戻せる |
+| `TRUNCATE TABLE t` | 全行 | 使えない | DBMS による。MySQL では、暗黙的に確定されるため、戻せない |
+| `DROP TABLE t` | テーブルごと (定義も消える) | なし | DBMS による。MySQL では、戻せない |
+
+<pre><code class="tips">TRUNCATE は、全行を、まとめて高速に消せる。連番の列の扱いも、DBMS によって違う。SQLite には、TRUNCATE がないので、DELETE FROM テーブル名 を使う。</code></pre>
+
+### トランザクション
+
+複数の操作を、ひとまとまりとして扱う仕組み。まとまりの中の操作は、すべて成功するか、すべて取り消されるかのどちらかになる。
+
+```sql
+START TRANSACTION;
+
+UPDATE accounts SET balance = balance - 1000 WHERE id = 1;
+UPDATE accounts SET balance = balance + 1000 WHERE id = 2;
+
+COMMIT;
+```
+
+口座 1 から 1000 を引き、口座 2 に 1000 を足す。途中で失敗したときに、片方だけが反映された状態を残さないために、トランザクションにする。
+
+| 文 | 内容 |
+| --- | --- |
+| `START TRANSACTION` | トランザクションを開始する。SQLite では `BEGIN` を使う (MySQL でも `BEGIN` が使える) |
+| `COMMIT` | これまでの操作を確定する |
+| `ROLLBACK` | これまでの操作を取り消して、開始前に戻す |
+
+<pre><code class="tips">まとめて変更するときは、トランザクションを開始して、UPDATE や DELETE を実行し、対象の件数や内容を確認してから、COMMIT する。想定と違っていたら、ROLLBACK する。</code></pre>
+
+<pre><code class="caution">多くの DBMS では、トランザクションを開始しないと、1文ごとに自動で確定される (自動コミット)。
+MySQL では、CREATE、ALTER、DROP、TRUNCATE などのテーブル定義の文が、暗黙的に COMMIT されるため、トランザクションの途中で実行すると、それまでの操作も確定される。</code></pre>
+
+### 存在すれば更新、なければ挿入 (UPSERT)
+
+主キーなどが重複したときに、エラーにせず、更新に切り替える書き方。標準 SQL では `MERGE` だが、MySQL と SQLite は、それぞれ独自の構文を持つ。
+
+| DBMS | 書き方 |
+| --- | --- |
+| 標準 SQL | `MERGE INTO ... USING ... ON ... WHEN MATCHED THEN UPDATE ... WHEN NOT MATCHED THEN INSERT ...` |
+| MySQL | `INSERT ... ON DUPLICATE KEY UPDATE ...` (`MERGE` は非対応) |
+| SQLite | `INSERT ... ON CONFLICT (列) DO UPDATE SET ...` (3.24.0 以降。`MERGE` は非対応) |
+
+<pre><code class="tips">UPSERT の書き方は、DBMS ごとの違いが大きい。MERGE の細かい仕様も、DBMS によって異なるので、使う DBMS のドキュメントで確認する。</code></pre>
 
 ---
 
@@ -554,13 +963,13 @@ SQLite では、外部キー制約が、既定で無効になっている (SQLit
 **テーブルの作成時に外部キーを設定する**
 
 <pre><code class="example">CREATE TABLE parent_table (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name VARCHAR(50) NOT NULL
 );
 
 CREATE TABLE child_table (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    parent_id INT,
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    parent_id INTEGER,
     description VARCHAR(100),
     FOREIGN KEY (parent_id) REFERENCES parent_table(id)
 );</code></pre>
@@ -573,18 +982,20 @@ CREATE TABLE child_table (
 ADD CONSTRAINT fk_parent
 FOREIGN KEY (parent_id) REFERENCES parent_table(id);</code></pre>
 
+<pre><code class="caution">SQLite は、ALTER TABLE で、外部キー制約を追加できない。テーブルを作成するときに、書いておく。</code></pre>
+
 `fk_parent` は、外部キー制約の名前 (任意)。省略すると、自動で名前が付けられる。<br>
 名前を付けることにより、次の利点がある。
 
 - エラーが発生したときに、「`fk_parent` が違反しています」という形で、どの外部キー制約で問題が発生しているかを特定できる。
 - `ALTER TABLE` や `DROP` で外部キー制約を削除する際に、自動で付けられた名前を調べる必要がない。
 
-<pre><code class="example">ALTER TABLE child_table DROP FOREIGN KEY fk_parent;</code></pre>
+<pre><code class="example">ALTER TABLE child_table DROP CONSTRAINT fk_parent;</code></pre>
 
 複数の外部キーがある場合に、管理しやすくなる。
 
-<pre><code class="tips">MySQL 8.0.19 以降では、DROP CONSTRAINT fk_parent の形でも削除できると考えられる (記憶に基づくため、公式のドキュメントで確認する)。
-MySQL で外部キーを削除するときは、古いバージョンでも使える DROP FOREIGN KEY が、確実である。</code></pre>
+<pre><code class="tips">MySQL では、古くからある DROP FOREIGN KEY fk_parent の形が、確実である。MySQL 8.0.19 以降では、標準の DROP CONSTRAINT でも削除できると考えられる (記憶に基づくため、公式のドキュメントで確認する)。
+SQLite は、ALTER TABLE で、制約を削除できない。</code></pre>
 
 ### データの操作方法
 
@@ -617,12 +1028,14 @@ JOIN
 | `ON DELETE CASCADE` | 親テーブルの行が削除されると、関連する子テーブルの行も削除される |
 | `ON DELETE SET NULL` | 親テーブルの行が削除されると、子テーブルの外部キーが `NULL` になる |
 | `ON UPDATE CASCADE` | 親テーブルのデータが更新されたときに、それを参照している子テーブルのデータが、自動的に更新される |
+| `ON DELETE SET DEFAULT` | 親テーブルの行が削除されると、子テーブルの外部キーが、列の既定値 (`DEFAULT`) になる。MySQL (InnoDB) は対応していない |
 | `RESTRICT` | 子テーブルに参照する行があるとき、親テーブルの削除や更新を拒否する |
+| `NO ACTION` | 何も指定しないときの既定。制約に違反する削除や更新を拒否する |
 
 ```sql
 CREATE TABLE child_table (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    parent_id INT,
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    parent_id INTEGER,
     description VARCHAR(100),
     FOREIGN KEY (parent_id) REFERENCES parent_table(id)
     ON DELETE CASCADE
@@ -634,29 +1047,29 @@ CREATE TABLE child_table (
 
 ### 中間テーブルを使った多対多の設定
 
-<pre><code class="caution">GROUPS は、MySQL 8.0.2 以降の予約語である。groups という名前のテーブルは、そのままでは、構文エラーになる。
-以下の例では、バッククォート (`) で囲んでいる。実際の開発では、user_groups のように、別の名前にする方が安全である。</code></pre>
+<pre><code class="caution">GROUPS は、標準 SQL でも、MySQL 8.0.2 以降でも、予約語である。groups という名前のテーブルは、そのままでは、構文エラーになる。
+以下の例では、user_groups という名前にしている。どうしても予約語を使うときは、引用符で囲む (標準 SQL は二重引用符、MySQL はバッククォート)。</code></pre>
 
 **ユーザーとグループのテーブルの作成**
 
 <pre><code class="example">CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name VARCHAR(50) NOT NULL
 );
 
-CREATE TABLE `groups` (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE user_groups (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name VARCHAR(50) NOT NULL
 );</code></pre>
 
 **中間テーブルの作成**
 
-<pre><code class="example">CREATE TABLE user_group (
-    user_id INT NOT NULL,
-    group_id INT NOT NULL,
+<pre><code class="example">CREATE TABLE user_group_members (
+    user_id INTEGER NOT NULL,
+    group_id INTEGER NOT NULL,
     PRIMARY KEY (user_id, group_id),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (group_id) REFERENCES `groups`(id) ON DELETE CASCADE
+    FOREIGN KEY (group_id) REFERENCES user_groups(id) ON DELETE CASCADE
 );</code></pre>
 
 ### 中間テーブルへのデータの挿入
@@ -665,12 +1078,12 @@ CREATE TABLE `groups` (
 INSERT INTO users (name) VALUES ('Alice');
 INSERT INTO users (name) VALUES ('Bob');
 -- グループを挿入
-INSERT INTO `groups` (name) VALUES ('Admins');
-INSERT INTO `groups` (name) VALUES ('Editors');
+INSERT INTO user_groups (name) VALUES ('Admins');
+INSERT INTO user_groups (name) VALUES ('Editors');
 -- ユーザーとグループの関係を挿入
-INSERT INTO user_group (user_id, group_id) VALUES (1, 1); -- Alice -&gt; Admins
-INSERT INTO user_group (user_id, group_id) VALUES (1, 2); -- Alice -&gt; Editors
-INSERT INTO user_group (user_id, group_id) VALUES (2, 2); -- Bob -&gt; Editors</code></pre>
+INSERT INTO user_group_members (user_id, group_id) VALUES (1, 1); -- Alice -&gt; Admins
+INSERT INTO user_group_members (user_id, group_id) VALUES (1, 2); -- Alice -&gt; Editors
+INSERT INTO user_group_members (user_id, group_id) VALUES (2, 2); -- Bob -&gt; Editors</code></pre>
 
 ### 中間テーブルからのデータの取得
 
@@ -678,57 +1091,59 @@ INSERT INTO user_group (user_id, group_id) VALUES (2, 2); -- Bob -&gt; Editors</
 
 <pre><code class="example">SELECT
     users.name AS user_name,
-    `groups`.name AS group_name
+    user_groups.name AS group_name
 FROM
-    user_group
+    user_group_members
 JOIN
-    users ON user_group.user_id = users.id
+    users ON user_group_members.user_id = users.id
 JOIN
-    `groups` ON user_group.group_id = `groups`.id
+    user_groups ON user_group_members.group_id = user_groups.id
 WHERE
     users.name = 'Alice';</code></pre>
 
 **特定グループに属するユーザーを取得**
 
 <pre><code class="example">SELECT
-    `groups`.name AS group_name,
+    user_groups.name AS group_name,
     users.name AS user_name
 FROM
-    user_group
+    user_group_members
 JOIN
-    `groups` ON user_group.group_id = `groups`.id
+    user_groups ON user_group_members.group_id = user_groups.id
 JOIN
-    users ON user_group.user_id = users.id
+    users ON user_group_members.user_id = users.id
 WHERE
-    `groups`.name = 'Editors';</code></pre>
+    user_groups.name = 'Editors';</code></pre>
 
 **全てのユーザーとその所属グループを取得**
 
-<pre><code class="example">SELECT users.name AS user_name, `groups`.name AS group_name
+<pre><code class="example">SELECT users.name AS user_name, user_groups.name AS group_name
 FROM
-    user_group
+    user_group_members
 JOIN
-    users ON user_group.user_id = users.id
+    users ON user_group_members.user_id = users.id
 JOIN
-    `groups` ON user_group.group_id = `groups`.id;</code></pre>
+    user_groups ON user_group_members.group_id = user_groups.id;</code></pre>
 
 **中間テーブルに追加情報を保存**
 
-上の `user_group` の代わりに、次の定義で作成する。
+上の `user_group_members` の代わりに、次の定義で作成する。
 
-<pre><code class="example">CREATE TABLE user_group (
-    user_id INT NOT NULL,
-    group_id INT NOT NULL,
+<pre><code class="example">CREATE TABLE user_group_members (
+    user_id INTEGER NOT NULL,
+    group_id INTEGER NOT NULL,
     role VARCHAR(50),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id, group_id),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (group_id) REFERENCES `groups`(id) ON DELETE CASCADE
+    FOREIGN KEY (group_id) REFERENCES user_groups(id) ON DELETE CASCADE
 );</code></pre>
 
 ---
 
 ## データのエクスポート・インポート <a id="export-inport" data-name="エクスポート・インポート"></a>
+
+データを出力したり、取り込んだりする方法は、標準 SQL では決められておらず、DBMS ごとのツールを使う。
 
 <div class="subtitle">MySQL</div>
 
@@ -944,102 +1359,6 @@ mysql --version
 sudo mysql -e "SELECT VERSION()"
 ```
 
-### 開発用パッケージのインストール
-
-C 言語などから MySQL を使うときに、必要になる。
-
-```bash
-sudo apt install libmysqlclient-dev
-```
-
-これらが使えるようになる。
-
-| ファイル | 用途 |
-| --- | --- |
-| `/usr/include/mysql/mysql.h` | MySQL C API のヘッダ |
-| `/usr/lib/x86_64-linux-gnu/libmysqlclient.so` | MySQL クライアントライブラリ |
-
-<pre><code class="tips">ライブラリのパスは、ディストリビューションとバージョンで異なることがある。手元の環境では、mysql_config --libs などで確認する。</code></pre>
-
-#### コンパイル
-
-```bash
-gcc main.c -o main $(mysql_config --cflags --libs)
-```
-
-`mysqlclient` をリンクする。`mysql_config` が、必要なオプションを出力する。
-
-#### CMakeLists.txt
-
-```cmake
-cmake_minimum_required(VERSION 3.10)
-project(MyMySQLApp C)
-set(CMAKE_C_STANDARD 11)
-
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(MYSQLCLIENT REQUIRED mysqlclient)
-
-add_executable(my_mysql_app main.c)
-target_include_directories(my_mysql_app PRIVATE ${MYSQLCLIENT_INCLUDE_DIRS})
-target_link_libraries(my_mysql_app PRIVATE ${MYSQLCLIENT_LIBRARIES})
-```
-
----
-
-### Cサンプルコード
-
-MySQL に接続して、バージョンを表示する最小の例。ユーザー名、パスワード、データベース名は、環境に合わせて書き換える。
-
-```c
-#include <stdio.h>
-#include <mysql/mysql.h>
-
-int main(void) {
-    MYSQL *conn = mysql_init(NULL);
-    if (conn == NULL) {
-        fprintf(stderr, "mysql_init failed\n");
-        return 1;
-    }
-
-    // 接続 (失敗すると NULL が返る)
-    if (mysql_real_connect(conn, "localhost", "user", "password",
-                           "mydb", 3306, NULL, 0) == NULL) {
-        fprintf(stderr, "Connection error: %s\n", mysql_error(conn));
-        mysql_close(conn);
-        return 1;
-    }
-
-    // クエリを実行して、結果を取得
-    if (mysql_query(conn, "SELECT VERSION()") != 0) {
-        fprintf(stderr, "Query error: %s\n", mysql_error(conn));
-        mysql_close(conn);
-        return 1;
-    }
-
-    MYSQL_RES *res = mysql_store_result(conn);
-    if (res == NULL) {
-        fprintf(stderr, "Result error: %s\n", mysql_error(conn));
-        mysql_close(conn);
-        return 1;
-    }
-
-    MYSQL_ROW row = mysql_fetch_row(res);
-    if (row != NULL) {
-        printf("MySQL version: %s\n", row[0]);
-    }
-
-    mysql_free_result(res);
-    mysql_close(conn);
-    return 0;
-}
-```
-
-```text
-MySQL version: 8.0.xx
-```
-
-<pre><code class="caution">このサンプルは、実際にはコンパイルしていない。接続先の情報や、ライブラリの場所は、環境に合わせて確認する。</code></pre>
-
 ---
 
 ## SQLite <a id="sqlite" data-name="SQLite"></a>
@@ -1077,65 +1396,8 @@ PRAGMA foreign_keys = ON;
 
 ```bash
 sudo apt update
-sudo apt install sqlite3 libsqlite3-dev build-essential
+sudo apt install sqlite3
 ```
-
-#### コンパイル
-
-```bash
-gcc test_sqlite.c -o test_sqlite -lsqlite3
-```
-
-`-lsqlite3` を付けてコンパイルする。
-
-#### CMakeLists.txt
-
-```cmake
-cmake_minimum_required(VERSION 3.10)
-project(MySQLiteApp C)
-set(CMAKE_C_STANDARD 11)
-
-add_executable(my_sqlite_app main.c)
-target_link_libraries(my_sqlite_app PRIVATE sqlite3)
-```
-
----
-
-### Cサンプルコード
-
-<pre><code class="example">#include &lt;stdio.h&gt;
-#include &lt;sqlite3.h&gt;
-
-int main() {
-    sqlite3 *db;
-    char *err_msg = NULL;
-
-    // test.db を開く (なければ自動作成)
-    int rc = sqlite3_open("test.db", &amp;db);
-    if (rc != SQLITE_OK) {
-        fprintf(stderr, "Cannot open db: %s\n", sqlite3_errmsg(db));
-        sqlite3_close(db);
-        return 1;
-    }
-
-    const char *sql = "CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY, name TEXT);"
-                      "INSERT INTO users(name) VALUES('Alice');";
-
-    rc = sqlite3_exec(db, sql, 0, 0, &amp;err_msg);
-    if (rc != SQLITE_OK) {
-        fprintf(stderr, "SQL error: %s\n", err_msg);
-        sqlite3_free(err_msg);
-        sqlite3_close(db);
-        return 1;
-    }
-
-    printf("Database setup complete.\n");
-
-    sqlite3_close(db);
-    return 0;
-}</code></pre>
-
-<pre><code class="tips">このプログラムは、実行するたびに、users テーブルへ Alice を1行追加する。テーブルは IF NOT EXISTS で、2回目以降は作られない。</code></pre>
 
 ---
 
@@ -1193,11 +1455,14 @@ SQLite のインタラクティブシェルで使用する、`.〇〇` 形式の
 | `WHERE カラム名 = NULL` で、何も返らない | `NULL` は、`=` で比較できない | `IS NULL` を使う |
 | `Unknown column '別名' in 'where clause'` | `WHERE` は `SELECT` より先に実行されるため、別名が、まだ存在しない | 元の式を書く。または、サブクエリで包む |
 | `... incompatible with sql_mode=only_full_group_by` | `SELECT` に、`GROUP BY` にも集計関数にもない列がある | その列を `GROUP BY` に加える。または、集計関数で包む |
-| `You have an error in your SQL syntax ... near 'groups'` | `groups` が、MySQL 8.0.2 以降の予約語 | バッククォートで囲む。または、別の名前にする |
+| `You have an error in your SQL syntax ... near 'groups'` | `groups` が、予約語 (標準 SQL と、MySQL 8.0.2 以降) | 別の名前にする。または、引用符で囲む (標準は二重引用符、MySQL はバッククォート) |
 | `Cannot add or update a child row: a foreign key constraint fails` | 親テーブルに、参照先の行がない | 親テーブルに、先にデータを挿入する |
 | `Cannot delete or update a parent row: a foreign key constraint fails` | 子テーブルに、その行を参照する行がある | 子テーブルの行を先に削除する。または、`ON DELETE` を指定する |
 | `LENGTH()` が、日本語で文字数と合わない | MySQL の `LENGTH()` は、バイト数を返す | `CHAR_LENGTH()` を使う |
 | `FULL JOIN` で構文エラーになる | MySQL は `FULL JOIN` に対応していない | `LEFT JOIN` と `RIGHT JOIN` を `UNION` でつなぐ |
+| `FETCH FIRST ... ROWS ONLY` で構文エラーになる | MySQL と SQLite は、`FETCH FIRST` に対応していない | `LIMIT` を使う |
+| `GENERATED ... AS IDENTITY` で構文エラーになる | MySQL と SQLite は、標準の連番の書き方に対応していない | MySQL は `AUTO_INCREMENT`、SQLite は `INTEGER PRIMARY KEY` にする |
+| <code>&#124;&#124;</code> で文字列を連結すると、想定外の結果になる | MySQL では、<code>&#124;&#124;</code> が `OR` の意味になる | `CONCAT()` を使う |
 | `AVG()` の結果が、思った値と違う | `NULL` の行が、平均の対象から外れている | `COALESCE()` で値を置き換える。または、集計の対象を見直す |
 | `UPDATE` や `DELETE` で、全行が変わった | `WHERE` を書き忘れた | 先に `SELECT` で確認する。トランザクションの中で実行する |
 | SQLite で、外部キー制約が効かない | 既定で無効になっている | 接続のたびに `PRAGMA foreign_keys = ON;` を実行する |
