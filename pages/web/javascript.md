@@ -44,6 +44,105 @@ if (条件式) {
 }
 ```
 
+### truthy と falsy <a id="truthy-falsy"></a>
+
+JavaScript では、条件式に真偽値以外の値を書いても、`true` か `false` のどちらかとして評価される。<br>
+`true` として扱われる値を **truthy**、`false` として扱われる値を **falsy** と呼ぶ。
+
+```javascript
+const name = "";
+
+if (name) {
+    console.log("名前があります");
+} else {
+    console.log("名前が空です"); // 空文字は falsy なので、こちらが実行される
+}
+```
+
+#### falsy な値
+
+falsy な値は、次の 8 つだけ。これ以外の値は、すべて truthy になる。
+
+| 値 | 説明 |
+| --- | --- |
+| `false` | 真偽値の `false` |
+| `0`、`-0` | 数値のゼロ (正負どちらも) |
+| `0n` | BigInt のゼロ |
+| `""` | 空文字 (`''` も同じ) |
+| `null` | 値がないことを表す |
+| `undefined` | 値が未定義であることを表す |
+| `NaN` | 数値ではない値 |
+
+<pre><code class="tips">古い互換性のために、document.all という特別なオブジェクトも falsy として扱われる。通常は意識しなくてよい。</code></pre>
+
+#### truthy な値の例
+
+見た目が「空」や「偽」に近くても、falsy の 8 つに含まれないものは truthy になる。
+
+```javascript
+console.log(Boolean("0"));       // true  (文字列の "0" は、空文字ではない)
+console.log(Boolean("false"));   // true  (文字列の "false" も truthy)
+console.log(Boolean(" "));       // true  (空白だけの文字列)
+console.log(Boolean([]));        // true  (空配列)
+console.log(Boolean({}));        // true  (空オブジェクト)
+console.log(Boolean(-1));        // true  (0 以外の数値は、負の数でも truthy)
+console.log(Boolean(new Boolean(false))); // true (オブジェクトなので、中身が false でも truthy)
+```
+
+<pre><code class="tips">オブジェクトは、配列や関数も含めて、中身が空かどうかに関係なく、すべて truthy になる。
+配列が空かどうかを調べるときは、arr.length で判定する。</code></pre>
+
+#### 真偽値への変換
+
+`Boolean(値)` で、truthy / falsy の判定結果を、`true` / `false` として取り出せる。`!` を 2 回付けた `!!値` も同じ結果になる。
+
+```javascript
+Boolean("abc");  // true
+Boolean(0);      // false
+!!"abc";         // true  (! は、真偽値を反転する。2回付けると、元の真偽に戻る)
+!!0;             // false
+!"abc";          // false
+```
+
+<pre><code class="tips">条件式の中では、自動で変換されるため、if (!!value) と書く必要はない。if (value) と書けばよい。</code></pre>
+
+#### truthy / falsy で判定される場所
+
+| 場所 | 例 |
+| --- | --- |
+| 条件式 | `if`、`while`、`do...while`、`for` の条件 |
+| 三項演算子の条件 | `value ? "あり" : "なし"` |
+| 論理演算子 | `!value`、`a && b`、<code>a &#124;&#124; b</code> (<a href="#short-circuit">短絡評価と戻り値</a>を参照) |
+| 配列メソッドのコールバックの戻り値 | `filter`、`find`、`some`、`every` など |
+
+`??` (Null合体演算子) は、truthy / falsy ではなく、`null` と `undefined` かどうかだけで判定する。
+
+#### よく使う判定の書き方
+
+| 判定したいこと | 書き方 | 注意 |
+| --- | --- | --- |
+| 文字列が空でない | `if (str)` | 空白だけの文字列は truthy になる。空白を無視するなら、`str.trim()` で判定する |
+| 配列に要素がある | `if (arr.length > 0)` | `if (arr)` は、空配列でも `true` になる |
+| `null` か `undefined` である | `value == null` | `==` を使ってよい、数少ない例外。`0` や空文字は含まれない |
+| 数値が入っている | `value !== undefined` や `Number.isNaN(value)` | `if (value)` では、`0` も「ない」ことになってしまう |
+
+```javascript
+function showCount(count) {
+    if (!count) {                    // 0 も falsy なので、ここに入ってしまう
+        console.log("件数が未指定です");
+        return;
+    }
+    console.log(`${count}件`);
+}
+
+showCount(0); // "件数が未指定です" (0 件が、未指定と区別できない)
+```
+
+<pre><code class="caution">0 や空文字が有効な値の場合は、if (value) や || で判定すると、有効な値が弾かれたり、置き換わったりする。
+undefined / null かどうかを調べたいときは、=== や ??、?. を使う。</code></pre>
+
+`==` による比較は、truthy / falsy の判定とは別の規則で動く。`[] == false` が `true` になるのに、`if ([])` が実行される、といった食い違いについては、<a href="#pitfalls">落とし穴</a>の「真偽値としての扱い (falsy / truthy)」を参照。
+
 ### for文
 
 #### カウンタ式
@@ -106,6 +205,52 @@ while (条件式) {
 }
 ```
 
+### do...while文
+
+先に処理を 1 回実行してから、条件を判定する。条件が最初から `false` でも、必ず 1 回は実行される。
+
+```javascript
+do {
+    // doブロック
+} while (条件式);
+```
+
+```javascript
+let i = 0;
+do {
+    console.log(i);   // 0, 1, 2
+    i++;
+} while (i < 3);
+```
+
+### break と continue
+
+| 文 | 動き |
+| --- | --- |
+| `break` | ループ (または switch) を、その場で終了する。 |
+| `continue` | その回の残りの処理を飛ばして、次の回に進む。 |
+
+```javascript
+for (let i = 0; i < 5; i++) {
+    if (i === 1) continue;   // 1 だけ飛ばす
+    if (i === 3) break;      // 3 でループ全体を終了する
+    console.log(i);          // 0, 2
+}
+```
+
+ループにラベルを付けると、入れ子のループの外側まで、まとめて抜けられる。
+
+```javascript
+outer: for (const a of [1, 2, 3]) {
+    for (const b of [1, 2, 3]) {
+        if (a * b === 4) break outer;   // 内側と外側の両方のループを終了する
+        console.log(a, b);
+    }
+}
+```
+
+<pre><code class="caution">forEach のコールバックの中では、break も continue も使えない (return は、その回のコールバックを抜けるだけ)。途中で止めたい場合は、for...of を使う。</code></pre>
+
 ### switch文
 
 ```javascript
@@ -138,6 +283,31 @@ switch (条件式) {
 | `var` | JavaScript で古くから使われる宣言。<br>スコープが関数単位であることや、ホイスティングにより宣言前でも参照できてしまうことなどから、現在は使わない。 |
 
 変数を初期化せずに宣言のみを行った場合 (`let`)、その変数は `undefined` となる。
+
+### スコープ
+
+変数を参照できる範囲をスコープと呼ぶ。
+
+| 種類 | 範囲 | 該当するもの |
+| --- | --- | --- |
+| グローバルスコープ | どこからでも参照できる | 関数やブロックの外で宣言した変数 |
+| 関数スコープ | その関数の中 | `var` で宣言した変数 |
+| ブロックスコープ | `{ }` の中 (`if`、`for`、単独のブロックなど) | `let`、`const` で宣言した変数 |
+
+```javascript
+if (true) {
+    let a = 1;
+    var b = 2;
+}
+
+console.log(b); // 2 (var は、ブロックを無視して、関数全体で有効になる)
+console.log(a); // ReferenceError (let は、ブロックの外では参照できない)
+```
+
+<pre><code class="caution">宣言せずに変数へ代入すると、strict モードでなければ、グローバル変数が暗黙に作られる (strict モードでは ReferenceError になる)。タイプミスに気づきにくくなるため、必ず let や const で宣言する。
+また、スクリプトの最上位で var で宣言した変数は、window のプロパティにもなる。let と const はならない。</code></pre>
+
+関数の中から外側の変数を探す仕組みについては、<a href="#closure">クロージャ</a>の「レキシカルスコープ」を参照。
 
 ### 分割代入
 
@@ -236,6 +406,32 @@ for (const { id, name } of users) {
 | `!` | 論理否定(NOT)を表す<br>真偽値を反転する | `!true`<br>`!false` | `false`<br>`true` |
 | `??` | Null合体演算子<br>左辺が `null` または `undefined` の場合に右辺を採用する<br>(<code>&#124;&#124;</code> と異なり、`0` や空文字は左辺の値がそのまま採用される) | `let a = null;`<br>`result = a ?? 10;` | `10` |
 
+### 短絡評価と戻り値 <a id="short-circuit"></a>
+
+`&&` と `||` は、`true` / `false` ではなく、**どちらかのオペランド (演算の対象となる値) そのもの**を返す。<br>
+左から順に評価して、結果が決まった時点で、右側は評価しない (短絡評価)。判定は、<a href="#truthy-falsy">truthy / falsy</a> で行われる。
+
+| 式 | 返る値 | 使い方 |
+| --- | --- | --- |
+| <code>a &#124;&#124; b</code> | `a` が truthy なら `a`、falsy なら `b` | 左側が falsy のときの、デフォルト値 |
+| `a && b` | `a` が falsy なら `a`、truthy なら `b` | 左側が truthy のときだけ、右側を評価する (ガード) |
+| `a ?? b` | `a` が `null` と `undefined` 以外なら `a`、そうでなければ `b` | 左側が「値なし」のときだけの、デフォルト値 |
+
+```javascript
+console.log("" || "名無し");     // "名無し" (左側が falsy なので、右側を採用)
+console.log("太郎" || "名無し");  // "太郎"
+console.log(0 || null);          // null   (どちらも falsy の場合は、右側の値になる)
+
+const user = null;
+console.log(user && user.name);  // null   (左側が falsy なので、右側は評価されず、user.name でエラーにならない)
+
+console.log("A" && "B");         // "B"
+console.log("" && "B");          // ""
+```
+
+<pre><code class="tips">右側が評価されない性質を使って、isLoggedIn &amp;&amp; showMenu(); のように、条件付きで処理を実行する書き方もある。ただし、処理が主役の場合は、if 文のほうが読みやすい。
+プロパティへの安全なアクセスには、user &amp;&amp; user.name よりも、オプショナルチェイニング (user?.name) を使う。</code></pre>
+
 ### ビット演算子
 
 | 記号 | 説明 | 例 | 結果 |
@@ -297,7 +493,8 @@ callback?.() // 関数でも使える (あれば実行する)
 ### Null合体演算子
 
 `左側の値 ?? '値がない'` と書くと、左側の値が `null` または `undefined` だった場合に、右側の値を採用する。<br>
-`||` と異なり、`0` や `''` (空文字)、`false` は左側の値がそのまま採用される。
+`||` と異なり、`0` や `''` (空文字)、`false` は左側の値がそのまま採用される。<br>
+`||` は、左側が falsy のときに右側を採用する (<a href="#truthy-falsy">truthy と falsy</a>を参照)。
 
 ```javascript
 props.dataList?.[i]?.clientCode ?? ''
@@ -376,6 +573,26 @@ const person2 = {
 | `Object.keys(object)` | objectのキーを配列で返す |
 | `Object.values(object)` | objectの値を配列で返す |
 | `Object.entries(object)` | objectのキーと値を`[[キー1, 値1], [キー2, 値2],...]`の形で返す |
+| `Object.fromEntries(entries)` | `[[キー, 値], ...]` の形の配列 (または Map) から、オブジェクトを作る。`Object.entries()` の逆 |
+| `Object.assign(target, ...sources)` | sources のプロパティを target にコピーして、target を返す (浅いコピー)。target 自体が書き換わるので、新しいオブジェクトを作る場合は、`{}` を渡す |
+| `Object.freeze(object)` | プロパティの追加、削除、変更を禁止する (1階層目のみ。ネストしたオブジェクトは変更できる) |
+| `Object.hasOwn(object, key)` | object 自身が key を持っているかを判定する (プロトタイプから継承したものは対象外) |
+| `Object.groupBy(items, callback)` | callback の戻り値をキーにして、要素をグループ分けしたオブジェクトを返す (ES2024)。キーに文字列以外を使うなら `Map.groupBy` |
+
+```javascript
+const prices = { apple: 100, banana: 200 };
+
+// entries で配列にして、map で変換して、fromEntries でオブジェクトに戻す
+const doubled = Object.fromEntries(
+  Object.entries(prices).map(([name, price]) => [name, price * 2])
+);
+console.log(doubled); // { apple: 200, banana: 400 }
+
+// 新しいオブジェクトを作る (元の prices は変わらない)
+const merged = Object.assign({}, prices, { cherry: 300 });
+```
+
+<pre><code class="caution">freeze したオブジェクトを書き換えようとすると、strict モードでは TypeError になり、それ以外ではエラーにならず、何も起きない。</code></pre>
 
 - プロパティへのアクセス
 
@@ -418,6 +635,30 @@ interface Dog extends Animal {
 | `Boolean(値)` | 真偽値へ変換する | `Boolean(1)`<br>`Boolean(0)` | `true`<br>`false` |
 | `String(値)` | 文字列へ変換する | `String(1)`<br>`String(true)` | `"1"`<br>`"true"` |
 | `BigInt(値)` | BigInt型へ変換する | `BigInt("20")`<br>`BigInt(true)` | `20n`<br>`1n` |
+
+`Boolean(値)` の結果は、条件式での評価と同じになる (<a href="#truthy-falsy">truthy と falsy</a>を参照)。
+
+```javascript
+Boolean("0");   // true  (空文字ではないので truthy)
+Boolean([]);    // true
+Boolean("");    // false
+Boolean(null);  // false
+```
+
+#### 暗黙の型変換
+
+演算子や比較で、異なる型の値が組み合わされると、JavaScript が自動で型を変換する。
+
+| 式 | 結果 | 説明 |
+| --- | --- | --- |
+| `"5" * 2` | `10` | `*`、`-`、`/` は、数値に変換して計算する |
+| `"5" + 2` | `"52"` | `+` は、片方が文字列だと、文字列の結合になる |
+| `true + 1` | `2` | `true` は `1`、`false` は `0` として扱われる |
+| `null + 1` | `1` | `null` は `0` として扱われる |
+| `undefined + 1` | `NaN` | `undefined` は `NaN` として扱われる |
+| `"" == 0` | `true` | `==` は、型変換してから比較する |
+
+<pre><code class="caution">暗黙の型変換は、意図しない結果になりやすい。比較には === を使い、数値にしたいときは Number()、文字列にしたいときは String() で、明示的に変換する。</code></pre>
 
 ### as <span class="label">TS</span>
 
@@ -564,6 +805,29 @@ value を文字列に変換する。
 const str = String(123);
 ```
 
+#### value.toString()
+
+`String()` と同様に、文字列に変換する。数値では、基数を指定できる。
+
+```javascript
+(123).toString();   // "123"
+(255).toString(16); // "ff"       (16進数の文字列)
+(5).toString(2);    // "101"      (2進数の文字列)
+```
+
+| 書き方 | `null` / `undefined` | 備考 |
+| --- | --- | --- |
+| `String(value)` | `"null"` / `"undefined"` になる | どんな値でも変換できる |
+| `value.toString()` | TypeError になる | `null` と `undefined` には、メソッドがない |
+| `${value}` (テンプレートリテラル) | `"null"` / `"undefined"` になる | テンプレートリテラルに埋め込むと、文字列に変換される |
+
+```javascript
+String(null);       // "null"
+String([1, 2]);     // "1,2"
+String({});         // "[object Object]"
+null.toString();    // TypeError: Cannot read properties of null
+```
+
 ---
 
 ### 文字列の長さ
@@ -576,6 +840,23 @@ UTF-16 のコードユニット数を返す。そのため、日本語を含む�
 const str = "あいうえお";
 console.log(str.length);  // 5
 console.log("😀".length); // 2 (サロゲートペア)
+```
+
+コードポイント (Unicode の文字) の単位で数えたい場合は、スプレッド構文や `Array.from()` で配列にしてから、長さを調べる。
+
+```javascript
+console.log([..."😀"].length);          // 1 (コードポイント単位で分割される)
+console.log(Array.from("😀あ").length);  // 2
+console.log("😀あ".split("").length);    // 3 (split("") はコードユニット単位なので、サロゲートペアが壊れる)
+```
+
+<pre><code class="caution">コードポイントでも、見た目の 1 文字とは限らない (国旗の絵文字や、結合文字など)。見た目の文字数 (書記素) で数えるなら、Intl.Segmenter を使う。</code></pre>
+
+```javascript
+console.log([..."🇯🇵"].length); // 2 (国旗は、2つのコードポイントでできている)
+
+const segmenter = new Intl.Segmenter("ja", { granularity: "grapheme" });
+console.log([...segmenter.segment("🇯🇵")].length); // 1
 ```
 
 ---
@@ -691,6 +972,25 @@ str を省略すると半角スペースでパディングする。string が le
 const str = "123";
 console.log(str.padStart(5, "0"));      // => "00123"
 console.log(str.padEnd(5, "_"));        // => "123__"
+```
+
+---
+
+### 文字列の比較
+
+等しいかどうかは `===` で判定する。`<` と `>` では、UTF-16 のコードユニットの順 (文字コードの順) で比較される。
+
+```javascript
+console.log("B" < "a");   // true  (大文字 "B" の文字コードは 66、小文字 "a" は 97)
+console.log("10" < "9");  // true  (文字列同士は、1文字目の "1" と "9" から比べる)
+console.log("10" < 9);    // false (片方が数値なら、数値として比較する)
+```
+
+辞書順 (言語のルールに沿った順序) で比較するには、`localeCompare()` を使う。負の値、0、正の値のいずれかを返す。
+
+```javascript
+console.log("a".localeCompare("B"));   // -1 (辞書順では、a が B より前)
+console.log("a".localeCompare("A", undefined, { sensitivity: "base" })); // 0 (大文字・小文字を区別しない)
 ```
 
 ---
@@ -812,6 +1112,19 @@ console.log(obj);  // {width: 160, height: 120}
 const str2 = JSON.stringify(obj);
 console.log(str2); // {"width":160,"height":120}
 ```
+
+整形して出力したい場合は、`stringify` の第3引数にインデントの幅を指定する (第2引数は `null` にする)。
+
+```javascript
+console.log(JSON.stringify(obj, null, 2));
+// {
+//   "width": 160,
+//   "height": 120
+// }
+```
+
+<pre><code class="caution">JSON.parse は、不正な JSON を渡すと SyntaxError になるため、外部から受け取った文字列は try/catch で囲む。
+JSON では、キーや文字列は、ダブルクォートで囲む必要がある。末尾のカンマやコメントも書けない。</code></pre>
 
 ### 文字列のタグ付け (非推奨)
 
@@ -1111,8 +1424,8 @@ pop は最後の値を削除して戻り値として返す。
 
 ```javascript
 const arr = ["Red", "Green", "Blue"];
-arr.shift(); // ["Green", "Blue"]
-arr.pop();   // ["Green"]
+const first = arr.shift(); // first は "Red"、arr は ["Green", "Blue"]
+const last = arr.pop();    // last は "Blue"、arr は ["Green"]
 ```
 
 #### array.splice(start, n, e1, e2, ...)
@@ -1197,6 +1510,20 @@ const arr = ["Red", "Green", "Blue"];
 console.log(arr.length); // 3
 ```
 
+`length` に代入すると、配列の長さを変更できる。短くすると、後ろの要素は削除される。
+
+```javascript
+const arr = ["Red", "Green", "Blue"];
+arr.length = 1;
+console.log(arr); // ["Red"]
+
+arr.length = 0;   // 空にする
+console.log(arr); // []
+```
+
+<pre><code class="tips">length は、0 のとき falsy になるため、要素があるかどうかの判定には、if (arr.length > 0) と書ける。
+length を元より長くすると、増えた部分は空要素 (empty) になる。</code></pre>
+
 ---
 
 ### 配列のループ
@@ -1276,6 +1603,16 @@ const arr2 = arr1.filter(function(value, index, array) {
 });
 console.log(arr2); // [89, 87, 93, 88]
 ```
+
+callback の戻り値は、真偽値でなくても、<a href="#truthy-falsy">truthy / falsy</a> で判定される。この性質を使うと、falsy な値を取り除ける。`Boolean` は関数なので、そのままコールバックとして渡せる。
+
+```javascript
+const values = [0, 1, "", "a", null, undefined, NaN, false, "0"];
+console.log(values.filter(Boolean)); // [1, "a", "0"]
+```
+
+<pre><code class="caution">filter(Boolean) では、null や undefined だけでなく、0 や空文字も取り除かれる。
+null と undefined だけを取り除きたい場合は、filter((v) => v !== null && v !== undefined) と書く。</code></pre>
 
 #### array.includes(elm)
 
@@ -1662,6 +1999,85 @@ console.log(groups.get("奇数")); // [1, 3, 5]
 
 ---
 
+## Set <a id="set" data-name="Set"></a>
+
+ES2015 で追加されたオブジェクトで、**重複のない値**の集まりを保持する。要素は追加した順に取り出される。
+
+### `set = new Set([iterable])`
+
+配列などの反復可能オブジェクトを渡すと、重複を取り除いて初期化される。
+
+```javascript
+const set = new Set([1, 2, 2, 3, 3, 3]);
+console.log(set);      // Set(3) {1, 2, 3}
+console.log(set.size); // 3
+```
+
+### メソッド
+
+| メソッド | 説明 |
+| --- | --- |
+| `set.add(value)` | 値を追加する。すでにある値は追加されない。set 自身を返すので、メソッドを連ねて書ける。 |
+| `set.has(value)` | 値が含まれているかを、真偽値で返す。 |
+| `set.delete(value)` | 値を削除する。削除できた場合は `true`、なかった場合は `false` を返す。 |
+| `set.clear()` | すべての要素を削除する。 |
+| `set.size` | 要素数。 |
+| `set.values()` / `set.keys()` | 値のイテレータを返す (`keys()` は、`values()` と同じ)。 |
+
+```javascript
+const set = new Set();
+set.add("a").add("b").add("a");   // "a" は重複しているので、追加されない
+console.log(set.has("a"));        // true
+console.log(set.delete("b"));     // true
+console.log(set.size);            // 1
+
+for (const value of new Set(["x", "y"])) {
+  console.log(value);             // "x", "y"
+}
+```
+
+### 配列の重複を取り除く
+
+```javascript
+const arr = [1, 2, 2, 3, 3, 3];
+const unique = [...new Set(arr)];   // [1, 2, 3]
+```
+
+<pre><code class="tips">値の比較は === とほぼ同じだが、NaN 同士は等しいものとして扱われる。
+オブジェクトは参照で比較されるため、中身が同じでも、別の要素になる。</code></pre>
+
+```javascript
+console.log(new Set([NaN, NaN]).size);             // 1
+console.log(new Set([{ id: 1 }, { id: 1 }]).size); // 2
+```
+
+### 集合演算 (ES2025)
+
+| メソッド | 説明 |
+| --- | --- |
+| `a.union(b)` | 和集合 (a と b のどちらかに含まれる) |
+| `a.intersection(b)` | 積集合 (a と b の両方に含まれる) |
+| `a.difference(b)` | 差集合 (a に含まれて、b に含まれない) |
+| `a.symmetricDifference(b)` | 対称差 (どちらか一方だけに含まれる) |
+| `a.isSubsetOf(b)` | a が b の部分集合かを、真偽値で返す |
+| `a.isSupersetOf(b)` | a が b を含んでいるかを、真偽値で返す |
+| `a.isDisjointFrom(b)` | a と b に共通の要素がないかを、真偽値で返す |
+
+```javascript
+const a = new Set([1, 2, 3]);
+const b = new Set([3, 4]);
+
+console.log(a.union(b));               // Set(4) {1, 2, 3, 4}
+console.log(a.intersection(b));        // Set(1) {3}
+console.log(a.difference(b));          // Set(2) {1, 2}
+console.log(a.symmetricDifference(b)); // Set(3) {1, 2, 4}
+console.log(a.isSubsetOf(b));          // false
+```
+
+<pre><code class="caution">集合演算は比較的新しいメソッドなので、古い実行環境では使えない。対応状況を確認してから使う。</code></pre>
+
+---
+
 ## クラス <a id="class" data-name="クラス"></a>
 
 class はオブジェクトを作るためのひな型のようなもので、コードの重複が減るため保守性が上がったり、簡単にオブジェクトを生成できるなどのメリットがある。
@@ -1730,6 +2146,81 @@ class クラス名 {
 const obj = new クラス名();
 obj.プロパティ名 = 値;          // セッターが呼ばれる
 console.log(obj.プロパティ名);  // ゲッターが呼ばれる
+```
+
+### 継承 (extends と super)
+
+`extends` で、既存のクラスを引き継いだクラスを作れる。`super` で、親クラスのコンストラクタやメソッドを呼び出す。
+
+```javascript
+class Animal {
+  constructor(name) {
+    this.name = name;
+  }
+
+  speak() {
+    console.log(`${this.name}が鳴く`);
+  }
+}
+
+class Dog extends Animal {
+  constructor(name, breed) {
+    super(name);        // 親クラスのコンストラクタを呼ぶ
+    this.breed = breed;
+  }
+
+  speak() {
+    super.speak();      // 親クラスのメソッドを呼ぶ
+    console.log("ワン");
+  }
+}
+
+const dog = new Dog("ポチ", "柴犬");
+dog.speak();
+// ポチが鳴く
+// ワン
+
+console.log(dog instanceof Dog);    // true
+console.log(dog instanceof Animal); // true
+```
+
+<pre><code class="caution">サブクラスで constructor を書く場合は、this を使う前に super() を呼ぶ必要がある。呼ばずに this を使うと ReferenceError になる。
+constructor を書かなければ、親クラスのコンストラクタが、そのまま使われる。</code></pre>
+
+### プライベートフィールド・プライベートメソッド
+
+名前を `#` で始めると、クラスの外からアクセスできなくなる。
+
+```javascript
+class Counter {
+  #count = 0;                 // プライベートフィールド
+
+  increment() {
+    this.#count++;
+  }
+
+  get value() {
+    return this.#count;
+  }
+}
+
+const c = new Counter();
+c.increment();
+console.log(c.value);  // 1
+console.log(c.count);  // undefined (外からは見えない)
+// console.log(c.#count); // SyntaxError (クラスの外では、書くこと自体ができない)
+```
+
+<pre><code class="caution">プライベートフィールドは、クラスの先頭で宣言する必要がある (宣言せずに this.#x = 1 と書くと、SyntaxError になる)。
+_name のように、アンダースコアで始める書き方は、ただの命名規則であり、外からアクセスできてしまう。</code></pre>
+
+### クラスは宣言の前に使えない
+
+クラス宣言は、let や const と同じく、宣言の行に到達するまで参照できない。
+
+```javascript
+const a = new Foo(); // ReferenceError: Cannot access 'Foo' before initialization
+class Foo {}
 ```
 
 ---
@@ -1882,6 +2373,19 @@ function 関数名(arg1 = 初期値1, arg2 = 初期値2) {
 }
 ```
 
+初期値が使われるのは、引数が `undefined` のときだけ。`null` や `0`、空文字を渡した場合は、そのまま使われる。
+
+```javascript
+function greet(name = "ゲスト") {
+  console.log(`こんにちは、${name}`);
+}
+
+greet();           // こんにちは、ゲスト
+greet(undefined);  // こんにちは、ゲスト
+greet(null);       // こんにちは、null
+greet("");         // こんにちは、 (空文字がそのまま使われる)
+```
+
 ### オブジェクトを引数として渡す
 
 引数が多い場合にはオブジェクトを引数として渡せる。
@@ -1909,6 +2413,54 @@ fn(params); // 初期値1 引数2
 ```
 
 ただし、オブジェクトは参照が渡されるため、1つ目の方法のように引数のオブジェクトを書き換えると、呼び出し元のオブジェクトにも影響する点に注意。
+
+### 引数と戻り値
+
+JavaScript では、引数の数が合っていなくても、エラーにならない。
+
+```javascript
+function add(a, b) {
+  return a + b;
+}
+
+console.log(add(1));        // NaN (b は undefined なので、1 + undefined)
+console.log(add(1, 2, 3));  // 3   (余った引数は無視される)
+```
+
+`return` がない関数、または `return` に値がない関数は、`undefined` を返す。
+
+```javascript
+function noReturn() {
+  const x = 1;
+}
+
+console.log(noReturn()); // undefined
+```
+
+余った引数をすべて受け取るには、レスト引数 (`...args`) を使う。
+
+```javascript
+function sum(...numbers) {
+  return numbers.reduce((total, n) => total + n, 0);
+}
+
+console.log(sum(1, 2, 3, 4)); // 10
+```
+
+<pre><code class="tips">function で書いた関数の中では、arguments という配列風のオブジェクトで、すべての引数を受け取れる。アロー関数には arguments がなく、配列のメソッドも使えないため、レスト引数を使うほうがよい。</code></pre>
+
+### 即時実行関数式 (IIFE)
+
+関数を定義して、その場ですぐに実行する書き方。関数の中の変数が、外に漏れない。
+
+```javascript
+(() => {
+  const message = "この変数は、外からは見えない";
+  console.log(message);
+})();
+```
+
+<pre><code class="tips">ES モジュールや、let / const によるブロックスコープがある今は、変数を隠すためだけに使う場面は減った。古いコードや、非同期の初期化処理 ((async () => { ... })();) で見かける。</code></pre>
 
 ---
 
@@ -2909,6 +3461,152 @@ try {
 
 throw には、Error オブジェクトを渡すのが一般的。
 
+### Error オブジェクトのプロパティ
+
+| プロパティ | 説明 |
+| --- | --- |
+| `name` | エラーの種類 (`"Error"`、`"TypeError"` など) |
+| `message` | エラーのメッセージ |
+| `stack` | エラーが発生した場所の履歴 (スタックトレース)。標準仕様ではないが、主要な実行環境で使える |
+| `cause` | 原因となった元のエラー (ES2022) |
+
+```javascript
+try {
+    JSON.parse("{ invalid }");
+} catch (error) {
+    console.log(error.name);     // "SyntaxError"
+    console.log(error.message);  // メッセージは、実行環境によって異なる
+}
+```
+
+### 組み込みのエラーの種類
+
+| 種類 | 発生する場面 |
+| --- | --- |
+| `Error` | 汎用のエラー。独自のエラーの元になる |
+| `TypeError` | 値の型が合わない。`null` のプロパティを読む、関数でないものを呼ぶ、など |
+| `ReferenceError` | 存在しない変数を参照する (宣言前の `let` / `const` を含む) |
+| `SyntaxError` | 文法が正しくない。`JSON.parse` に不正な文字列を渡した場合も発生する |
+| `RangeError` | 値が許容範囲を超えている。`new Array(-1)` や、再帰が深すぎる場合など |
+| `URIError` | `decodeURIComponent()` などに、不正な文字列を渡した |
+| `AggregateError` | 複数のエラーをまとめたもの。`Promise.any` がすべて失敗したときに発生する |
+
+### catch の変数の省略
+
+エラーの内容を使わない場合は、`catch` の後ろの `(識別子)` を省略できる (ES2019)。
+
+```javascript
+try {
+    JSON.parse(text);
+} catch {
+    console.log("JSON として読み込めませんでした");
+}
+```
+
+### catch で受けた値の判別
+
+`throw` には、どんな値でも渡せる (文字列や数値でもよい)。そのため、`catch` で受けた値が、Error とは限らない。種類ごとに処理を分けるときは、`instanceof` で判別する。
+
+```javascript
+try {
+    doSomething();
+} catch (error) {
+    if (error instanceof TypeError) {
+        console.error("型が正しくありません", error.message);
+    } else if (error instanceof Error) {
+        console.error("エラーが発生しました", error.message);
+    } else {
+        console.error("Error ではない値が throw されました", error);
+    }
+}
+```
+
+<pre><code class="caution">文字列などを throw すると、スタックトレースが残らず、原因の調査が難しくなる。throw には、Error (またはそのサブクラス) を渡す。</code></pre>
+
+### 独自のエラークラス
+
+Error を継承すると、独自の種類のエラーを作れる。
+
+```javascript
+class ValidationError extends Error {
+    constructor(message, field) {
+        super(message);
+        this.name = "ValidationError";
+        this.field = field;          // 独自の情報を持たせられる
+    }
+}
+
+try {
+    throw new ValidationError("必須項目です", "email");
+} catch (error) {
+    if (error instanceof ValidationError) {
+        console.log(`${error.field}: ${error.message}`); // "email: 必須項目です"
+    } else {
+        throw error;                 // 対処できないエラーは、再び throw する
+    }
+}
+```
+
+### cause (原因となったエラー)
+
+別のエラーに包み直して throw するときは、`cause` で、元のエラーを残せる (ES2022)。
+
+```javascript
+try {
+    JSON.parse(text);
+} catch (error) {
+    throw new Error("設定ファイルの読み込みに失敗しました", { cause: error });
+}
+```
+
+### finally の動き
+
+`finally` は、`try` の中で `return` した場合でも、値を返す前に実行される。
+
+```javascript
+function f() {
+    try {
+        return "try";
+    } finally {
+        console.log("finally");
+    }
+}
+
+console.log(f());
+// finally
+// try
+```
+
+<pre><code class="caution">finally の中で return や throw をすると、try や catch の return、throw を上書きする。発生した例外が、握りつぶされることもあるため、finally には後片付けの処理だけを書く。</code></pre>
+
+```javascript
+function g() {
+    try {
+        throw new Error("失敗");
+    } finally {
+        return "finally の値";
+    }
+}
+
+console.log(g()); // "finally の値" (例外が握りつぶされる)
+```
+
+### 非同期処理の例外
+
+`setTimeout` などのコールバックの中で発生した例外は、外側の `try/catch` では捕捉できない。コールバックの実行時には、`try` ブロックはすでに終わっているため。
+
+```javascript
+try {
+    setTimeout(() => {
+        throw new Error("後で発生する");
+    }, 0);
+} catch (error) {
+    console.log("ここは実行されない");
+}
+```
+
+Promise や async/await の例外は、<a href="#async">非同期</a>の「エラー処理」を参照。
+
 ---
 
 ## 組み込み関数・メソッド <a id="methods" data-name="組み込み関数・メソッド"></a>
@@ -3052,6 +3750,16 @@ const total = prices.reduce(
   0
 )
 ```
+
+初期値を省略すると、先頭の要素が初期値になり、2番目の要素から処理が始まる。
+
+```javascript
+[1, 2, 3].reduce((sum, n) => sum + n);     // 6 (最初の sum は 1、n は 2 から)
+[].reduce((sum, n) => sum + n);            // TypeError (空配列で、初期値がない)
+[].reduce((sum, n) => sum + n, 0);         // 0
+```
+
+<pre><code class="caution">空配列になる可能性がある場合は、必ず初期値を指定する。</code></pre>
 
 ### 文字列系
 
@@ -3199,6 +3907,123 @@ const response = await fetch(url);
 const data = await response.json();
 ```
 
+### Math
+
+| メソッド・プロパティ | 説明 | 例 | 結果 |
+| --- | --- | --- | --- |
+| `Math.round(x)` | 四捨五入 (ちょうど `.5` のときは、正の無限大の方向) | `Math.round(2.5)` | `3` |
+| `Math.floor(x)` | 切り捨て (負の無限大の方向) | `Math.floor(-1.5)` | `-2` |
+| `Math.ceil(x)` | 切り上げ (正の無限大の方向) | `Math.ceil(1.2)` | `2` |
+| `Math.trunc(x)` | 小数部を取り除く (0 の方向) | `Math.trunc(-1.5)` | `-1` |
+| `Math.abs(x)` | 絶対値 | `Math.abs(-3)` | `3` |
+| `Math.max(a, b, ...)`<br>`Math.min(a, b, ...)` | 最大値、最小値。引数がない場合は、それぞれ `-Infinity`、`Infinity` | `Math.max(1, 5, 3)` | `5` |
+| `Math.sqrt(x)` | 平方根 | `Math.sqrt(9)` | `3` |
+| `Math.pow(x, y)` | べき乗 (`x ** y` と同じ) | `Math.pow(2, 10)` | `1024` |
+| `Math.random()` | 0 以上 1 未満の乱数 | `Math.random()` | `0.4378...` など |
+| `Math.PI` | 円周率 | `Math.PI` | `3.141592653589793` |
+
+```javascript
+// 配列の最大値は、スプレッド構文で展開して渡す
+const arr = [3, 9, 4];
+console.log(Math.max(...arr)); // 9
+
+// 0 以上 n 未満の整数の乱数
+const randomInt = (n) => Math.floor(Math.random() * n);
+
+// min 以上 max 以下の整数の乱数
+const randomBetween = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+```
+
+<pre><code class="caution">Math.random() は、暗号などのセキュリティ用途には使えない。そのような場合は、crypto.getRandomValues() を使う。
+Math.max(...arr) は、配列の要素数が非常に多いと、引数の上限を超えてエラーになることがある。その場合は reduce を使う。</code></pre>
+
+### Number
+
+| メソッド | 説明 | 例 | 結果 |
+| --- | --- | --- | --- |
+| `Number.isInteger(x)` | 整数かどうか | `Number.isInteger(5.0)`<br>`Number.isInteger(5.5)` | `true`<br>`false` |
+| `Number.isNaN(x)` | `NaN` かどうか (型変換はしない) | `Number.isNaN(NaN)`<br>`Number.isNaN("abc")` | `true`<br>`false` |
+| `Number.isFinite(x)` | 有限の数値かどうか | `Number.isFinite(10)`<br>`Number.isFinite(Infinity)` | `true`<br>`false` |
+| `Number.isSafeInteger(x)` | 正確に扱える整数かどうか | `Number.isSafeInteger(2 ** 53)` | `false` |
+| `Number.parseFloat(str)` | 文字列の先頭から、小数を読み取る | `Number.parseFloat("3.14px")` | `3.14` |
+| `num.toFixed(n)` | 小数点以下 n 桁の文字列にする (文字列を返す) | `(3.14159).toFixed(2)` | `"3.14"` |
+| `num.toLocaleString(locale)` | ロケールに応じた文字列にする (桁区切りなど) | `(1234567).toLocaleString("ja-JP")` | `"1,234,567"` |
+
+<pre><code class="caution">グローバル関数の isNaN() は、引数を数値に変換してから判定するため、isNaN("abc") が true になる。NaN の判定には Number.isNaN() を使う。</code></pre>
+
+通貨の形式で表示する場合は、`Intl.NumberFormat` を使う。
+
+```javascript
+const formatter = new Intl.NumberFormat("ja-JP", { style: "currency", currency: "JPY" });
+console.log(formatter.format(1234)); // "￥1,234"
+```
+
+### Date
+
+#### 日時の生成
+
+```javascript
+const now = new Date();                              // 現在の日時
+const d1 = new Date(2026, 0, 15);                    // 2026年1月15日 0時 (月は 0 始まり)
+const d2 = new Date("2026-01-15T09:30:00+09:00");    // 文字列から生成 (タイムゾーン付き)
+const timestamp = Date.now();                        // 現在の時刻をミリ秒で取得
+```
+
+#### 値の取得
+
+| メソッド | 説明 |
+| --- | --- |
+| `getFullYear()` | 年 |
+| `getMonth()` | 月 (0〜11) |
+| `getDate()` | 日 (1〜31) |
+| `getDay()` | 曜日 (0 が日曜日) |
+| `getHours()`、`getMinutes()`、`getSeconds()`、`getMilliseconds()` | 時、分、秒、ミリ秒 |
+| `getTime()` | タイムスタンプ (1970-01-01 00:00:00 UTC からのミリ秒) |
+| `setFullYear()`、`setMonth()`、`setDate()` など | 値を書き換える (Date オブジェクト自体が変わる) |
+
+`getUTCHours()` のように、`UTC` を付けたメソッドを使うと、UTC での値を取得できる。
+
+#### 文字列への変換
+
+```javascript
+const d = new Date(2026, 0, 5, 9, 3);
+
+console.log(d.toISOString());           // "2026-01-05T00:03:00.000Z" (UTC。日本時間で実行した場合)
+console.log(d.toLocaleDateString("ja-JP"));  // "2026/1/5"
+console.log(d.toLocaleDateString("ja-JP", {
+  year: "numeric", month: "2-digit", day: "2-digit"
+}));                                    // "2026/01/05"
+console.log(d.toLocaleTimeString("ja-JP")); // "9:03:00"
+```
+
+`toISOString()` は UTC で出力するため、日本時間の 2026年1月5日 9時3分は、UTC では 1月5日 0時3分になる。
+
+#### 比較と差の計算
+
+```javascript
+const start = new Date(2026, 0, 1);
+const end = new Date(2026, 0, 15);
+
+console.log(end - start);                           // 1209600000 (ミリ秒の差)
+console.log((end - start) / (1000 * 60 * 60 * 24)); // 14 (日数)
+console.log(start < end);                           // true
+console.log(new Date(2026, 0, 1) === new Date(2026, 0, 1)); // false (オブジェクトは参照で比較される)
+console.log(new Date(2026, 0, 1).getTime() === new Date(2026, 0, 1).getTime()); // true
+```
+
+<pre><code class="caution">Date どうしの == や === は、参照の比較になる。同じ日時かどうかは、getTime() の値で比較する。
+夏時間のある地域では、1日が 24時間とは限らないため、日数の計算に注意する。</code></pre>
+
+#### 不正な日付
+
+```javascript
+const invalid = new Date("abc");
+console.log(invalid.toString());               // "Invalid Date"
+console.log(Number.isNaN(invalid.getTime()));  // true (不正な日付の判定)
+```
+
+月が 0 始まりであることや、文字列から生成するときの時刻の扱いについては、<a href="#pitfalls">落とし穴</a>を参照。
+
 ---
 
 ## DOM <a id="dom" data-name="DOM"></a>
@@ -3215,6 +4040,11 @@ const data = await response.json();
 | `window.confirm(message)` | **OK** と **キャンセル** ボタンを持つダイアログを表示する。<br>それぞれ `true` と `false` を返す。 | `const ok = window.confirm("削除しますか?");` |
 | `window.console.log(message)` | コンソールに文字列を出力する。 | `console.log("hello");` |
 | `window.console.error(message)` | コンソールにエラーメッセージを出力する。 | `console.error("error");` |
+| `window.prompt(message, default)` | 入力欄のあるダイアログを表示する。OK なら入力した文字列を、キャンセルなら `null` を返す。 | `const name = window.prompt("名前は?", "");` |
+| `setTimeout(callback, ms)` | 指定したミリ秒後に、callback を 1 回実行する。タイマーの ID を返す。 | `const id = setTimeout(() => {}, 1000);` |
+| `clearTimeout(id)` | `setTimeout` の予約を取り消す。 | `clearTimeout(id);` |
+| `setInterval(callback, ms)` | 指定したミリ秒ごとに、callback を繰り返し実行する。タイマーの ID を返す。 | `const id = setInterval(() => {}, 1000);` |
+| `clearInterval(id)` | `setInterval` を停止する。 | `clearInterval(id);` |
 
 ---
 
@@ -3353,6 +4183,39 @@ historyオブジェクトはブラウザのセッション履歴を操作する�
 
 <pre><code class="tips">element.addEventListener("イベント", (event) => {}); // 関数の引数 event で、発生したイベントの情報を受け取れる。</code></pre>
 
+#### イベントオブジェクト
+
+リスナーの引数で受け取る `event` には、イベントに関する情報が入っている。
+
+| プロパティ・メソッド | 説明 |
+| --- | --- |
+| `event.target` | イベントが実際に発生した要素 (クリックされた、いちばん内側の要素など)。 |
+| `event.currentTarget` | リスナーを登録した要素。 |
+| `event.type` | イベントの種類 (`"click"` など)。 |
+| `event.key` | `keydown` / `keyup` で、押されたキー (`"Enter"` など)。 |
+| `event.stopPropagation()` | イベントが、親の要素へ伝わる (バブリング) のを止める。 |
+
+リスナーの登録時に、第3引数でオプションを渡せる。`{ once: true }` を指定すると、1 回だけ実行されて、自動で解除される。
+
+```javascript
+button.addEventListener("click", () => console.log("1回だけ"), { once: true });
+```
+
+#### イベント委譲
+
+子要素ごとにリスナーを登録せず、親の要素に 1 つだけ登録して、`event.target` でどの子要素かを判別する方法。あとから追加した要素にも、自動で効く。
+
+```javascript
+const list = document.querySelector("#todo-list");
+
+list.addEventListener("click", (event) => {
+  const item = event.target.closest("li");  // クリックされた位置から、いちばん近い li を探す
+  if (!item) return;                        // li の外 (余白など) なら何もしない
+
+  item.classList.toggle("done");
+});
+```
+
 #### preventDefault
 
 | メソッド                 | 説明                                                                                                               |
@@ -3375,6 +4238,28 @@ testButton.addEventListener("contextmenu", (event) => {
 | `element.textContent` | 要素の内容を書き換える。<br>HTMLタグを解釈せず、すべてテキストとして扱うので、XSSのリスクがない。 | `element.textContent = "変更後の文字列"` |
 | `element.insertAdjacentHTML("挿入位置", "挿入内容")` | 指定した挿入位置に内容を挿入する。innerHTML と同様に HTML として解釈されるので、XSSに注意する。挿入位置の指定は以下の通り。<br>`beforebegin`: 要素の直前に挿入<br>`afterbegin`: 要素内部の、最初の子要素の前に挿入<br>`beforeend`: 要素内部の、最後の子要素の後に挿入<br>`afterend`: 要素の直後に挿入 | `element.insertAdjacentHTML("beforeend", "<li>newItem</li>")` |
 
+#### 要素の追加・移動・削除
+
+| メソッド | 説明 |
+| --- | --- |
+| `parent.append(要素または文字列, ...)` | 子要素の末尾に追加する (複数指定できる)。文字列はテキストとして追加され、HTML として解釈されない。 |
+| `parent.prepend(要素または文字列, ...)` | 子要素の先頭に追加する。 |
+| `element.before(...)` / `element.after(...)` | 要素の直前 / 直後に追加する。 |
+| `element.replaceWith(...)` | 要素を置き換える。 |
+| `element.remove()` | 要素を DOM から削除する。 |
+| `element.cloneNode(true)` | 要素を複製する。`true` なら子孫も複製する (イベントリスナーはコピーされない)。 |
+| `element.closest("selector")` | 自分自身または祖先のうち、セレクターに一致する、いちばん近い要素を返す。 |
+| `element.matches("selector")` | 要素がセレクターに一致するかを、真偽値で返す。 |
+| `element.querySelector("selector")` | `document` と同様に、その要素の子孫から検索する (`querySelectorAll` も同じ)。 |
+
+```javascript
+const li = document.createElement("li");
+li.textContent = "新しい項目";           // textContent なので、XSS の心配がない
+document.querySelector("#list").append(li);
+```
+
+<pre><code class="tips">すでに DOM にある要素を append などで別の場所に追加すると、コピーではなく移動になる。</code></pre>
+
 #### カスタムデータと属性へのアクセス
 
 | メソッド/プロパティ | 説明 | 例 |
@@ -3389,6 +4274,47 @@ testButton.addEventListener("contextmenu", (event) => {
 | `element.style.スタイル名`                           | インラインスタイルを変更する。<br>ハイフン区切りのプロパティ名はキャメルケースで指定する(例: `backgroundColor`)。                                                                                                        | `element.style.color = "red"`             |
 
 
+
+---
+
+### Web Storage
+
+ブラウザに、キーと値のペアを保存する仕組み。
+
+| 種類 | 保存期間 |
+| --- | --- |
+| `localStorage` | ブラウザを閉じても残る。同じオリジン (プロトコル、ホスト、ポートが同じ) で共有される。 |
+| `sessionStorage` | タブを閉じると消える。タブごとに独立している。 |
+
+| メソッド・プロパティ | 説明 |
+| --- | --- |
+| `setItem(key, value)` | 値を保存する。 |
+| `getItem(key)` | 値を取得する。存在しないキーは `null` を返す。 |
+| `removeItem(key)` | 指定したキーを削除する。 |
+| `clear()` | すべて削除する。 |
+| `length` | 保存されているキーの数。 |
+
+```javascript
+localStorage.setItem("theme", "dark");
+console.log(localStorage.getItem("theme"));    // "dark"
+console.log(localStorage.getItem("unknown"));  // null (存在しないキー)
+localStorage.removeItem("theme");
+```
+
+保存できるのは文字列だけ。オブジェクトは、`JSON.stringify` で文字列にして保存し、取り出すときに `JSON.parse` で戻す。
+
+```javascript
+const settings = { theme: "dark", fontSize: 14 };
+localStorage.setItem("settings", JSON.stringify(settings));
+
+const saved = JSON.parse(localStorage.getItem("settings") ?? "null");
+console.log(saved?.theme);  // "dark" (保存されていなければ、saved は null)
+```
+
+<pre><code class="caution">数値や真偽値を保存しても、文字列に変換される。
+localStorage.setItem("enabled", false) と保存した場合、取得できる値は "false" という文字列で、truthy になってしまう。取り出したあとに、=== "true" などで判定する。
+容量は 5MB 程度で、同期処理のため、大きなデータの読み書きは画面を止める。
+JavaScript から読み取れるため、パスワードなどの機密情報は保存しない (XSS で盗まれる)。</code></pre>
 
 ---
 
@@ -3412,6 +4338,29 @@ testButton.addEventListener("contextmenu", (event) => {
 <ul><li>&lt;script&gt;タグの属性に defer を指定する。</li>
     <li>&lt;body&gt;タグの一番最後にスクリプトファイルを読み込む指定をする。</li>
     <li>DOMContentLoaded イベントの中に処理を記述する。<br>document.addEventListener("DOMContentLoaded", () => {})</li></ul></code></pre>
+
+- **ES モジュール**: `type="module"` を指定した script タグ。`import` / `export` やトップレベル `await` が使える。`defer` と同様に、HTML の解析が終わってから実行される。
+
+```html
+<script type="module" src="main.js"></script>
+```
+
+### strict モード
+
+ファイルや関数の先頭に `"use strict";` と書くと、曖昧な書き方がエラーになり、バグに気づきやすくなる。ES モジュールとクラスの中は、自動で strict モードになる。
+
+```javascript
+"use strict";
+
+total = 10;   // ReferenceError (宣言していない変数への代入がエラーになる)
+```
+
+| strict モードでの変化 | 内容 |
+| --- | --- |
+| 宣言していない変数への代入 | グローバル変数にならず、ReferenceError になる。 |
+| 書き込めない値への代入 | 黙って無視されず、TypeError になる (`freeze` したオブジェクトや、文字列のインデックスなど)。 |
+| 関数の単純な呼び出しでの `this` | `window` ではなく、`undefined` になる。 |
+| 先頭が 0 の 8進数 (`0111`) | 構文エラーになる。 |
 
 ---
 
@@ -3550,6 +4499,8 @@ console.log("1" + 2 + 3);  // "123"
 
 `false`、`0`、`-0`、`0n`、`""` (空文字)、`null`、`undefined`、`NaN`
 
+詳しくは、制御構文の <a href="#truthy-falsy">truthy と falsy</a>を参照。
+
 ```javascript
 if ([]) { console.log("実行される"); }   // 空配列は truthy
 if ({}) { console.log("実行される"); }   // 空オブジェクトも truthy
@@ -3561,6 +4512,31 @@ console.log(count ?? 10); // 0  (null と undefined のときだけデフォル�
 ```
 
 <pre><code class="caution">0 や空文字が有効な値の場合に || でデフォルト値を指定すると、意図せず置き換わる。その場合は ?? を使う。</code></pre>
+
+`==` による比較は、truthy / falsy の判定とは別の規則で動くため、結果が食い違うことがある。
+
+```javascript
+console.log([] == false);   // true  ([] は "" を経て 0 に、false も 0 に変換されて、等しくなる)
+console.log(Boolean([]));   // true  (条件式では truthy)
+
+if ([] == false) { console.log("等しい"); }    // 実行される
+if ([])          { console.log("truthy"); }   // こちらも実行される
+
+console.log("0" == false);  // true
+console.log(null == false); // false
+console.log(NaN == NaN);    // false
+```
+
+<pre><code class="caution">truthy か falsy かを調べるときに、== false や == true と比較しない。条件式にそのまま書くか、Boolean() で変換する。</code></pre>
+
+文字列の `"false"` や `"0"` が truthy になる点は、`localStorage` や HTML の属性値など、文字列で値を受け取る場面でも問題になる。
+
+```javascript
+const flag = "false";            // 文字列として受け取った値
+if (flag) { console.log("実行される"); }  // "false" は文字列なので truthy
+
+if (flag === "true") { /* 文字列として比較する */ }
+```
 
 ### オブジェクトや配列は参照で比較される
 
@@ -3831,3 +4807,5 @@ console.log(parseInt(1e21));      // 1 ("1e+21" と文字列化される)
 | `var` のループ変数がクロージャで共有される | クロージャ > ループとクロージャ |
 | `forEach` に async 関数を渡すと待たない、`await` の付け忘れ | 非同期 > async > よくある間違い |
 | `str.length` は絵文字を 2 と数える | 文字列 > 文字列の長さ |
+| `[]` や `{}`、文字列の `"0"` や `"false"` は truthy になる | 制御構文 > truthy と falsy |
+| `Math.max(...arr)` は、空配列だと `-Infinity` になる | 組み込み関数・メソッド > Math |
