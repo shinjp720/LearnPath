@@ -332,6 +332,337 @@ use super::config;        // 1つ上の module から数えたパス
 バイナリクレートとライブラリクレートを分割する設計にすることで、エントリーポイントの変更が容易になり、結合テストが書きやすくなる。<br>
 また、ビルド・コンパイルの高速化が期待でき、汎用的で拡張性の高い設計となる。
 
+### Cargo.toml (マニフェスト)
+
+package の設定は、ルートにある Cargo.toml (マニフェスト) に書く。主なセクションは次の通り。
+
+| セクション | 役割 |
+| --- | --- |
+| `[package]` | 名前、バージョン、エディションなど、package 自身の情報 |
+| `[dependencies]` | 通常の依存クレート |
+| `[dev-dependencies]` | テスト・ベンチマーク・examples だけで使う依存 |
+| `[build-dependencies]` | `build.rs` (ビルドスクリプト) だけで使う依存 |
+| `[features]` | 任意の機能 (フィーチャ) の定義 |
+| `[lib]` / `[[bin]]` | crate root の場所や crate 名を変えたいときの設定 |
+| `[workspace]` | ワークスペースのルートであることの宣言 |
+| `[profile.*]` | 最適化レベルなど、ビルド設定 |
+| `[lints]` | リント (警告・エラー) の設定 |
+
+```toml
+[package]
+name = "my_app"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+
+[dev-dependencies]
+assert_cmd = "2"
+```
+
+### フィーチャを定義する
+
+`[features]` で、コンパイル時に切り替えられる機能を定義する。オプションの依存 (`optional = true`) は、フィーチャを有効にしたときだけビルドされる。
+
+```toml
+[features]
+default = ["json"]          # 何も指定しなければ有効になる
+json = ["dep:serde_json"]   # json を有効にすると serde_json も有効になる
+full = ["json"]             # 他のフィーチャをまとめる
+
+[dependencies]
+serde_json = { version = "1", optional = true }
+```
+
+```rust
+#[cfg(feature = "json")]
+pub fn to_json() { /* json が有効なときだけコンパイルされる */ }
+```
+
+```bash
+cargo build --features json        # フィーチャを有効にしてビルド
+cargo build --no-default-features  # default を無効にしてビルド
+cargo build --all-features         # すべてのフィーチャを有効にしてビルド
+```
+
+フィーチャは足し算で、有効にすることはあっても、他のクレートが有効にしたものを無効にすることはできない。そのため、フィーチャは「あると機能が増える」形で設計する。
+
+### package 同士を組み合わせる (path 依存)
+
+別の package を `path` で指定すると、その package の library crate を使える。
+
+```text
+my_workspace/
+├─ my_core/
+│   ├─ Cargo.toml
+│   └─ src/lib.rs
+└─ my_app/
+    ├─ Cargo.toml
+    └─ src/main.rs
+```
+
+```toml
+# my_app/Cargo.toml
+[dependencies]
+my_core = { path = "../my_core" }
+```
+
+```rust
+// my_app/src/main.rs
+use my_core::greet;  // package 名 (my_core) がそのまま crate 名になる
+```
+
+package 名に `-` を使った場合、コード上の crate 名では `_` に置き換わる (`my-core` → `my_core`)。<br>
+`core`、`std`、`alloc`、`test` は標準ライブラリの crate 名と衝突するため、package 名に使わない。
+
+この形でも組み合わせられるが、package が増えると、依存のバージョンや設定がばらばらになりやすい。それをまとめて管理する仕組みがワークスペース。
+
+### ワークスペース
+
+複数の package を1つのプロジェクトとして管理する仕組み。個々の package は独立したままで、ビルドの成果物や依存のバージョンなどを共有できる。
+
+```text
+my_workspace/
+├─ Cargo.toml        ← ワークスペースのルート ([workspace] を書く)
+├─ Cargo.lock        ← 全メンバーで共有する
+├─ target/           ← 全メンバーで共有する
+└─ crates/
+    ├─ my_core/      ← ライブラリ (ロジック)
+    │   ├─ Cargo.toml
+    │   └─ src/lib.rs
+    ├─ my_cli/       ← バイナリ (コマンドライン)
+    │   ├─ Cargo.toml
+    │   └─ src/main.rs
+    └─ my_server/    ← バイナリ (サーバー)
+        ├─ Cargo.toml
+        └─ src/main.rs
+```
+
+```toml
+# ルートの Cargo.toml
+[workspace]
+resolver = "3"            # 後述
+members = ["crates/*"]    # glob で、crates/ 直下の package をすべてメンバーにする
+```
+
+ワークスペースに属する package を **メンバー** と呼ぶ。メンバーのディレクトリの中で cargo コマンドを実行すると、cargo が上の階層をたどってルートを見つけ、ワークスペースの一員として動く。
+
+#### 仮想ワークスペースとルート package
+
+ルートの Cargo.toml には2通りの書き方がある。
+
+| 種類 | 書き方 | 特徴 |
+| --- | --- | --- |
+| 仮想ワークスペース (virtual workspace) | `[workspace]` だけを書く (`[package]` を持たない) | ルート自身は package ではなく、メンバーを束ねるだけ。メンバーが増える規模ではこちらが整理しやすい |
+| ルート package 付き | `[package]` と `[workspace]` の両方を書く | ルート自身も package (メインのアプリなど) で、`src/` を持つ |
+
+仮想ワークスペースでは `edition` を決める場所がないため、`resolver` を明示する (後述)。
+
+#### members / exclude / default-members
+
+```toml
+[workspace]
+resolver = "3"
+members = ["crates/*", "tools/xtask"]  # メンバーにする package (glob 可)
+exclude = ["crates/experimental"]      # glob に当たっても、メンバーにしない
+default-members = ["crates/my_cli"]    # 引数なしのコマンドの対象を絞る
+```
+
+- `members` に載せなくても、メンバーから `path` で参照している package は、同じディレクトリ配下にあれば自動的にメンバーになる。
+- `default-members` を指定しないと、仮想ワークスペースのルートで実行した `cargo build` は全メンバーが対象になる。ルート package 付きの場合は、ルート package だけが対象になる。
+- `cargo new crates/my_util --lib` のように、ワークスペースの内側で新しい package を作ると、`members` に自動で追加される (glob に当たる場合は追加不要)。
+
+#### 共有されるもの・されないもの
+
+| 共有される | 共有されない |
+| --- | --- |
+| Cargo.lock (依存のバージョンが全メンバーで揃う) | 各メンバーの `[dependencies]` (どの依存を使うかは各自が決める) |
+| target ディレクトリ (同じ依存を何度もビルドしない) | 各メンバーの `[package]` (名前やバージョン) |
+| `[workspace.*]` で定義したもの | `[features]` |
+
+`[profile.*]`、`[patch]` などは、ルートの Cargo.toml に書いたものだけが有効になる。メンバー側に書いても無視される (警告が出る)。
+
+### 依存関係を一括で管理する
+
+ルートの `[workspace.dependencies]` に依存を定義しておき、メンバーでは `workspace = true` で参照する。これで、依存のバージョンを1か所で管理できる。
+
+```toml
+# ルートの Cargo.toml
+[workspace.dependencies]
+serde = { version = "1", features = ["derive"] }
+anyhow = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+pretty_assertions = "1"
+```
+
+```toml
+# crates/my_cli/Cargo.toml (メンバー側)
+[dependencies]
+serde.workspace = true                          # ルートの定義をそのまま使う
+anyhow = { workspace = true }                   # 上と同じ意味の別の書き方
+tokio = { workspace = true, features = ["fs"] } # ルートのフィーチャに追加する
+
+[dev-dependencies]
+pretty_assertions.workspace = true              # dev-dependencies でも使える
+```
+
+メンバー側でできること・できないことは次の通り。
+
+| 書き方 | 可否 | 意味 |
+| --- | --- | --- |
+| `serde.workspace = true` | ○ | ルートの定義をそのまま使う |
+| `features = [...]` を足す | ○ | ルートのフィーチャに追加する (足し算のみ。減らせない) |
+| `optional = true` を付ける | ○ | そのメンバーだけ、オプションの依存にする |
+| `version = "..."` を書く | × | バージョンはルートで決める (エラー) |
+| `default-features = false` | ルートの設定が優先される | `default-features` はルートで決める |
+
+`cargo update` でバージョンを上げるときも、ルートの Cargo.lock がひとつなので、全メンバーがいっしょに更新される。
+
+#### 自作のメンバーも登録する
+
+メンバー同士の `path` の指定も、ルートに集約できる。
+
+```toml
+# ルートの Cargo.toml
+[workspace.dependencies]
+my_core = { path = "crates/my_core", version = "0.1.0" }
+```
+
+```toml
+# crates/my_cli/Cargo.toml
+[dependencies]
+my_core.workspace = true
+```
+
+`path` はルートからの相対パスで書く。メンバーからの相対パス (`../my_core`) を何度も書かずに済む。`version` を併記しておくと、crates.io に公開するときにも使える (後述)。
+
+### メタデータを共有する
+
+バージョン、エディション、ライセンスなど、全メンバーで同じにしたい `[package]` の項目は、`[workspace.package]` にまとめられる。
+
+```toml
+# ルートの Cargo.toml
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/example/my_workspace"
+rust-version = "1.85"
+```
+
+```toml
+# crates/my_core/Cargo.toml
+[package]
+name = "my_core"        # name は共有できない。メンバーごとに決める
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+```
+
+共有できるのは、`version`、`edition`、`authors`、`description`、`license`、`repository`、`rust-version`、`documentation`、`homepage`、`readme`、`keywords`、`categories`、`publish`、`exclude`、`include` など。`name` は共有できない。
+
+### リントを共有する
+
+clippy や rustc のリントの設定も、`[workspace.lints]` にまとめて、メンバーで取り込める。
+
+```toml
+# ルートの Cargo.toml
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+unwrap_used = "warn"
+```
+
+```toml
+# 各メンバーの Cargo.toml
+[lints]
+workspace = true
+```
+
+メンバーごとに `[lints]` を書かない限り、`[workspace.lints]` は自動では適用されない。各メンバーに `workspace = true` が必要になる。
+
+### プロファイル (ビルド設定)
+
+`[profile.release]` などは、ルートの Cargo.toml にだけ書く。全メンバーに同じ設定が適用される。
+
+```toml
+# ルートの Cargo.toml
+[profile.release]
+lto = true           # リンク時最適化。ビルドは遅くなるが、実行ファイルは速く小さくなる
+codegen-units = 1
+strip = true         # シンボル情報を取り除く
+```
+
+特定の依存だけ設定を変える `[profile.dev.package.クレート名]` も、ルートに書く。
+
+### ワークスペースでの cargo コマンド
+
+| コマンド | 説明 |
+| --- | --- |
+| `cargo build --workspace` | 全メンバーをビルドする (旧 `--all`) |
+| `cargo build -p my_cli`<br>`cargo build --package my_cli` | 指定した package (とその依存) だけをビルドする |
+| `cargo run -p my_cli` | 指定した package のバイナリを実行する |
+| `cargo test --workspace` | 全メンバーのテストを実行する |
+| `cargo test --workspace --exclude my_server` | 指定した package を除いて実行する |
+| `cargo test -p my_core` | 指定した package のテストだけを実行する |
+| `cargo clippy --workspace --all-targets` | 全メンバーを、テストなども含めて静的解析する |
+| `cargo fmt --all` | 全メンバーのコードを整形する |
+| `cargo add serde -p my_cli` | 指定した package に依存を追加する |
+| `cargo tree -p my_cli` | 指定した package の依存関係を表示する |
+| `cargo tree -d` | 複数のバージョンが混在している依存を表示する |
+| `cargo new crates/my_util --lib` | 新しいメンバーを追加する |
+
+仮想ワークスペースのルートで、`-p` なしで `cargo run` を実行すると、バイナリが複数あるため、どれを実行するか決まらずエラーになる。`-p` や `--bin` で指定するか、メンバーのディレクトリの中で実行する。
+
+### フィーチャの統合
+
+ワークスペースの中で、同じ依存を複数のメンバーが使っていて、それぞれが別のフィーチャを要求しているときは、同時にビルドされると、フィーチャが合算 (統合) された状態で1回だけビルドされる。
+
+```text
+my_cli    → tokio (features = ["fs"])
+my_server → tokio (features = ["net"])
+
+cargo build --workspace → tokio は fs と net の両方が有効
+cargo build -p my_cli   → tokio は fs だけが有効
+```
+
+このため、ビルド対象 (`--workspace` や `-p`) によって、依存のフィーチャが変わることがある。「ワークスペース全体のビルドでは通るのに、単体では必要なフィーチャが足りずにエラーになる」といった問題は、フィーチャが他のメンバーの分に頼っていることが原因。<br>
+各メンバーで、自分が使うフィーチャは自分の Cargo.toml に書く。
+
+`resolver` は、この統合の方法を決める設定。`"2"` 以降では、ターゲット別の依存、ビルドスクリプトや proc-macro の依存、dev-dependencies の分が、通常の依存のフィーチャに混ざらない。
+
+| `resolver` | 備考 |
+| --- | --- |
+| `"1"` | 旧来の方式。edition 2018 以前の既定 |
+| `"2"` | 上記の分離を行う。edition 2021 の既定 |
+| `"3"` | `"2"` に加えて、`rust-version` を考慮して依存のバージョンを選ぶ (Rust 1.84〜)。edition 2024 の既定 |
+
+仮想ワークスペースには edition がないので、`resolver` を明示する。
+
+### 公開 (publish)
+
+ワークスペースのメンバーは、それぞれが独立した package として、crates.io に公開できる。
+
+- 公開しないメンバー (アプリ本体、内部ツールなど) には、`publish = false` を付けておくと、間違って公開することを防げる。
+- `path` だけで指定した依存は、公開できない。公開するメンバーが依存する自作のクレートは、`version` も併記する (公開時は `path` が取り除かれ、`version` で参照される)。
+- 依存される側を先に公開する必要がある。`cargo publish -p my_core` のように、1つずつ公開する。1.90 以降は `cargo publish --workspace` で、依存の順にまとめて公開できる。
+- `cargo publish --dry-run -p my_core` で、事前に確認できる。
+
+### 分割の指針
+
+| 目的 | 向いている構成 |
+| --- | --- |
+| 同じ package の中で、実行ファイルを複数作りたい | `src/bin/` に複数の `.rs` を置く (依存・バージョンは共通) |
+| ロジックを使い回したい、依存やビルドを分けたい、公開する単位を分けたい | ワークスペースにして package を分ける |
+
+- メンバー同士の依存は一方向にする。循環する依存 (`a` が `b` に依存し、`b` が `a` に依存する) は、cargo がエラーにする。
+- 共通のロジックは library crate にして、`main.rs` だけを持つ薄い binary crate から使う構成にすると、見通しが良く、テストもしやすい (前述の「バイナリクレートとライブラリクレート」)。
+- 細かく分けすぎると、設定や公開の手間が増える。まずは「ロジックの library」と「入口の binary」の2つから始めて、必要になったら分ける。
+
 ---
 
 ## 制御フロー <a id="control-flow" data-name="制御フロー"></a>
@@ -7173,6 +7504,9 @@ pub fn add(a: i32, b: i32) -> i32 {
 | 糖衣構文 (Syntactic sugar) | 読みやすさのために用意された短い書き方。`if let` や `?` など |
 | エディション (Edition) | 後方互換性を壊す変更を取り込むための、言語の区切り (2015 / 2018 / 2021 / 2024) |
 | ワークスペース (Workspace) | 複数のパッケージを1つのプロジェクトとして管理する仕組み |
+| 仮想ワークスペース (Virtual workspace) | `[package]` を持たず、`[workspace]` だけを書いたルートの Cargo.toml。メンバーを束ねるだけの役割 |
+| マニフェスト (Manifest) | package の設定ファイル Cargo.toml |
+| フィーチャ (Feature) | `[features]` で定義する、コンパイル時に切り替えられる任意の機能 |
 
 ---
 
@@ -7249,7 +7583,7 @@ crates.io にパブリッシュして、自分のコードをクレートとし�
 ```toml
 # ルートの Cargo.toml
 [workspace]
-members = ["app", "core"]
+members = ["app", "my_core"]
 resolver = "2"
 
 [workspace.dependencies]
@@ -7258,8 +7592,10 @@ serde = "1"
 # app/Cargo.toml (メンバー側)
 [dependencies]
 serde = { workspace = true }
-core = { path = "../core" }
+my_core = { path = "../my_core" }
 ```
+
+メタデータやリントの共有、フィーチャの統合、公開の注意点などは、「パッケージ」の章の「ワークスペース」にまとめている。
 
 ---
 
